@@ -21,6 +21,14 @@ extension ItemView {
                     Text(firstGenre)
                 }
 
+                // La note se lit mieux ici, à côté du genre, qu'en bas de fiche.
+                if let rating = item.communityRating {
+                    Label(
+                        rating.formatted(.number.precision(.fractionLength(1))),
+                        systemImage: "star.fill"
+                    )
+                }
+
                 if let premiereYear = item.premiereDateYear {
                     Text(premiereYear)
                 }

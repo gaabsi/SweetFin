@@ -38,9 +38,11 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
     /// un `404` y est le cas normal pour un résultat TMDB jamais touché, et ne
     /// doit rien casser.
     override func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
-        guard let enriched = await enriched() else {
+        guard let media = await enrichedMedia() else {
             return try await _makeGroups(item: item, itemID: id)
         }
+
+        let enriched = Self.syntheticItem(from: media, mediaKey: mediaKey)
 
         // Réassigner `item` et pas seulement le passer à `_makeGroups` : l'en-tête
         // d'`ItemView` lit `provider.item`, et sans ça la fiche garderait la version
@@ -51,24 +53,33 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
         return try await _makeGroups(item: enriched, itemID: id)
     }
 
-    private func enriched() async -> BaseItemDto? {
+    private static func syntheticItem(
+        from media: EnhancedFinMedia,
+        mediaKey: String
+    ) -> BaseItemDto {
+        EnhancedFinSyntheticItem.make(
+            mediaKey: mediaKey,
+            title: media.title,
+            year: media.year,
+            overview: media.detail?.overview,
+            posterURL: media.posterUrl,
+            backdropURL: media.backdropUrl,
+            logoURL: media.logoUrl,
+            genres: media.genreNames,
+            rating: media.voteAverage,
+            cast: media.detail?.cast
+        )
+    }
+
+    private func enrichedMedia() async -> EnhancedFinMedia? {
         guard let client = userSession?.enhancedFinClient else { return nil }
 
         do {
-            // `enrich` : une fiche de découverte n'a pas de logo ni de synopsis
-            // tant que le média n'est pas au référentiel, et c'est précisément là
-            // qu'on en a besoin. La demande est explicite, donc la règle tient.
-            let media = try await client.media(mediaKey, detail: true, enrich: true)
-
-            return EnhancedFinSyntheticItem.make(
-                mediaKey: mediaKey,
-                title: media.title,
-                year: media.year,
-                overview: media.detail?.overview,
-                posterURL: media.posterUrl,
-                backdropURL: media.backdropUrl,
-                logoURL: media.logoUrl
-            )
+            // `enrich` : une fiche de découverte n'a ni logo, ni synopsis, ni
+            // casting tant que le média n'est pas au référentiel, et c'est
+            // précisément là qu'on en a besoin. La demande est explicite, donc la
+            // règle « un GET ne crée pas de données » tient.
+            return try await client.media(mediaKey, detail: true, enrich: true)
         } catch let problem as EnhancedFinProblem where problem.status == 404 {
             // Média hors référentiel : attendu, on garde ce qu'on a.
             return nil
