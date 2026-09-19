@@ -11,6 +11,7 @@ import FactoryKit
 import Foundation
 import JellyfinAPI
 import KeychainSwift
+import Logging
 import Pulse
 import UIKit
 
@@ -30,7 +31,7 @@ extension UserState {
     var accessToken: String {
         get {
             guard let accessToken = Container.shared.keychainService().get("\(id)-accessToken") else {
-                assertionFailure("access token missing in keychain")
+                Logger.swiftfin().warning("access token missing in keychain")
                 return ""
             }
 
