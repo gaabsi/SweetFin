@@ -13,14 +13,51 @@ extension ItemView {
 
     struct Description: View {
 
-        @Router
-        private var router
+        /// Le synopsis se déplie **sur place** au lieu d'ouvrir une page dédiée :
+        /// lire trois lignes de plus ne justifie pas de quitter la fiche, ni le
+        /// retour qu'il faut ensuite faire.
+        @State
+        private var isExpanded = false
 
         let item: BaseItemDto
 
         private var isPresented: Bool {
             item.taglines?.contains(where: \.isNotEmpty) == true ||
                 item.overview?.isNotEmpty == true
+        }
+
+        /// - Important: `SeeMoreText` est conservé dans les deux états, avec pour
+        ///   seule variation son `lineLimit`. Le remplacer par une autre vue au
+        ///   dépliage lui donnerait une nouvelle identité : ses mesures internes
+        ///   repartiraient de zéro, et la hauteur sauterait le temps d'une image
+        ///   avant de se stabiliser.
+        ///
+        ///   Déplié, il n'y a plus rien à tronquer : `SeeMoreText` retire son propre
+        ///   chevron de lui-même, et celui du repli prend sa place en dessous.
+        @ViewBuilder
+        private func overview(_ text: String) -> some View {
+            Button {
+                // Sans animation, à dessein. Le synopsis est à l'intérieur de
+                // l'en-tête, dont l'image est posée en parallaxe sur un ratio fixe :
+                // animer la hauteur fait recalculer ce décalage à chaque image, et
+                // le fond oscille. Un seul recalcul vaut mieux qu'une oscillation.
+                isExpanded.toggle()
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    SeeMoreText(text)
+                        .font(.footnote)
+                        .lineLimit(isExpanded ? nil : 3)
+
+                    if isExpanded {
+                        Image(systemName: "chevron.up")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .accessibilityLabel(ExplorerStrings.seeLess)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
         }
 
         var body: some View {
@@ -35,14 +72,7 @@ extension ItemView {
 
                     if let itemOverview = item.overview, itemOverview.isNotEmpty {
                         InlinePlatformView {
-                            Button {
-                                router.route(to: .itemOverview(item: item))
-                            } label: {
-                                SeeMoreText(itemOverview)
-                                    .font(.footnote)
-                                    .lineLimit(3)
-                            }
-                            .buttonStyle(.plain)
+                            overview(itemOverview)
                         } tvOSView: {
                             Text(itemOverview)
                                 .font(.footnote)
