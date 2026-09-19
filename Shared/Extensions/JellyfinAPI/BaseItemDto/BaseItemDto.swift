@@ -446,7 +446,10 @@ extension BaseItemDto {
     var premiereDateYear: String? {
         guard let premiereDate else { return nil }
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "YYYY"
+        // `yyyy` et non `YYYY` : ce dernier est l'année ISO calée sur les semaines,
+        // qui décale d'un an les dates de fin décembre et début janvier — le
+        // 1er janvier 1999 tombant dans la semaine 53 de 1998.
+        dateFormatter.dateFormat = "yyyy"
         return dateFormatter.string(from: premiereDate)
     }
 
