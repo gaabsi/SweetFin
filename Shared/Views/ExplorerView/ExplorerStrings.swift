@@ -42,4 +42,19 @@ enum ExplorerStrings {
 
     static let follow = "Suivre"
     static let unfollow = "Ne plus suivre"
+
+    /// Pendant de `L10n.seeMore`, qui n'a pas d'équivalent inverse en amont.
+    static let seeLess = "Voir moins"
+
+    static let filmography = "Filmographie"
+    static let sortByPopularity = "Popularité"
+    static let sortByDate = "Date"
+    static let allTypes = "Tout"
+    static let moviesOnly = "Films"
+    static let seriesOnly = "Séries"
+    static let personUnavailableMessage = """
+    Cette personne n'a pas d'identifiant TMDB dans ta bibliothèque Jellyfin. \
+    Rafraîchis les métadonnées de l'un de ses médias pour qu'il soit renseigné.
+    """
+    static let pluginUnavailableMessage = "Ce serveur n'expose pas le plugin EnhancedFin."
 }
