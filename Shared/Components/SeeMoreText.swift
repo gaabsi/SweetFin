@@ -40,12 +40,17 @@ struct SeeMoreText: View {
         self.isTruncatedBinding = isTruncated
     }
 
+    /// Un chevron plutôt que le mot « voir plus » : l'icône tient dans un coin de
+    /// texte sans en manger trois mots, et se lit sans être traduite.
+    ///
+    /// Le libellé reste porté par l'accessibilité — un chevron seul ne dit rien à
+    /// VoiceOver.
     @ViewBuilder
     private var seeMoreText: some View {
-        Text(L10n.seeMore)
-            .textCase(.uppercase)
+        Image(systemName: "chevron.down")
+            .font(.caption)
             .fontWeight(.semibold)
-            .lineLimit(1, reservesSpace: false)
+            .accessibilityLabel(L10n.seeMore)
     }
 
     var body: some View {
