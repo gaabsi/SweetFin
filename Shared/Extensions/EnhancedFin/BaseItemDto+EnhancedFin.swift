@@ -24,7 +24,14 @@ extension BaseItemDto {
     /// pas représenter.
     var enhancedFinMediaKey: String? {
         if let id, id.hasPrefix(EnhancedFinSyntheticItem.idPrefix) {
-            return String(id.dropFirst(EnhancedFinSyntheticItem.idPrefix.count))
+            let key = String(id.dropFirst(EnhancedFinSyntheticItem.idPrefix.count))
+
+            // Valider le préfixe et pas seulement le retirer : les personnes
+            // synthétiques portent `enhancedfin:person:{id}`, qui donnerait la clé
+            // `person:6384`. Les boutons noter, watchlist et suivre apparaîtraient
+            // alors sur la fiche d'un acteur, et enverraient une clé que le serveur
+            // rejette.
+            return EnhancedFinMediaType(mediaKey: key) == nil ? nil : key
         }
 
         guard let tmdbID = providerIDs?["Tmdb"], Int(tmdbID) != nil else { return nil }
