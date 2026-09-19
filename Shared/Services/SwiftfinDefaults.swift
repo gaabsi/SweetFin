@@ -142,7 +142,8 @@ extension Defaults.Keys {
         }
 
         static var shouldShowRecommendations: Key<Bool> {
-            UserKey("shouldShowRecommendations", default: true)
+            // Fork : les recommandations sont masquées par défaut.
+            UserKey("shouldShowRecommendations", default: false)
         }
 
         static var shouldShowMissingSeasons: Key<Bool> {
