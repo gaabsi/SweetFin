@@ -97,6 +97,19 @@ extension BaseItemDto {
     ) -> URL? {
         guard let itemID else { return nil }
 
+        // Items synthétiques de l'Explorer : leurs images viennent de TMDB par URL
+        // absolue, pas du serveur Jellyfin. Consulter le registre en premier fait
+        // que tous les composants natifs les affichent sans rien savoir de leur
+        // origine. Aucun effet sur les items réels : le registre est vide pour eux.
+        if let external = EnhancedFinImageRegistry.shared.url(for: itemID, type: type) {
+            return external
+        }
+
+        // Le registre n'a pas ce type d'image (.thumb, .banner…) pour cet item. S'il
+        // est synthétique, continuer fabriquerait une URL serveur sur l'identifiant
+        // `enhancedfin:…`, que Jellyfin ne connaît pas : une requête vouée au 404.
+        guard !EnhancedFinSyntheticItem.isSynthetic(itemID) else { return nil }
+
         // TODO: put into environment?
         let scale = UITraitCollection.current.displayScale
 

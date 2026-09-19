@@ -102,13 +102,15 @@ extension TabItem {
         }
     }
 
+    /// Remplace l'ancien onglet « Médias » (liste des bibliothèques) par l'Explorer
+    /// alimenté par le plugin EnhancedFin.
     static var media: TabItem {
         TabItem(
             id: "media",
-            title: L10n.media,
-            systemImage: "rectangle.stack.fill"
+            title: ExplorerStrings.explore,
+            systemImage: "safari"
         ) {
-            PagingLibraryView(library: UserViewLibrary())
+            ExplorerView()
                 .if(UIDevice.isTV) { view in
                     view.toolbar(.hidden, for: .navigationBar)
                 }

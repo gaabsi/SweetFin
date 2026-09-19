@@ -11,7 +11,9 @@ import Get
 import JellyfinAPI
 import SwiftUI
 
-final class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
+// `class` et non `final class` : `ExplorerItemProvider` en hérite pour rendre la
+// même vue à partir de données TMDB, sans interroger le serveur.
+class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
 
     @Published
     private(set) var item: BaseItemDto
@@ -43,6 +45,16 @@ final class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         super.init()
     }
 
+    /// Remplace l'item publié, sans passer par `getFullItem`.
+    ///
+    /// `item` est `private(set)` : une sous-classe qui construit sa fiche depuis
+    /// une autre source (ici TMDB via EnhancedFin) ne peut pas le réassigner, et
+    /// l'en-tête d'`ItemView` — qui lit `provider.item` — resterait sur la version
+    /// pauvre reçue à l'initialisation.
+    func replaceItem(_ newItem: BaseItemDto) {
+        item = newItem
+    }
+
     func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
         let userSession = try requireUserSession()
         let fullItem = try await item.getFullItem(userSession: userSession, sendNotification: true)
@@ -65,7 +77,7 @@ final class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     }
 
     @ContentGroupBuilder
-    private func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
+    func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
 
         if let birthday = item.birthday?.formatted(date: .long, time: .omitted) {
             LabeledContentGroup(
