@@ -9,7 +9,10 @@
 import Defaults
 import SwiftUI
 
-private struct ItemActionButtonLabelStyle: LabelStyle {
+// `internal` et non `private` : le bouton de note EnhancedFin le repose avec la
+// couleur de la note en cours, que `ItemActionButton.activeColor` ne peut pas
+// connaître puisqu'elle est statique sur le cas de l'enum.
+struct ItemActionButtonLabelStyle: LabelStyle {
 
     @Environment(\.isSelected)
     private var isSelected
@@ -97,6 +100,12 @@ struct ItemActionButtons: View {
         case .editMetadata:
             provider.item.canEditMetadata
         #endif
+        case .enhancedFinRating, .enhancedFinWatchlist:
+            provider.item.enhancedFinMediaKey != nil
+        case .enhancedFinFollow:
+            // Suivre n'a de sens que pour une série : le calendrier suit des
+            // sorties d'épisodes.
+            provider.item.type == .series && provider.item.enhancedFinMediaKey != nil
         }
     }
 
@@ -152,6 +161,8 @@ struct ItemActionButtons: View {
             case .editMetadata:
                 Edit()
             #endif
+            case .enhancedFinRating, .enhancedFinWatchlist, .enhancedFinFollow:
+                EnhancedFinButton(button: button)
             }
         }
         .symbolRenderingMode(.monochrome)

@@ -21,6 +21,12 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
     case editMetadata
     #endif
 
+    // Fork : actions EnhancedFin. Disponibles seulement si l'item a une clé
+    // EnhancedFin, c'est-à-dire un identifiant TMDB et un type représentable.
+    case enhancedFinRating
+    case enhancedFinWatchlist
+    case enhancedFinFollow
+
     var displayTitle: String {
         switch self {
         case .played:
@@ -41,6 +47,12 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         case .editMetadata:
             L10n.edit
         #endif
+        case .enhancedFinRating:
+            ExplorerStrings.rate
+        case .enhancedFinWatchlist:
+            ExplorerStrings.watchlistButton
+        case .enhancedFinFollow:
+            ExplorerStrings.follow
         }
     }
 
@@ -68,6 +80,12 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         case .editMetadata:
             "pencil"
         #endif
+        case .enhancedFinRating:
+            "heart.fill"
+        case .enhancedFinWatchlist:
+            "bookmark.fill"
+        case .enhancedFinFollow:
+            "bell.fill"
         }
     }
 
@@ -75,6 +93,12 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         switch self {
         case .favorited:
             "heart"
+        case .enhancedFinRating:
+            "heart"
+        case .enhancedFinWatchlist:
+            "bookmark"
+        case .enhancedFinFollow:
+            "bell"
         default:
             systemImage
         }
@@ -86,19 +110,31 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             .jellyfinPurple
         case .favorited:
             .pink
+        case .enhancedFinRating:
+            .orange
+        case .enhancedFinWatchlist:
+            .teal
+        case .enhancedFinFollow:
+            .indigo
         default:
             nil
         }
     }
 
+    // Fork : la note et la watchlist prennent la place des favoris et de la
+    // lecture dans la barre — ce sont les gestes du quotidien ici. Les autres
+    // restent accessibles par le menu, et l'ordre est modifiable dans les réglages.
     static let defaultBarActionButtons: [ItemActionButton] = [
-        .played,
-        .favorited,
-        .trailers,
-        .playback
+        .enhancedFinRating,
+        .enhancedFinWatchlist,
+        .enhancedFinFollow,
+        .played
     ]
 
     static let defaultMenuActionButtons: [ItemActionButton] = [
+        .favorited,
+        .trailers,
+        .playback,
         .refresh,
         .subtitles,
         .delete
