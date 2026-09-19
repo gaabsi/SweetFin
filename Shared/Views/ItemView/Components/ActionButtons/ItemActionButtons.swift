@@ -103,9 +103,9 @@ struct ItemActionButtons: View {
         case .enhancedFinRating, .enhancedFinWatchlist:
             provider.item.enhancedFinMediaKey != nil
         case .enhancedFinFollow:
-            // Suivre n'a de sens que pour une série : le calendrier suit des
-            // sorties d'épisodes.
-            provider.item.type == .series && provider.item.enhancedFinMediaKey != nil
+            // Films compris : le plugin enregistre la date de sortie d'un film au
+            // calendrier, comme une série y enregistre ses épisodes.
+            provider.item.enhancedFinMediaKey != nil
         }
     }
 
