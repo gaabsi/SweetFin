@@ -39,6 +39,10 @@ struct EnhancedFinRating: Decodable, Hashable, Identifiable {
     let title: String
     let year: Int?
     let posterUrl: String?
+
+    /// Sert à la fiche : sans image de fond, `ItemView` retombe sur son en-tête
+    /// simple avant même que l'enrichissement ait eu lieu.
+    let backdropUrl: String?
     let inLibrary: Bool
     let jellyfinId: String?
 
@@ -56,6 +60,7 @@ struct EnhancedFinPendingRating: Decodable, Hashable, Identifiable {
     let title: String
     let year: Int?
     let posterUrl: String?
+    let backdropUrl: String?
     let watchedEpisodes: Int
     let lastWatchedAt: String
     let inLibrary: Bool
@@ -182,9 +187,10 @@ enum EnhancedFinMediaType: String, CaseIterable, Hashable {
 
 /// Réponse de `GET /media/{mediaKey}`.
 ///
-/// `genres` arrive en **identifiants TMDB numériques**, pas en noms : le plugin ne
-/// résout pas encore le libellé. Les afficher tels quels donnerait « 12, 18, 878 »,
-/// donc on s'en abstient jusqu'à ce que le serveur expose les noms.
+/// `genres` porte les **identifiants TMDB numériques**, `genreNames` les libellés,
+/// que le serveur résout désormais depuis son référentiel. Les deux listes sortent
+/// dans le même ordre, celui de `genre_id` — c'est `genreNames` qu'on affiche,
+/// `genres` restant pour le front JS historique.
 struct EnhancedFinMedia: Decodable, Hashable {
 
     let mediaKey: String
@@ -196,6 +202,19 @@ struct EnhancedFinMedia: Decodable, Hashable {
     let backdropUrl: String?
     let logoUrl: String?
     let genres: [Int]?
+
+    /// Noms des genres, résolus par le serveur depuis son référentiel TMDB.
+    ///
+    /// Peut être plus courte que ``genres`` : un genre dont le nom n'a jamais été
+    /// vu est écarté plutôt que rendu comme un trou. L'ordre, lui, est le même.
+    let genreNames: [String]?
+
+    /// Note TMDB sur 10. Absente quand personne n'a voté : le serveur ne stocke
+    /// pas un 0 qui se lirait comme un mauvais film.
+    ///
+    /// `voteCount` est bien émis par le serveur, mais n'est pas décodé : aucun
+    /// écran ne l'affiche, et un champ décodé sans être lu se paie en entretien.
+    let voteAverage: Double?
     let me: EnhancedFinMediaMe
     let detail: EnhancedFinMediaDetail?
 }
@@ -217,6 +236,92 @@ struct EnhancedFinMediaMe: Decodable, Hashable {
 struct EnhancedFinMediaDetail: Decodable, Hashable {
 
     let overview: String?
+
+    /// Les vingt premiers rôles, dans l'ordre d'affiche de TMDB.
+    let cast: [EnhancedFinCastMember]?
+
+    private enum CodingKeys: String, CodingKey {
+        case overview
+        case cast
+    }
+
+    /// Décodage écrit à la main pour **isoler** le casting.
+    ///
+    /// Le serveur filtre désormais les castings hérités de l'ancien plugin, mais on
+    /// ne veut pas que ce filtre soit la seule protection : un casting illisible ne
+    /// doit jamais faire tomber son parent. Décodé par l'init synthétisé, un seul
+    /// `id` en chaîne faisait échouer ``EnhancedFinMediaDetail``, donc
+    /// ``EnhancedFinMedia`` en entier — la fiche perdait logo, image de fond,
+    /// genres, note et synopsis, sans aucun message.
+    ///
+    /// `try?` ici et pas ailleurs : c'est le seul champ dont l'absence est
+    /// préférable à l'échec.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        overview = try container.decodeIfPresent(String.self, forKey: .overview)
+        cast = try? container.decodeIfPresent([EnhancedFinCastMember].self, forKey: .cast)
+    }
+}
+
+/// Un rôle du casting.
+struct EnhancedFinCastMember: Decodable, Hashable, Identifiable {
+
+    let id: Int
+    let name: String?
+    let character: String?
+    let profileUrl: String?
+}
+
+// MARK: - Personne
+
+/// Une personne et sa filmographie complète — `GET /person/{tmdbId}`.
+///
+/// Rien n'est stocké côté serveur : la réponse est construite à la demande depuis
+/// TMDB, enrichie de ce que porte la bibliothèque et de mon état.
+struct EnhancedFinPerson: Decodable, Hashable {
+
+    let tmdbId: Int
+    let name: String
+    let profileUrl: String?
+    let biography: String?
+
+    /// Dates au format `AAAA-MM-JJ`, telles que TMDB les rend.
+    let birthday: String?
+    let deathday: String?
+    let placeOfBirth: String?
+
+    let credits: [EnhancedFinPersonCredit]
+    let total: Int
+}
+
+/// Un média auquel la personne a participé.
+struct EnhancedFinPersonCredit: Decodable, Hashable, Identifiable, EnhancedFinPosterItem {
+
+    let mediaKey: String
+    let mediaType: String
+    let title: String
+    let year: Int?
+    let posterUrl: String?
+
+    /// Le personnage joué, ou le poste occupé pour l'équipe technique.
+    let role: String?
+
+    let inLibrary: Bool
+    let jellyfinId: String?
+    let rating: Int?
+
+    /// Score TMDB. Renvoyé par le serveur pour que le tri par popularité se fasse
+    /// sur la donnée réelle, sans nouvel appel.
+    let popularity: Double
+
+    var id: String { mediaKey }
+
+    var posterRatingScore: Int? { rating }
+
+    /// Le rôle prime sur l'année : sur une filmographie, savoir *ce qu'il y jouait*
+    /// est plus utile que la date, déjà donnée par l'ordre chronologique.
+    var subtitle: String? { role ?? year.map(String.init) }
 }
 
 // MARK: - Erreurs

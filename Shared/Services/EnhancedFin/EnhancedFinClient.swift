@@ -100,6 +100,19 @@ final class EnhancedFinClient {
         )
     }
 
+    // MARK: - Personne
+
+    /// Filmographie complète d'une personne, sur le serveur ou non.
+    ///
+    /// Lève un ``EnhancedFinProblem`` de statut `404` si TMDB ne connaît pas
+    /// l'identifiant.
+    ///
+    /// - Parameter tmdbID: identifiant TMDB de la personne, pas son identifiant
+    ///   Jellyfin — les deux n'ont aucun rapport.
+    func person(_ tmdbID: Int) async throws -> EnhancedFinPerson {
+        try await send(Request(path: "person/\(tmdbID)"))
+    }
+
     // MARK: - Watchlist
 
     /// Ma watchlist, les ajouts les plus récents d'abord.
