@@ -24,6 +24,14 @@ final class UserSession {
         sessionDelegate: URLSessionProxyDelegate(logger: NetworkLogger.swiftfin())
     )
 
+    /// Client du plugin EnhancedFin (données utilisateur : notes, watchlist,
+    /// reprise, suivis). API distincte du `JellyfinClient` ci-dessus, sur le
+    /// même hôte et avec le même jeton.
+    lazy var enhancedFinClient = EnhancedFinClient(
+        serverURL: server.effectiveServerURL,
+        accessToken: user.accessToken
+    )
+
     @MainActor
     lazy var serverConnectionManager = ServerConnectionManager()
 
