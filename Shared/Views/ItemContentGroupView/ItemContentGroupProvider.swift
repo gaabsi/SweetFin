@@ -76,29 +76,40 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         )
     }
 
-    @ContentGroupBuilder
-    func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
+    /// Fork : le bloc état civil d'une personne, extrait de `_makeGroups`.
+    ///
+    /// `ExplorerPersonProvider` n'appelle pas `_makeGroups` — celui-ci demanderait
+    /// au serveur la filmographie d'un identifiant synthétique qu'il ne connaît
+    /// pas — mais a besoin de ces trois lignes. Les recopier là-bas les faisait
+    /// exister en double.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : item de type `.person`
+    ///
+    /// Output :
+    /// - groups ([any ContentGroup]) : naissance, décès, lieu ; vide pour un média
+    static func personContentGroups(for item: BaseItemDto) -> [any ContentGroup] {
+        var groups: [any ContentGroup] = []
 
         if let birthday = item.birthday?.formatted(date: .long, time: .omitted) {
-            LabeledContentGroup(
-                L10n.born,
-                value: birthday
-            )
+            groups.append(LabeledContentGroup(L10n.born, value: birthday))
         }
 
         if let deathday = item.deathday?.formatted(date: .long, time: .omitted) {
-            LabeledContentGroup(
-                L10n.died,
-                value: deathday
-            )
+            groups.append(LabeledContentGroup(L10n.died, value: deathday))
         }
 
         if let birthplace = item.birthplace {
-            LabeledContentGroup(
-                L10n.birthplace,
-                value: birthplace
-            )
+            groups.append(LabeledContentGroup(L10n.birthplace, value: birthplace))
         }
+
+        return groups
+    }
+
+    @ContentGroupBuilder
+    func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
+
+        Self.personContentGroups(for: item)
 
         switch item.type {
         case .season, .series:
@@ -246,11 +257,15 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
         }
 
-        AboutItemGroup(
-            displayTitle: L10n.about,
-            id: "about",
-            item: item
-        )
+        // Fork : « À propos » ne s'affiche nulle part. Sa carte de description
+        // répétait le synopsis déjà en en-tête, et les informations de fichier
+        // (codecs, pistes) seront exposées ailleurs — pas sur la fiche.
+        //
+        // `AboutItemGroup` reste en place, simplement plus émis — et avec lui
+        // `ItemOverview` et la route `.itemOverview`, dont il était le seul
+        // appelant : le synopsis se déplie maintenant sur place dans
+        // `ItemView.Description`. Les trois sont donc du code mort côté fork,
+        // laissés intacts pour que le rebase sur l'upstream reste indolore.
     }
 
     func toggleIsFavorite() async {

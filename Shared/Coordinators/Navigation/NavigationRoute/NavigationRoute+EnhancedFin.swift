@@ -27,4 +27,22 @@ extension NavigationRoute {
             ItemView(provider: provider)
         }
     }
+
+    /// Fiche d'une personne, avec sa filmographie complète.
+    ///
+    /// L'identifiant TMDB n'est pas résolu ici : il demande parfois une requête, et
+    /// la route doit partir sans attendre. `ExplorerPersonProvider` s'en charge, et
+    /// affiche l'échec s'il y en a un — y compris « pas d'identifiant TMDB », qui
+    /// n'a donc plus besoin de sa route dédiée.
+    @MainActor
+    static func explorerPerson(person: BaseItemPerson) -> NavigationRoute {
+        let provider = ExplorerPersonProvider(person: person)
+
+        return NavigationRoute(
+            id: "explorer-person-\(person.id ?? person.name ?? "")",
+            withNamespace: { .push(.zoom(sourceID: "item", namespace: $0)) }
+        ) {
+            ItemView(provider: provider)
+        }
+    }
 }
