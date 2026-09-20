@@ -120,6 +120,20 @@ extension TabItem {
         }
     }
 
+    // EnhancedFin : les sorties des médias suivis, à leur date.
+    static var calendar: TabItem {
+        TabItem(
+            id: "enhancedfin-calendar",
+            title: CalendarStrings.calendar,
+            systemImage: "calendar"
+        ) {
+            CalendarView()
+                .if(UIDevice.isTV) { view in
+                    view.toolbar(.hidden, for: .navigationBar)
+                }
+        }
+    }
+
     static var liveTV: TabItem {
         TabItem(
             id: "live-tv",

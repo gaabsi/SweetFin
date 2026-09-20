@@ -43,6 +43,7 @@ struct MainTabView: View {
             // plus aucune tuile ne porte `.search`, donc la capsule de recherche
             // flottante disparaît de la barre.
             TabItem.media
+            TabItem.calendar
         }
         #else
         TabCoordinator {
