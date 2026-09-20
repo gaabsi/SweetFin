@@ -76,9 +76,6 @@ struct FilmographyGroup: ContentGroup {
 
     struct Body: View {
 
-        @Router
-        private var router
-
         /// La popularité par défaut : sur une filmographie, on cherche d'abord les
         /// rôles qu'on reconnaît, pas le dernier tournage en date.
         @State
@@ -186,36 +183,11 @@ struct FilmographyGroup: ContentGroup {
                     .edgePadding(.horizontal)
                 }
 
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 110), spacing: 12)],
-                    spacing: 16
-                ) {
-                    ForEach(visible) { credit in
-                        PosterButton(
-                            item: credit,
-                            displayType: .portrait,
-                            size: .small
-                        ) { namespace in
-                            open(credit, in: namespace)
-                        }
-                    }
-                }
-                .edgePadding(.horizontal)
+                // Même grille et même règle d'ouverture que le reste de l'Explorer
+                // — en bibliothèque la fiche native, sinon la fiche de découverte.
+                ExplorerPosterGrid(items: visible)
             }
             .padding(.bottom, 24)
-        }
-
-        /// Même règle que partout ailleurs : en bibliothèque, la fiche native ;
-        /// sinon, la fiche de découverte.
-        private func open(_ credit: EnhancedFinPersonCredit, in namespace: Namespace.ID) {
-            if let jellyfinItem = credit.jellyfinItem {
-                router.route(to: .item(item: jellyfinItem), in: namespace)
-            } else {
-                router.route(
-                    to: .explorerItem(mediaKey: credit.mediaKey, item: credit.syntheticItem),
-                    in: namespace
-                )
-            }
         }
     }
 }

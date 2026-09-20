@@ -46,6 +46,24 @@ enum ExplorerStrings {
     /// Pendant de `L10n.seeMore`, qui n'a pas d'équivalent inverse en amont.
     static let seeLess = "Voir moins"
 
+    /// Catégories de la watchlist et filtres des tendances partagent leurs
+    /// libellés avec la filmographie (`allTypes`, `moviesOnly`, `seriesOnly`) :
+    /// ce sont les mêmes mots pour les mêmes choses. Seuls les animés s'y ajoutent.
+    static let animesOnly = "Animés"
+
+    static let trending = "Tendances"
+
+    /// Tuile d'une catégorie de watchlist sans aucun média.
+    static let categoryEmpty = "Vide"
+
+    /// Titre de l'écran ouvert depuis une tuile de catégorie.
+    ///
+    /// Parametres :
+    /// - category (String) : libellé de la catégorie
+    static func watchlistCategory(_ category: String) -> String {
+        "Ma watchlist · \(category)"
+    }
+
     static let filmography = "Filmographie"
     static let sortByPopularity = "Popularité"
     static let sortByDate = "Date"

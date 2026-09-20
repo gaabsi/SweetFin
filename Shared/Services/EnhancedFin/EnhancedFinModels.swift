@@ -97,6 +97,14 @@ struct EnhancedFinWatchlistItem: Decodable, Hashable, Identifiable {
     let inLibrary: Bool
     let jellyfinId: String?
 
+    /// Identifiants de genre TMDB, qui permettent de répartir la watchlist en
+    /// catégories sans la redemander au serveur.
+    ///
+    /// Optionnel bien que le serveur l'émette toujours : le rendre obligatoire
+    /// ferait échouer le décodage de **toute la liste** le jour où il cesserait de
+    /// l'émettre, alors qu'ici son absence ne coûte qu'un classement par défaut.
+    let genreIds: [Int]?
+
     var id: String { mediaKey }
 }
 
@@ -183,6 +191,39 @@ enum EnhancedFinMediaType: String, CaseIterable, Hashable {
     }
 }
 
+// MARK: - Tendances
+
+/// Les quatre vues du classement TMDB de la semaine.
+///
+/// ``all`` est le défaut, comme sur le front web : c'est la seule qui ordonne films
+/// et séries **entre eux**, le classement étant commun. Les trois autres sont des
+/// découpes de ce même classement, appliquées côté serveur.
+enum EnhancedFinTrendingFilter: String, CaseIterable, Identifiable, Hashable {
+
+    case all
+    case movie
+    case tv
+    /// Série d'animation. Un film d'animation reste dans ``movie`` — c'est la règle
+    /// du front web, et celle que les gens ont en tête.
+    case anime
+
+    var id: String { rawValue }
+}
+
+/// Une page de tendances — `GET /trending`.
+///
+/// Pas de `total` : le classement n'a pas de cardinalité connue, et ``nextCursor``
+/// porte la seule information utile. Absent, il n'y a plus rien à charger.
+///
+/// ⚠️ ``nextCursor`` désigne une **page TMDB**, pas un rang. Le serveur en consomme
+/// parfois plusieurs pour remplir un filtre rare, d'où des sauts de cinq d'un appel
+/// à l'autre. Le renvoyer tel quel est la seule façon de reprendre au bon endroit.
+struct EnhancedFinTrendingPage: Decodable {
+
+    let items: [EnhancedFinSearchItem]
+    let nextCursor: Int?
+}
+
 // MARK: - Fiche média
 
 /// Réponse de `GET /media/{mediaKey}`.
@@ -211,10 +252,11 @@ struct EnhancedFinMedia: Decodable, Hashable {
 
     /// Note TMDB sur 10. Absente quand personne n'a voté : le serveur ne stocke
     /// pas un 0 qui se lirait comme un mauvais film.
-    ///
-    /// `voteCount` est bien émis par le serveur, mais n'est pas décodé : aucun
-    /// écran ne l'affiche, et un champ décodé sans être lu se paie en entretien.
     let voteAverage: Double?
+
+    /// Nombre de votes TMDB, qui qualifie ``voteAverage`` — un 9,2 sur douze votes
+    /// ne vaut pas un 8,1 sur quarante mille. Décodé sans être encore affiché.
+    let voteCount: Int?
     let me: EnhancedFinMediaMe
     let detail: EnhancedFinMediaDetail?
 }

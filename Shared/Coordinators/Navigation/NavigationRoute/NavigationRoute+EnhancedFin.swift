@@ -9,7 +9,64 @@
 import JellyfinAPI
 import SwiftUI
 
+// `Router.Wrapper` et non `NavigationCoordinator.Router` : c'est ce que le
+// property wrapper `@Router` expose aux vues.
+extension Router.Wrapper {
+
+    /// Ouvre la fiche d'un item EnhancedFin, sur le serveur ou non.
+    ///
+    /// En bibliothèque : la fiche native, avec lecture et épisodes. Sinon la même
+    /// vue, nourrie par TMDB, bouton Lire grisé.
+    ///
+    /// Ici et non dans chaque écran : la règle était recopiée dans `ExplorerView` et
+    /// `FilmographyGroup`, et chaque nouvelle liste en ajoutait une copie. Un écart
+    /// entre elles n'aurait produit aucune erreur de compilation — juste une liste
+    /// qui ouvre la mauvaise fiche.
+    ///
+    /// Parametres :
+    /// - item (EnhancedFinLibraryLinkable) : item tapé
+    /// - namespace (Namespace.ID) : espace de la transition
+    func openEnhancedFin(_ item: some EnhancedFinLibraryLinkable, in namespace: Namespace.ID) {
+        if let jellyfinItem = item.jellyfinItem {
+            route(to: .item(item: jellyfinItem), in: namespace)
+        } else {
+            route(to: .explorerItem(mediaKey: item.mediaKey, item: item.syntheticItem), in: namespace)
+        }
+    }
+}
+
 extension NavigationRoute {
+
+    /// Un rayon de watchlist en pleine page.
+    ///
+    /// Les items sont passés tels quels : l'Explorer les a déjà chargés, et les
+    /// redemander afficherait un écran vide le temps d'une requête pour un contenu
+    /// déjà en main.
+    @MainActor
+    static func explorerWatchlist(
+        filter: WatchlistFilter,
+        items: [EnhancedFinWatchlistItem]
+    ) -> NavigationRoute {
+        NavigationRoute(id: "explorer-watchlist-\(filter.rawValue)") {
+            ExplorerPosterGrid(title: filter.pageTitle, items: items)
+        }
+    }
+
+    /// Tout ce qui reste à noter, quand l'aperçu de l'Explorer ne suffit plus.
+    @MainActor
+    static func explorerPending(items: [EnhancedFinPendingRating]) -> NavigationRoute {
+        NavigationRoute(id: "explorer-pending") {
+            ExplorerPosterGrid(title: ExplorerStrings.toRate, items: items)
+        }
+    }
+
+    /// Toutes mes notes, quand l'aperçu de l'Explorer ne suffit plus.
+    @MainActor
+    static func explorerRatings(items: [EnhancedFinRating]) -> NavigationRoute {
+        NavigationRoute(id: "explorer-ratings") {
+            ExplorerPosterGrid(title: ExplorerStrings.myRatings, items: items)
+        }
+    }
 
     /// Fiche d'un média absent de la bibliothèque.
     ///

@@ -11,9 +11,8 @@ import SwiftUI
 
 /// Alimente l'onglet Explorer depuis le plugin EnhancedFin.
 ///
-/// Reprend les sections de l'onglet Explorer du front web : recherche, « à noter »,
-/// watchlist, puis mes notes. Les tendances viendront quand le plugin exposera un
-/// endpoint de découverte.
+/// Reprend les sections de l'onglet Explorer du front web, dans son ordre :
+/// recherche, « à noter », watchlist, tendances, mes notes.
 @MainActor
 final class ExplorerViewModel: ViewModel {
 
@@ -44,16 +43,69 @@ final class ExplorerViewModel: ViewModel {
     ///
     /// Sans elle, une panne réseau se présentait comme « Aucun résultat » : le
     /// même écran pour « ce titre n'existe pas » et « le serveur n'a pas répondu ».
-    /// `refresh()` fait déjà cette distinction, la recherche s'y aligne.
     @Published
     private(set) var searchError: Error?
 
+    // MARK: - Tendances
+
+    @Published
+    private(set) var trendingFilter: EnhancedFinTrendingFilter = .all
+
+    @Published
+    private(set) var isLoadingTrending = false
+
+    /// Ce qui est déjà chargé pour chaque filtre.
+    ///
+    /// Un état **par filtre** et non un seul remis à zéro : revenir sur « Tout »
+    /// après un détour par « Animés » doit retrouver la liste et sa position, pas
+    /// relancer un appel pour réafficher ce qu'on avait déjà.
+    private struct TrendingFeed {
+
+        var items: [EnhancedFinSearchItem] = []
+
+        /// Clés déjà affichées.
+        ///
+        /// ⚠️ **Indispensable côté client.** Le serveur est sans état : son curseur
+        /// désigne une page TMDB, et TMDB rejoue le même titre d'une page à l'autre
+        /// quand son classement bouge (mesuré : ~14 % de répétitions sur « Tout »).
+        /// Personne d'autre que nous ne peut écarter ces doublons.
+        var seen: Set<String> = []
+
+        /// Page à demander pour la suite. `nil` avec ``hasLoaded`` signifie « fini ».
+        var cursor: Int?
+
+        var hasLoaded = false
+    }
+
+    @Published
+    private var feeds: [EnhancedFinTrendingFilter: TrendingFeed] = [:]
+
+    /// Les tendances du filtre courant.
+    var trending: [EnhancedFinSearchItem] {
+        feeds[trendingFilter]?.items ?? []
+    }
+
+    /// Reste-t-il des pages à charger pour le filtre courant ?
+    var canLoadMoreTrending: Bool {
+        guard let feed = feeds[trendingFilter] else { return true }
+        return feed.cursor != nil || !feed.hasLoaded
+    }
+
     private var searchTask: Task<Void, Never>?
 
-    /// Charge les trois sections en parallèle.
+    /// Chargement de tendances en cours, mémorisé pour n'en garder **qu'un** en vol.
     ///
-    /// Une section en échec ne doit pas vider les deux autres : chacune est isolée,
-    /// et l'erreur n'est retenue que si tout échoue.
+    /// Un booléen ne suffirait pas : le défilement déclenche plusieurs demandes
+    /// avant la première suspension, elles franchiraient toutes le garde et
+    /// empileraient les appels — le même piège que `load()` sur les boutons d'action.
+    private var trendingTask: Task<Void, Never>?
+
+    // MARK: - Chargement
+
+    /// Charge les sections en parallèle.
+    ///
+    /// Une section en échec ne doit pas vider les autres : chacune est isolée, et
+    /// l'erreur n'est retenue que si tout échoue.
     func refresh() async {
         isLoading = true
         defer { isLoading = false }
@@ -63,17 +115,21 @@ final class ExplorerViewModel: ViewModel {
         async let pending = Self.attempt { try await client.pendingRatings().items }
         async let watchlist = Self.attempt { try await client.watchlist().items }
         async let ratings = Self.attempt { try await client.ratings().items }
+        async let trending = Self.attempt { try await client.trending(filter: .all) }
 
-        let (p, w, r) = await (pending, watchlist, ratings)
+        let (p, w, r, t) = await (pending, watchlist, ratings, trending)
 
         self.pending = p.value ?? []
         self.watchlist = w.value ?? []
         self.ratings = r.value ?? []
 
+        if let page = t.value {
+            feeds[.all] = feed(.all, adding: page, to: TrendingFeed())
+        }
+
         // Toutes en échec = le plugin ne répond pas (absent du serveur, ou en
-        // erreur). Une seule en échec est un incident local qu'on ne remonte pas :
-        // les deux autres sections restent utiles.
-        error = (p.value == nil && w.value == nil && r.value == nil)
+        // erreur). Une seule en échec est un incident local qu'on ne remonte pas.
+        error = (p.value == nil && w.value == nil && r.value == nil && t.value == nil)
             ? p.error
             : nil
 
@@ -81,6 +137,79 @@ final class ExplorerViewModel: ViewModel {
             logger.warning("EnhancedFin unreachable: \(error.localizedDescription)")
         }
     }
+
+    /// Bascule de filtre, en ne chargeant que ce qui manque.
+    func selectTrendingFilter(_ filter: EnhancedFinTrendingFilter) {
+        guard filter != trendingFilter else { return }
+
+        trendingFilter = filter
+
+        if feeds[filter]?.hasLoaded != true {
+            loadMoreTrending()
+        }
+    }
+
+    /// Charge la page suivante du filtre courant.
+    ///
+    /// Sans effet si un chargement est déjà en vol, ou si le serveur a signalé la
+    /// fin en ne rendant pas de curseur.
+    func loadMoreTrending() {
+        guard trendingTask == nil else { return }
+
+        let filter = trendingFilter
+        let feed = feeds[filter] ?? TrendingFeed()
+        guard feed.cursor != nil || !feed.hasLoaded else { return }
+
+        isLoadingTrending = true
+
+        trendingTask = Task { [weak self] in
+            guard let self else { return }
+
+            defer {
+                trendingTask = nil
+                isLoadingTrending = false
+            }
+
+            guard let client = userSession?.enhancedFinClient else { return }
+
+            do {
+                let page = try await client.trending(filter: filter, cursor: feed.cursor)
+                guard !Task.isCancelled else { return }
+
+                feeds[filter] = self.feed(filter, adding: page, to: feed)
+            } catch {
+                logger.warning("EnhancedFin trending failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Ajoute une page à un flux, doublons écartés.
+    ///
+    /// Parametres :
+    /// - filter (EnhancedFinTrendingFilter) : flux concerné
+    /// - page (EnhancedFinTrendingPage) : page reçue
+    /// - feed (TrendingFeed) : état courant du flux
+    ///
+    /// Output :
+    /// - feed (TrendingFeed) : état enrichi de la page
+    private func feed(
+        _ filter: EnhancedFinTrendingFilter,
+        adding page: EnhancedFinTrendingPage,
+        to feed: TrendingFeed
+    ) -> TrendingFeed {
+        var feed = feed
+
+        for item in page.items where feed.seen.insert(item.mediaKey).inserted {
+            feed.items.append(item)
+        }
+
+        feed.cursor = page.nextCursor
+        feed.hasLoaded = true
+
+        return feed
+    }
+
+    // MARK: - Recherche
 
     /// Lance une recherche, en annulant la précédente.
     ///
@@ -118,6 +247,31 @@ final class ExplorerViewModel: ViewModel {
             isSearching = false
         }
     }
+
+    // MARK: - Watchlist
+
+    /// Rayon affiché.
+    ///
+    /// ``WatchlistFilter/all`` par défaut, comme les tendances : à l'ouverture, voir
+    /// ses derniers ajouts tous types confondus renseigne davantage qu'un rayon
+    /// choisi arbitrairement.
+    @Published
+    private(set) var watchlistFilter: WatchlistFilter = .all
+
+    /// Les entrées du rayon courant.
+    ///
+    /// Filtrées à la volée, sans regroupement conservé : la watchlist tient en
+    /// mémoire et se compte en dizaines d'entrées. Contrairement aux tendances,
+    /// changer de rayon ne déclenche donc **aucun appel**.
+    var watchlistItems: [EnhancedFinWatchlistItem] {
+        watchlist.filter(watchlistFilter.accepts)
+    }
+
+    func selectWatchlistFilter(_ filter: WatchlistFilter) {
+        watchlistFilter = filter
+    }
+
+    // MARK: - Outils
 
     /// Résultat d'un chargement de section : la valeur, ou l'erreur rencontrée.
     ///
