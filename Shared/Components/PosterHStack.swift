@@ -27,6 +27,12 @@ struct PosterHStack<
     let elements: Data
     let displayType: PosterDisplayType
     let size: PosterDisplayType.Size
+
+    // EnhancedFin : défilement infini du rail de tendances. `CollectionHStack` sait
+    // déjà signaler qu'on approche de la fin, `PosterHStack` ne le relayait pas.
+    // Optionnel et nul par défaut : aucun appelant existant n'est touché.
+    var onReachedTrailingEdge: (() -> Void)? = nil
+
     let action: (Data.Element, Namespace.ID) -> Void
 
     private var layout: CollectionHStackLayout {
@@ -105,6 +111,10 @@ struct PosterHStack<
         .insets(horizontal: horizontalInset)
         .itemSpacing(PosterHStackMetrics.itemSpacing)
         .scrollBehavior(.continuousLeadingEdge)
+        // EnhancedFin : 300 pt d'avance, la même marge que `PagingLibraryView`.
+        .onReachedTrailingEdge(offset: .offset(300)) {
+            onReachedTrailingEdge?()
+        }
         .withViewContext(.isThumb)
     }
 }

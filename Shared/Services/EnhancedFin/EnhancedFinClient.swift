@@ -151,6 +151,30 @@ final class EnhancedFinClient {
         try await send(Request(path: "me/follows/\(escaped(mediaKey))", method: .delete))
     }
 
+    // MARK: - Tendances
+
+    /// Une page du classement TMDB de la semaine, filtrée côté serveur.
+    ///
+    /// Le filtre est appliqué par le plugin et non ici : une page TMDB de vingt
+    /// items ne contient qu'une à trois séries d'animation, donc filtrer après
+    /// réception laisserait le rail « Animés » quasi vide. Le serveur empile les
+    /// pages nécessaires.
+    ///
+    /// - Parameters:
+    ///   - filter: vue demandée. ``EnhancedFinTrendingFilter/all`` par défaut.
+    ///   - cursor: valeur rendue par l'appel précédent. `nil` repart du début.
+    ///     ⚠️ À renvoyer **tel quel** : c'est une page TMDB, pas un rang, et le
+    ///     serveur en consomme parfois plusieurs d'un coup.
+    func trending(
+        filter: EnhancedFinTrendingFilter = .all,
+        cursor: Int? = nil
+    ) async throws -> EnhancedFinTrendingPage {
+        var query: [(String, String?)] = [("filter", filter.rawValue)]
+        if let cursor { query.append(("cursor", String(cursor))) }
+
+        return try await send(Request(path: "trending", query: query))
+    }
+
     // MARK: - Recherche
 
     /// Recherche par titre, fusionnant trois sources : mon référentiel, TMDB et

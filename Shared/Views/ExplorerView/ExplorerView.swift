@@ -10,13 +10,12 @@ import SwiftUI
 
 /// Onglet Explorer — miroir natif de l'onglet Explorer du front web.
 ///
-/// Ordre des sections repris tel quel : recherche, « à noter », watchlist, puis
-/// mes notes. Les tendances viendront quand le plugin exposera un endpoint de
-/// découverte.
+/// Ordre des sections repris tel quel : recherche, « à noter », watchlist,
+/// tendances, mes notes.
 ///
-/// Dispositions alignées sur le web : grille qui se réagence pour « à noter »,
-/// « mes notes » et les résultats de recherche (`vertical-wrap`), rail horizontal
-/// pour la watchlist (`jr-hscroll`).
+/// Dispositions alignées sur le web : grille qui se réagence pour « à noter » et les
+/// résultats de recherche (`vertical-wrap`), rails horizontaux pour la watchlist,
+/// les tendances et l'aperçu des notes (`jr-hscroll`).
 ///
 /// Remplace entièrement l'ancien onglet « Médias ».
 struct ExplorerView: View {
@@ -42,7 +41,6 @@ struct ExplorerView: View {
             .padding(.vertical)
         }
         .navigationTitle(ExplorerStrings.explore)
-        .navigationBarTitleDisplayMode(.inline)
         .searchable(
             text: $searchText,
             placement: .navigationBarDrawer(displayMode: .always),
@@ -79,99 +77,205 @@ struct ExplorerView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 60)
         } else {
-            grid(viewModel.searchResults)
+            ExplorerPosterGrid(items: viewModel.searchResults)
         }
     }
 
     // MARK: - Sections
 
+    /// ⚠️ **C'est ce `spacing` qui sépare les sections**, et rien d'autre : ni trait
+    /// ni fond, l'app n'en utilise nulle part. Il ne tient que parce que les sections
+    /// ont désormais toutes la même forme — en-tête · [sélecteur] · rail. Tant que
+    /// l'une d'elles était une grille, aucun espacement n'aurait suffi à créer du
+    /// rythme.
     @ViewBuilder
     private var sections: some View {
-        if let error = viewModel.error {
-            unavailable(error)
-        } else if !viewModel.isLoading, isEmpty {
-            ContentUnavailableView(
-                ExplorerStrings.emptyTitle,
-                systemImage: "safari",
-                description: Text(ExplorerStrings.emptyMessage)
-            )
-            .padding(.top, 60)
-        }
-
-        if viewModel.pending.isNotEmpty {
-            section(ExplorerStrings.toRate) {
-                grid(viewModel.pending)
+        VStack(alignment: .leading, spacing: 32) {
+            if let error = viewModel.error {
+                unavailable(error)
+            } else if !viewModel.isLoading, isEmpty {
+                ContentUnavailableView(
+                    ExplorerStrings.emptyTitle,
+                    systemImage: "sparkle.magnifyingglass",
+                    description: Text(ExplorerStrings.emptyMessage)
+                )
+                .padding(.top, 60)
             }
-        }
 
-        if viewModel.watchlist.isNotEmpty {
-            section(ExplorerStrings.watchlistSection) {
-                PosterHStack(
-                    elements: viewModel.watchlist,
-                    displayType: .landscape,
-                    size: .medium
-                ) { item, namespace in
-                    open(item, in: namespace)
-                }
+            if viewModel.pending.isNotEmpty {
+                pendingSection
             }
-        }
 
-        // Tendances : en attente de l'endpoint de découverte côté plugin.
+            if viewModel.watchlist.isNotEmpty {
+                watchlistSection
+            }
 
-        if viewModel.ratings.isNotEmpty {
-            section(ExplorerStrings.myRatings) {
-                grid(viewModel.ratings)
+            trendingSection
+
+            if viewModel.ratings.isNotEmpty {
+                ratingsSection
             }
         }
     }
 
-    // MARK: - Dispositions
+    // MARK: - À noter
 
-    /// Grille qui se réagence selon la largeur disponible.
+    /// La seule section qui appelle une action, et la seule en tuiles `.medium`.
     ///
-    /// `LazyVGrid` et non `CollectionVGrid` : cette dernière porte son propre
-    /// défilement, et deux zones scrollables imbriquées se disputent le geste.
+    /// Sa saillance passe par la **taille** et par le compteur, pas par une couleur
+    /// ni un cadre : l'app n'a pas ce vocabulaire, et un accent de couleur sur une
+    /// section parmi quatre se lirait comme une alerte.
     @ViewBuilder
-    private func grid(_ items: [some EnhancedFinPosterItem]) -> some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 110), spacing: 12)],
-            spacing: 16
-        ) {
-            ForEach(items, id: \.mediaKey) { item in
-                PosterButton(
-                    item: item,
+    private var pendingSection: some View {
+        ContentGroupSection {
+            PosterHStack(
+                elements: viewModel.pending,
+                displayType: .portrait,
+                size: .medium
+            ) { item, namespace in
+                router.openEnhancedFin(item, in: namespace)
+            }
+        } header: {
+            ExplorerSectionHeader(
+                title: ExplorerStrings.toRate,
+                count: viewModel.pending.count
+            ) {
+                router.route(to: .explorerPending(items: viewModel.pending))
+            }
+        }
+    }
+
+    // MARK: - Watchlist
+
+    /// Un sélecteur de rayon et un rail, plutôt que trois tuiles à ouvrir.
+    ///
+    /// Les tuiles « éventail » du front web ne se transposent pas ici : ramenées au
+    /// tiers d'un écran mobile, leurs affiches tombaient à 34 pt — assez pour un
+    /// ornement, pas pour reconnaître un titre. On payait donc **deux** taps pour
+    /// atteindre un média, contre un seul ici.
+    ///
+    /// Mêmes quatre filtres que les tendances, dans le même ordre : les deux
+    /// sélecteurs se suivent à l'écran et s'apprennent alors une seule fois. « Tout »
+    /// par défaut y montre les derniers ajouts, tous types confondus ; la liste
+    /// complète reste à un tap, par « Voir plus ».
+    @ViewBuilder
+    private var watchlistSection: some View {
+        ContentGroupSection {
+            VStack(alignment: .leading, spacing: 12) {
+                ExplorerFilterPicker(
+                    title: ExplorerStrings.watchlistSection,
+                    selection: Binding(
+                        get: { viewModel.watchlistFilter },
+                        set: { viewModel.selectWatchlistFilter($0) }
+                    )
+                )
+
+                PosterHStack(
+                    elements: viewModel.watchlistItems,
                     displayType: .portrait,
                     size: .small
-                ) { namespace in
-                    open(item, in: namespace)
+                ) { item, namespace in
+                    router.openEnhancedFin(item, in: namespace)
                 }
             }
+        } header: {
+            ExplorerSectionHeader(title: ExplorerStrings.watchlistSection) {
+                router.route(
+                    to: .explorerWatchlist(
+                        filter: viewModel.watchlistFilter,
+                        items: viewModel.watchlistItems
+                    )
+                )
+            }
         }
-        .edgePadding(.horizontal)
     }
 
-    @ViewBuilder
-    private func section(
-        _ title: String,
-        @ViewBuilder content: () -> some View
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .edgePadding(.horizontal)
+    // MARK: - Tendances
 
-            content()
+    /// La seule section qui a du contenu sur un compte neuf.
+    ///
+    /// Elle est donc affichée même quand tout le reste est vide — et `isEmpty` la
+    /// prend en compte, sans quoi l'écran « Rien à explorer » se superposerait à un
+    /// rail bien rempli.
+    @ViewBuilder
+    private var trendingSection: some View {
+        if viewModel.trending.isNotEmpty || viewModel.isLoadingTrending {
+            ContentGroupSection {
+                VStack(alignment: .leading, spacing: 12) {
+                    ExplorerFilterPicker(
+                        title: ExplorerStrings.trending,
+                        selection: trendingFilterBinding
+                    )
+
+                    trendingRail
+                }
+            } header: {
+                ExplorerSectionHeader(title: ExplorerStrings.trending)
+            }
         }
-        .padding(.bottom, 24)
+    }
+
+    /// Le `Picker` écrit dans le modèle, qui décide s'il faut charger : un
+    /// `@Published` en lecture seule ne peut pas être lié directement.
+    private var trendingFilterBinding: Binding<EnhancedFinTrendingFilter> {
+        Binding(
+            get: { viewModel.trendingFilter },
+            set: { viewModel.selectTrendingFilter($0) }
+        )
+    }
+
+    /// Rail portrait, comme le `portraitCard` du web.
+    ///
+    /// ⚠️ `PosterHStack` et non un `LazyHStack` maison : c'est lui qui porte le
+    /// dimensionnement des tuiles (colonnes, encarts, espacement). Le refaire à la
+    /// main donnait un rail écrasé, aux affiches rognées.
+    ///
+    /// La suite se charge à l'approche du bord, via le signal que `CollectionHStack`
+    /// émet déjà et que `PosterHStack` relaie désormais.
+    @ViewBuilder
+    private var trendingRail: some View {
+        PosterHStack(
+            elements: viewModel.trending,
+            displayType: .portrait,
+            size: .small,
+            onReachedTrailingEdge: viewModel.loadMoreTrending
+        ) { item, namespace in
+            router.openEnhancedFin(item, in: namespace)
+        }
+    }
+
+    // MARK: - Mes notes
+
+    /// Repliée sur une rangée : la liste complète compte plusieurs centaines de
+    /// titres et occuperait tout l'écran sous les autres sections.
+    @ViewBuilder
+    private var ratingsSection: some View {
+        ContentGroupSection {
+            PosterHStack(
+                elements: viewModel.ratings,
+                displayType: .portrait,
+                size: .small
+            ) { item, namespace in
+                router.openEnhancedFin(item, in: namespace)
+            }
+        } header: {
+            ExplorerSectionHeader(title: ExplorerStrings.myRatings) {
+                router.route(to: .explorerRatings(items: viewModel.ratings))
+            }
+        }
     }
 
     // MARK: - États
 
-    /// Aucune section n'a de contenu — soit le compte est neuf, soit rien n'est
-    /// encore noté ni en watchlist.
+    /// Aucune section n'a de contenu.
+    ///
+    /// Les tendances en font partie : elles ne dépendent pas du compte, donc si
+    /// elles ont chargé, l'Explorer a quelque chose à montrer même à un profil neuf.
     private var isEmpty: Bool {
-        viewModel.pending.isEmpty && viewModel.watchlist.isEmpty && viewModel.ratings.isEmpty
+        viewModel.pending.isEmpty
+            && viewModel.watchlist.isEmpty
+            && viewModel.ratings.isEmpty
+            && viewModel.trending.isEmpty
     }
 
     /// Le plugin n'a pas répondu. Le cas le plus courant n'est pas une panne mais
@@ -190,22 +294,5 @@ struct ExplorerView: View {
             }
         }
         .padding(.top, 60)
-    }
-
-    // MARK: - Navigation
-
-    /// Ouvre une fiche, sur le serveur ou non.
-    ///
-    /// Média en bibliothèque : la fiche native, avec lecture et épisodes. Sinon la
-    /// même vue, nourrie par TMDB, bouton Lire grisé.
-    private func open(_ item: some EnhancedFinLibraryLinkable, in namespace: Namespace.ID) {
-        if let jellyfinItem = item.jellyfinItem {
-            router.route(to: .item(item: jellyfinItem), in: namespace)
-        } else {
-            router.route(
-                to: .explorerItem(mediaKey: item.mediaKey, item: item.syntheticItem),
-                in: namespace
-            )
-        }
     }
 }

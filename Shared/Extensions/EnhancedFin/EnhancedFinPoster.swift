@@ -60,11 +60,36 @@ extension EnhancedFinPosterItem {
     var preferredPosterDisplayType: PosterDisplayType { .portrait }
 
     func portraitImageSources(environment: Empty) -> [ImageSource] {
-        [ImageSource(url: posterUrl.flatMap(URL.init(string:)))]
+        [imageSource(posterUrl, serverType: .primary)]
     }
 
     func landscapeImageSources(environment: Empty) -> [ImageSource] {
-        [ImageSource(url: backdropUrl.flatMap(URL.init(string:)))]
+        [imageSource(backdropUrl, serverType: .backdrop)]
+    }
+
+    /// L'affiche TMDB, ou à défaut celle du serveur.
+    ///
+    /// Un média **vu sur le serveur mais jamais noté** n'est pas dans le référentiel
+    /// du plugin : il n'a donc pas d'URL TMDB, et un `GET` ne peuple rien pour lui en
+    /// obtenir une. Mais le fichier est là, donc Jellyfin a son image — c'est
+    /// exactement le repli du front web, qui préfère la carte Jellyfin locale quand
+    /// l'item est en bibliothèque.
+    ///
+    /// L'item reconstruit n'a pas de tag d'image ; Jellyfin sert l'image sans lui, on
+    /// perd seulement l'invalidation de cache.
+    ///
+    /// Parametres :
+    /// - tmdbUrl (String?) : URL absolue renvoyée par le plugin, si elle existe
+    /// - serverType (ImageType) : type d'image à demander au serveur à défaut
+    ///
+    /// Output :
+    /// - source (ImageSource) : vide si le média n'a ni l'une ni l'autre
+    private func imageSource(_ tmdbUrl: String?, serverType: ImageType) -> ImageSource {
+        if let url = tmdbUrl.flatMap(URL.init(string:)) {
+            return ImageSource(url: url)
+        }
+
+        return jellyfinItem?.imageSource(serverType, environment: ImageSourceOptions()) ?? ImageSource()
     }
 
     @MainActor
@@ -85,16 +110,10 @@ extension EnhancedFinRating: EnhancedFinPosterItem {
     var posterRatingScore: Int? { score }
 }
 
-extension EnhancedFinPendingRating: EnhancedFinPosterItem {
-
-    /// Pour une série, le nombre d'épisodes vus explique pourquoi elle est
-    /// proposée à la notation ; pour un film il n'apporte rien.
-    var subtitle: String? {
-        EnhancedFinMediaType(mediaKey: mediaKey) == .tv
-            ? "\(watchedEpisodes) \(L10n.episodes)"
-            : year.map(String.init)
-    }
-}
+// Le sous-titre est l'**année**, comme partout ailleurs dans l'Explorer — et non le
+// nombre d'épisodes vus, qui répondait à une question que personne ne se pose devant
+// une tuile. L'implémentation par défaut du protocole suffit donc.
+extension EnhancedFinPendingRating: EnhancedFinPosterItem {}
 
 extension EnhancedFinWatchlistItem: EnhancedFinPosterItem {
 

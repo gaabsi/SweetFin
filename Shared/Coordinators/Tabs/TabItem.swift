@@ -108,7 +108,10 @@ extension TabItem {
         TabItem(
             id: "media",
             title: ExplorerStrings.explore,
-            systemImage: "safari"
+            // EnhancedFin : la loupe. L'Explorer *est* la recherche de ce fork —
+            // référentiel, TMDB et bibliothèque —, d'où le retrait de l'onglet
+            // Recherche natif dans `MainTabView` pour éviter deux loupes.
+            systemImage: "magnifyingglass"
         ) {
             ExplorerView()
                 .if(UIDevice.isTV) { view in

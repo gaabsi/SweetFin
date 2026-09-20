@@ -33,7 +33,15 @@ struct MainTabView: View {
         #if os(iOS)
         TabCoordinator {
             TabItem.contentGroup(provider: DefaultContentGroupProvider())
-            TabItem.search
+            // EnhancedFin : `TabItem.search` retiré — l'Explorer porte la recherche,
+            // et cherche plus large (référentiel + TMDB + bibliothèque, là où la
+            // recherche native ne voit que la bibliothèque). Deux onglets à la loupe
+            // n'auraient rien apporté.
+            //
+            // ⚠️ Effet de bord : le rôle iOS 26 est attribué par identifiant plus bas
+            // (`tab.item.id == TabItem.search.id ? .search : nil`). Sans cet onglet,
+            // plus aucune tuile ne porte `.search`, donc la capsule de recherche
+            // flottante disparaît de la barre.
             TabItem.media
         }
         #else
