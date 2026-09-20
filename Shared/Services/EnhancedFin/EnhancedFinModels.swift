@@ -224,6 +224,85 @@ struct EnhancedFinTrendingPage: Decodable {
     let nextCursor: Int?
 }
 
+// MARK: - Suivis
+
+/// Un média suivi — `GET /me/follows`.
+///
+/// Suivre un média fait entrer ses sorties au calendrier. La liste n'avait jusqu'ici
+/// aucun écran : on pouvait suivre depuis une fiche, mais pas voir ce qu'on suivait.
+struct EnhancedFinFollow: Decodable, Hashable, Identifiable {
+
+    let mediaKey: String
+    let addedAt: String
+    let mediaType: String
+    let title: String
+    let year: Int?
+    let posterUrl: String?
+
+    /// Prochaine diffusion connue, au format `AAAA-MM-JJ`.
+    ///
+    /// ⚠️ **Nulle** pour une série terminée, ou dont la suite n'est pas encore
+    /// annoncée — ce qui est fréquent. Le dire explicitement vaut mieux qu'une ligne
+    /// qui semble incomplète.
+    let nextAirDate: String?
+
+    var id: String { mediaKey }
+}
+
+// MARK: - Calendrier
+
+/// Réponse de `GET /me/calendar`.
+///
+/// Les sorties sont **déjà regroupées par jour et triées** par le serveur : le front
+/// JS faisait ce travail lui-même, et il aurait fallu le réécrire en Swift puis une
+/// troisième fois pour tvOS.
+struct EnhancedFinCalendar: Decodable {
+
+    /// La plage réellement couverte, renvoyée en écho. Le client qui pagine sait ainsi
+    /// ce qu'il a obtenu sans recalculer ses bornes.
+    let from: String
+    let to: String
+
+    let days: [EnhancedFinCalendarDay]
+}
+
+/// Les sorties d'un jour.
+struct EnhancedFinCalendarDay: Decodable, Hashable, Identifiable {
+
+    /// Jour au format `AAAA-MM-JJ`, tel que le serveur l'émet.
+    let date: String
+
+    let releases: [EnhancedFinRelease]
+
+    var id: String { date }
+}
+
+/// Une sortie : un épisode, ou un film le jour de sa sortie.
+struct EnhancedFinRelease: Decodable, Hashable, Identifiable {
+
+    let mediaKey: String
+    let mediaType: String
+
+    /// ⚠️ Valent **0 pour un film** : le serveur stocke sa sortie en saison 0 /
+    /// épisode 0, pour que le calendrier n'ait pas à distinguer les deux. Ne jamais
+    /// formater « S0E00 » — tester ``mediaType`` d'abord.
+    let season: Int
+    let episode: Int
+
+    /// Nul pour un film, dont ``title`` porte déjà le nom.
+    let episodeName: String?
+
+    let title: String
+    let posterUrl: String?
+    let inLibrary: Bool
+    let jellyfinId: String?
+
+    /// ⚠️ La clé média ne suffit pas : une série sort souvent plusieurs épisodes le
+    /// même jour, et deux identifiants identiques feraient disparaître des lignes
+    /// d'un `ForEach`.
+    var id: String { "\(mediaKey)|\(season)|\(episode)" }
+}
+
 // MARK: - Fiche média
 
 /// Réponse de `GET /media/{mediaKey}`.

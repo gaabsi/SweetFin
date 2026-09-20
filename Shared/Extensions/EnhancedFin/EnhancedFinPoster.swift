@@ -125,6 +125,21 @@ extension EnhancedFinSearchItem: EnhancedFinPosterItem {
     var posterRatingScore: Int? { me.rating }
 }
 
+// Une sortie de calendrier n'a pas d'année propre — c'est la date du jour qui la
+// porte, et elle est déjà donnée par la case. La conformance sert surtout à obtenir
+// `syntheticItem` et la règle d'ouverture de fiche sans les réécrire.
+extension EnhancedFinRelease: EnhancedFinPosterItem {
+
+    var year: Int? { nil }
+}
+
+extension EnhancedFinFollow: EnhancedFinPosterItem {
+
+    /// Un média suivi n'est pas forcément en bibliothèque : on le suit justement
+    /// parce qu'on attend ses prochaines sorties.
+    var jellyfinId: String? { nil }
+}
+
 // MARK: - Navigation
 
 /// Ce qu'un item EnhancedFin sait de sa présence sur le serveur.

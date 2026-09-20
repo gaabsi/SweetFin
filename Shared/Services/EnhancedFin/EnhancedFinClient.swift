@@ -140,7 +140,30 @@ final class EnhancedFinClient {
         try await send(Request(path: "me/watchlist/\(escaped(mediaKey))", method: .delete))
     }
 
+    // MARK: - Calendrier
+
+    /// Les sorties des médias suivis, regroupées par jour.
+    ///
+    /// - Parameters:
+    ///   - from: premier jour, `AAAA-MM-JJ`. Omis, le serveur prend aujourd'hui.
+    ///   - to: dernier jour inclus. Omis, quinze jours après ``from``.
+    ///     La plage ne peut excéder 366 jours — au-delà le serveur répond `400`.
+    func calendar(from: String? = nil, to: String? = nil) async throws -> EnhancedFinCalendar {
+        var query: [(String, String?)] = []
+        if let from { query.append(("from", from)) }
+        if let to { query.append(("to", to)) }
+
+        return try await send(Request(path: "me/calendar", query: query.isEmpty ? nil : query))
+    }
+
     // MARK: - Suivis
+
+    /// Les médias suivis, les ajouts les plus récents d'abord.
+    ///
+    /// Chaque entrée porte sa prochaine date de diffusion connue, quand il y en a une.
+    func follows() async throws -> EnhancedFinList<EnhancedFinFollow> {
+        try await send(Request(path: "me/follows"))
+    }
 
     /// Suivre une série : ses prochaines sorties entrent au calendrier.
     func follow(_ mediaKey: String) async throws {
