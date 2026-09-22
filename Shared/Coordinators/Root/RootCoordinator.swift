@@ -41,19 +41,15 @@ final class RootCoordinator: ObservableObject {
     }
 
     private var started = false
-    private var accentColorCancellable: AnyCancellable?
     private var appearanceCancellable: AnyCancellable?
     private var currentSessionCancellable: AnyCancellable?
-    private var splashScreenCancellable: AnyCancellable?
 
     @Injected(\.userSessionManager)
     private var userSessionManager: UserSessionManager
 
     deinit {
-        accentColorCancellable?.cancel()
         appearanceCancellable?.cancel()
         currentSessionCancellable?.cancel()
-        splashScreenCancellable?.cancel()
     }
 
     @Function(\Action.Cases.start)
@@ -90,23 +86,14 @@ final class RootCoordinator: ObservableObject {
     }
 
     private func setUserDefaultsObservation() {
-        accentColorCancellable?.cancel()
         appearanceCancellable?.cancel()
-        splashScreenCancellable?.cancel()
-
-        accentColorCancellable = Task {
-            applyAccentColor(Defaults[.userAccentColor])
-
-            for await newValue in Defaults.updates(.userAccentColor) {
-                applyAccentColor(newValue)
-            }
-        }
-        .asAnyCancellable()
 
         appearanceCancellable = Task {
+            mirrorAppearanceForNextLaunch(Defaults[.userAppearance])
             applyAppearance(Defaults[.userAppearance])
 
             for await newValue in Defaults.updates(.userAppearance) {
+                mirrorAppearanceForNextLaunch(newValue)
                 applyAppearance(newValue)
             }
         }
@@ -114,34 +101,33 @@ final class RootCoordinator: ObservableObject {
     }
 
     private func setAppDefaultsObservation() {
-        accentColorCancellable?.cancel()
         appearanceCancellable?.cancel()
-        splashScreenCancellable?.cancel()
 
-        accentColorCancellable = Task {
-            applyAccentColor(.jellyfinPurple)
-        }
-        .asAnyCancellable()
-
+        // EnhancedFin : plus de garde-fou `selectUserUseSplashscreen` ici, ni de tâche
+        // qui l'observe. Tous deux ne servaient qu'au forçage `.dark` de l'écran de
+        // sélection, supprimé avec les thèmes clairs — voir `applyAppearance`.
         appearanceCancellable = Task {
-            applyAppAppearance()
+            applyAppearance(Defaults[.appAppearance])
 
             for await newValue in Defaults.updates(.appAppearance) {
-                guard !Defaults[.selectUserUseSplashscreen] else { continue }
-
                 applyAppearance(newValue)
-            }
-        }
-        .asAnyCancellable()
-
-        splashScreenCancellable = Task {
-            for await _ in Defaults.updates(.selectUserUseSplashscreen) {
-                applyAppAppearance()
             }
         }
         .asAnyCancellable()
     }
 
+    /// EnhancedFin : **le thème est le seul propriétaire de la couleur d'accent.**
+    ///
+    /// ⚠️ Il y avait deux écrivains concurrents sur `Defaults[.accentColor]` : une
+    /// tâche qui suivait le réglage utilisateur et `applyAppearance`. `Defaults.updates`
+    /// réémet la valeur courante à l'abonnement (`initial: true` par défaut), et l'ordre
+    /// de deux `Task` indépendants n'est pas garanti : l'accent tombait sur la couleur
+    /// du thème ou sur celle des réglages selon le lancement.
+    ///
+    /// Le réglage « couleur d'accent » a donc été retiré des réglages, et sa clé avec.
+    ///
+    /// Parametres :
+    /// - color (Color) : la couleur d'accent du thème
     @MainActor
     private func applyAccentColor(_ color: Color) {
         Defaults[.accentColor] = color
@@ -155,14 +141,36 @@ final class RootCoordinator: ObservableObject {
     private func applyAppearance(_ appearance: AppAppearance) {
         Defaults[.appearance] = appearance
         UIApplication.shared.setAppearance(appearance.style)
+
+        // EnhancedFin : un thème impose sa couleur d'accent.
+        //
+        // Posé ici plutôt que dans les deux tâches d'observation : `applyAppearance`
+        // est le point de passage commun aux réglages de l'app **et** à ceux de
+        // l'utilisateur, et c'est le second qui gouverne une fois connecté.
+        #if os(iOS)
+        applyAccentColor(appearance.accentColor)
+        #endif
     }
 
+    /// EnhancedFin : recopie l'apparence de l'utilisateur au niveau application.
+    ///
+    /// ⚠️ **Sans elle, l'application change de couleur sous les yeux au démarrage.**
+    /// L'apparence choisie est stockée **par utilisateur**, mais avant l'ouverture de
+    /// session c'est la clé **application** qui gouverne : l'écran de chargement
+    /// s'affichait donc dans l'apparence par défaut, puis tout virait à la couleur du
+    /// thème une fois la session ouverte.
+    ///
+    /// ⚠️ **À appeler depuis le chemin utilisateur uniquement.** Le placer dans
+    /// `applyAppearance` recopierait aussi le `.dark` que l'écran de sélection impose,
+    /// et écraserait le thème choisi.
+    ///
+    /// Parametres :
+    /// - appearance (AppAppearance) : l'apparence choisie par l'utilisateur
     @MainActor
-    private func applyAppAppearance() {
-        if Defaults[.selectUserUseSplashscreen] {
-            applyAppearance(.dark)
-        } else {
-            applyAppearance(Defaults[.appAppearance])
-        }
+    private func mirrorAppearanceForNextLaunch(_ appearance: AppAppearance) {
+        guard Defaults[.appAppearance] != appearance else { return }
+
+        Defaults[.appAppearance] = appearance
     }
+
 }

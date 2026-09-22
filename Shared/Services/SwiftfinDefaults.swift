@@ -64,19 +64,21 @@ extension Defaults.Keys {
 
     /// The _real_ accent color key to be used.
     ///
-    /// This is set externally whenever the app or user accent colors change,
-    /// depending on the current app state.
+    /// EnhancedFin : écrite **uniquement** par `RootCoordinator.applyAppearance`, à
+    /// partir du thème. Le réglage utilisateur et sa clé `userAccentColor` ont été
+    /// retirés — deux écrivains concurrents rendaient la valeur finale dépendante de
+    /// l'ordre d'exécution de deux `Task`.
     static var accentColor: Key<Color> = AppKey("accentColor", default: .jellyfinPurple)
 
     /// The _real_ appearance key to be used.
     ///
     /// This is set externally whenever the app or user appearances change,
     /// depending on the current app state.
-    static let appearance: Key<AppAppearance> = AppKey("appearance", default: .system)
+    static let appearance: Key<AppAppearance> = AppKey("appearance", default: .elegantFin)
 
     /// The appearance default for non-user contexts.
     /// /// Only use for `set`, use `appearance` for `get`.
-    static let appAppearance: Key<AppAppearance> = AppKey("appAppearance", default: .system)
+    static let appAppearance: Key<AppAppearance> = AppKey("appAppearance", default: .elegantFin)
 
     static let backgroundSignOutInterval: Key<TimeInterval> = AppKey("backgroundSignOutInterval", default: 3600)
     static let backgroundTimeStamp: Key<Date> = AppKey("backgroundTimeStamp", default: Date.now)
@@ -97,16 +99,10 @@ extension Defaults.Keys {
 
 extension Defaults.Keys {
 
-    /// The accent color default for user contexts.
-    /// Only use for `set`, use `accentColor` for `get`.
-    static var userAccentColor: Key<Color> {
-        UserKey("userAccentColor", default: .jellyfinPurple)
-    }
-
     /// The appearance default for user contexts.
     /// /// Only use for `set`, use `appearance` for `get`.
     static var userAppearance: Key<AppAppearance> {
-        UserKey("userAppearance", default: .system)
+        UserKey("userAppearance", default: .elegantFin)
     }
 
     enum Customization {

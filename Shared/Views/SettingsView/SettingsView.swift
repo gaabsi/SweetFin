@@ -18,7 +18,9 @@ struct SettingsView: View {
     private var appearance
     #endif
 
-    @Default(.userAccentColor)
+    // EnhancedFin : l'accent **résolu**, posé par le thème. Lecture seule — il n'est
+    // plus réglable, voir `RootCoordinator.applyAccentColor`.
+    @Default(.accentColor)
     private var accentColor
 
     @Injected(\.userSessionManager)
@@ -121,8 +123,6 @@ struct SettingsView: View {
             #if os(iOS)
             Picker(L10n.appearance, selection: $appearance)
             #endif
-
-            ColorPicker(L10n.accentColor, selection: $accentColor, supportsOpacity: false)
 
             ChevronButton(L10n.advanced) {
                 router.route(to: .customizeSettingsView)
