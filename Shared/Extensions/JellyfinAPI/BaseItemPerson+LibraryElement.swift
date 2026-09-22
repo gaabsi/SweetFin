@@ -30,9 +30,14 @@ extension BaseItemPerson: LibraryElement {
         router: Router.Wrapper,
         in namespace: Namespace.ID
     ) {
-        // Fork : sur un serveur sans le plugin, la page personne native reste la
-        // seule destination possible — il n'y a pas de filmographie à demander.
-        guard Container.shared.currentUserSession()?.enhancedFinClient != nil else {
+        // Fork : sans session ouverte, la page personne native est la seule
+        // destination possible.
+        //
+        // ⚠️ **Ce garde ne dit rien de la présence du plugin**, contrairement à ce
+        // qu'il affirmait : `enhancedFinClient` est un `lazy var` non optionnel, il se
+        // construit même vers un serveur qui n'a pas la route. L'absence du plugin ne
+        // se constate qu'à l'appel, et c'est `ExplorerPersonProvider` qui la rattrape.
+        guard Container.shared.currentUserSession() != nil else {
             BaseItemDto(person: self)
                 .libraryDidSelectElement(router: router, in: namespace)
             return

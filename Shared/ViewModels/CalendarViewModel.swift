@@ -172,7 +172,11 @@ final class CalendarViewModel: ViewModel {
 
             let (days, followed) = try await (calendar.days, follows.items)
 
-            releasesByDay = Dictionary(uniqueKeysWithValues: days.map { ($0.date, $0.releases) })
+            // ⚠️ **Fusionner, et non faire confiance.** `Dictionary(uniqueKeysWithValues:)`
+            // *trap* sur une clé en double — un crash, pas une erreur, que le `catch`
+            // ci-dessous ne rattraperait pas. Or `date` vient du serveur : deux
+            // regroupements pour un même jour suffiraient à fermer l'app.
+            releasesByDay = Dictionary(days.map { ($0.date, $0.releases) }, uniquingKeysWith: +)
             self.follows = followed
             error = nil
         } catch {

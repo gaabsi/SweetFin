@@ -55,10 +55,16 @@ final class EnhancedFinItemState: ObservableObject {
         self.mediaKey = mediaKey
     }
 
-    /// Charge l'état depuis le serveur, une seule fois.
+    /// Charge l'état depuis le serveur, une seule fois — **si le chargement aboutit**.
     ///
     /// Un `404` signifie que le média n'est pas encore dans le référentiel : ce
-    /// n'est pas une erreur, simplement un média sur lequel je n'ai rien fait.
+    /// n'est pas une erreur, simplement un média sur lequel je n'ai rien fait. C'est
+    /// donc une réponse, et elle se mémorise.
+    ///
+    /// ⚠️ **Un échec réseau, lui, ne se mémorise pas.** `loadTask` sert de « déjà
+    /// chargé » : y laisser un timeout figeait « non noté / pas en watchlist » sur la
+    /// fiche pour toute la session, y compris après le retour du réseau, puisque
+    /// l'état est en cache dans ``EnhancedFinItemStateStore``.
     func load() async {
         if let loadTask {
             await loadTask.value
@@ -79,18 +85,21 @@ final class EnhancedFinItemState: ObservableObject {
     }
 
     private func fetch(with client: EnhancedFinClient) async {
-        defer { isLoaded = true }
-
         do {
             let me = try await client.media(mediaKey).me
             rating = me.rating.flatMap(EnhancedFinScore.init(rawValue:))
             isInWatchlist = me.inWatchlist
             isFollowing = me.following
         } catch let problem as EnhancedFinProblem where problem.status == 404 {
-            return
+            // Média hors référentiel : une réponse, pas un échec.
         } catch {
             logger.warning("EnhancedFin state load failed: \(error.localizedDescription)")
+
+            // Réessayable au prochain affichage de la fiche.
+            loadTask = nil
         }
+
+        isLoaded = true
     }
 
     // MARK: - Actions

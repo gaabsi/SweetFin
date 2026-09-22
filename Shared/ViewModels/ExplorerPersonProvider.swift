@@ -21,26 +21,6 @@ import JellyfinAPI
 /// tuile mène à la fiche correspondante, native ou de découverte.
 final class ExplorerPersonProvider: ItemContentGroupProvider {
 
-    /// Ce qui empêche d'afficher une filmographie, hors erreur rendue par le plugin.
-    ///
-    /// Ces deux cas remontent comme des erreurs et non comme une liste vide :
-    /// `ItemView` sait afficher un échec, une fiche vide n'explique rien.
-    enum Failure: Error, LocalizedError {
-
-        /// Le serveur n'expose pas EnhancedFin.
-        case pluginUnavailable
-
-        /// Jellyfin ne connaît pas d'identifiant TMDB pour cette personne.
-        case noTmdbID
-
-        var errorDescription: String? {
-            switch self {
-            case .pluginUnavailable: ExplorerStrings.pluginUnavailableMessage
-            case .noTmdbID: ExplorerStrings.personUnavailableMessage
-            }
-        }
-    }
-
     private let person: BaseItemPerson
 
     init(person: BaseItemPerson) {
@@ -56,16 +36,25 @@ final class ExplorerPersonProvider: ItemContentGroupProvider {
     ///
     ///   Seul le bloc état civil est réutilisé, via `personContentGroups(for:)`.
     override func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
-        guard let client = userSession?.enhancedFinClient else { throw Failure.pluginUnavailable }
-
+        // ⚠️ **Aucun de ces échecs ne doit rendre d'erreur.** Trois choses peuvent
+        // manquer — la session, l'identifiant TMDB, le plugin — et aucune ne rend la
+        // personne inintéressante : il reste son état civil et son portrait. Un écran
+        // d'erreur, lui, remplaçait la seule page que l'utilisateur pouvait atteindre.
+        //
+        // C'est ce qui arrivait sur un serveur **sans** le plugin : le garde de
+        // `BaseItemPerson.libraryDidSelectElement` est censé y renvoyer vers la page
+        // native, mais il ne sait pas détecter son absence (`enhancedFinClient` se
+        // construit toujours). L'absence ne se voit qu'ici, quand l'appel échoue.
         // L'identifiant TMDB se résout **ici** et pas au moment du tap : pour une
-        // personne venue d'une fiche native il demande une requête, et la faire
-        // avant de naviguer laissait une à trois secondes sans le moindre retour
-        // visuel — le temps qu'il faut pour retaper et empiler un second écran.
-        // Cette vue a déjà les états de chargement et d'erreur pour l'attendre.
-        guard let tmdbID = try await person.enhancedFinTmdbID() else { throw Failure.noTmdbID }
-
-        let filmography = try await client.person(tmdbID)
+        // personne venue d'une fiche native il demande une requête, et la faire avant
+        // de naviguer laissait une à trois secondes sans le moindre retour visuel — le
+        // temps qu'il faut pour retaper et empiler un second écran.
+        guard let client = userSession?.enhancedFinClient,
+              let tmdbID = try? await person.enhancedFinTmdbID(),
+              let filmography = try? await client.person(tmdbID)
+        else {
+            return Self.personContentGroups(for: item)
+        }
 
         // Réassigner et pas seulement transmettre : l'en-tête lit `provider.item`,
         // d'où viennent le portrait et la biographie.
