@@ -151,14 +151,18 @@ final class ExplorerViewModel: ViewModel {
 
     /// Charge la page suivante du filtre courant.
     ///
-    /// Sans effet si un chargement est déjà en vol, ou si le serveur a signalé la
-    /// fin en ne rendant pas de curseur.
+    /// Sans effet si le serveur a signalé la fin en ne rendant pas de curseur.
+    ///
+    /// ⚠️ **Un chargement déjà en vol ne fait pas abandonner la demande**, il la
+    /// diffère. Abandonner laissait un filtre vide pour de bon : changer de filtre
+    /// pendant le chargement d'une page ne planifiait rien, et un rail vide n'a rien
+    /// à faire défiler pour redéclencher `onReachedTrailingEdge`.
     func loadMoreTrending() {
         guard trendingTask == nil else { return }
 
         let filter = trendingFilter
-        let feed = feeds[filter] ?? TrendingFeed()
-        guard feed.cursor != nil || !feed.hasLoaded else { return }
+        let cursor = feeds[filter]?.cursor
+        guard cursor != nil || feeds[filter]?.hasLoaded != true else { return }
 
         isLoadingTrending = true
 
@@ -168,15 +172,23 @@ final class ExplorerViewModel: ViewModel {
             defer {
                 trendingTask = nil
                 isLoadingTrending = false
+
+                // Le filtre a changé pendant le vol : sa demande n'a pas été servie.
+                if trendingFilter != filter, feeds[trendingFilter]?.hasLoaded != true {
+                    loadMoreTrending()
+                }
             }
 
             guard let client = userSession?.enhancedFinClient else { return }
 
             do {
-                let page = try await client.trending(filter: filter, cursor: feed.cursor)
+                let page = try await client.trending(filter: filter, cursor: cursor)
                 guard !Task.isCancelled else { return }
 
-                feeds[filter] = self.feed(filter, adding: page, to: feed)
+                // ⚠️ **Relire le flux ici**, et ne pas fusionner dans la copie prise
+                // avant l'`await` : un `refresh()` a pu le vider entre-temps, et la
+                // copie ressusciterait l'ancienne liste avec son ancien curseur.
+                feeds[filter] = self.feed(filter, adding: page, to: feeds[filter] ?? TrendingFeed())
             } catch {
                 logger.warning("EnhancedFin trending failed: \(error.localizedDescription)")
             }
@@ -211,6 +223,13 @@ final class ExplorerViewModel: ViewModel {
 
     // MARK: - Recherche
 
+    /// Délai d'inactivité avant de lancer une recherche.
+    ///
+    /// ⚠️ **Ce n'est pas qu'une politesse réseau.** `/search` fusionne référentiel,
+    /// TMDB et bibliothèque côté plugin : chaque frappe déclenchait un appel TMDB
+    /// sortant depuis le serveur. « interstellar » en valait douze, dont onze jetés.
+    private static let searchDebounce: Duration = .milliseconds(300)
+
     /// Lance une recherche, en annulant la précédente.
     ///
     /// Annuler est ce qui rend la frappe fluide : sans ça, chaque caractère laisse
@@ -231,6 +250,12 @@ final class ExplorerViewModel: ViewModel {
         searchError = nil
 
         searchTask = Task { [weak self] in
+            // L'attente est **dans** la tâche, avant tout réseau : l'annulation déjà
+            // en place au début de `search` suffit alors à jeter les frappes
+            // intermédiaires, sans qu'aucune n'atteigne le serveur.
+            try? await Task.sleep(for: Self.searchDebounce)
+            guard !Task.isCancelled else { return }
+
             guard let self, let client = userSession?.enhancedFinClient else { return }
 
             do {

@@ -70,9 +70,4 @@ enum ExplorerStrings {
     static let allTypes = "Tout"
     static let moviesOnly = "Films"
     static let seriesOnly = "Séries"
-    static let personUnavailableMessage = """
-    Cette personne n'a pas d'identifiant TMDB dans ta bibliothèque Jellyfin. \
-    Rafraîchis les métadonnées de l'un de ses médias pour qu'il soit renseigné.
-    """
-    static let pluginUnavailableMessage = "Ce serveur n'expose pas le plugin EnhancedFin."
 }

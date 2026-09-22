@@ -135,8 +135,17 @@ extension EnhancedFinRelease: EnhancedFinPosterItem {
 
 extension EnhancedFinFollow: EnhancedFinPosterItem {
 
-    /// Un média suivi n'est pas forcément en bibliothèque : on le suit justement
-    /// parce qu'on attend ses prochaines sorties.
+    /// ⚠️ **`nil` faute de champ, et non parce que le média est absent.**
+    /// `GET /me/follows` est la seule route du plugin à ne renvoyer ni `inLibrary` ni
+    /// `jellyfinId` — `/me/ratings` et `/me/watchlist` les renvoient.
+    ///
+    /// Conséquence visible : depuis « Mes suivis », une série que le serveur possède
+    /// s'ouvre en fiche de découverte, bouton Lire grisé et sans liste d'épisodes,
+    /// alors que le même titre ouvert depuis l'Explorer donne la fiche native.
+    ///
+    /// **Le correctif est côté plugin** : faire émettre les deux champs par
+    /// `/me/follows`, puis supprimer cette surcharge — la valeur par défaut du
+    /// protocole fera alors ce qu'il faut.
     var jellyfinId: String? { nil }
 }
 
