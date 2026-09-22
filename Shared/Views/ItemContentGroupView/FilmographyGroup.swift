@@ -63,7 +63,9 @@ struct FilmographyGroup: ContentGroup {
         }
 
         func accepts(_ credit: EnhancedFinPersonCredit) -> Bool {
-            self == .all || credit.mediaType == rawValue
+            // La clé porte le type et est présente sur toutes les routes, là où
+            // `mediaType` est une chaîne libre qu'on comparait au `rawValue`.
+            self == .all || EnhancedFinMediaType(mediaKey: credit.mediaKey)?.rawValue == rawValue
         }
     }
 

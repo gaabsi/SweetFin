@@ -341,6 +341,13 @@ struct EnhancedFinRelease: Decodable, Hashable, Identifiable {
     /// même jour, et deux identifiants identiques feraient disparaître des lignes
     /// d'un `ForEach`.
     var id: String { "\(mediaKey)|\(season)|\(episode)" }
+
+    /// Le type, lu par ``EnhancedFinMediaType`` plutôt que comparé en chaîne brute —
+    /// une faute de frappe sur `"movie"` ne se verrait qu'à l'écran, et la clé est la
+    /// source qui ne ment pas : `mediaType` n'est pas rendu par toutes les routes.
+    var isMovie: Bool {
+        EnhancedFinMediaType(mediaKey: mediaKey) == .movie
+    }
 }
 
 // MARK: - Fiche média
