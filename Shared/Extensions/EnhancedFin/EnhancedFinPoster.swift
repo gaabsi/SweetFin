@@ -85,7 +85,7 @@ extension EnhancedFinPosterItem {
     /// Output :
     /// - source (ImageSource) : vide si le média n'a ni l'une ni l'autre
     private func imageSource(_ tmdbUrl: String?, serverType: ImageType) -> ImageSource {
-        if let url = tmdbUrl.flatMap(URL.init(string:)) {
+        if let url = URL.enhancedFinImage(tmdbUrl) {
             return ImageSource(url: url)
         }
 

@@ -27,6 +27,7 @@ final class EnhancedFinClient {
 
         client = APIClient(baseURL: baseURL) { configuration in
             configuration.delegate = EnhancedFinDelegate(accessToken: accessToken)
+            configuration.sessionDelegate = EnhancedFinRedirectGuard(serverURL: serverURL)
         }
     }
 
@@ -278,12 +279,14 @@ final class EnhancedFinClient {
 /// Pose le jeton sur chaque requête, et transforme un statut d'erreur en
 /// ``EnhancedFinProblem`` portant le message du serveur.
 ///
-/// **Le jeton est posé par requête, et non via
-/// `sessionConfiguration.httpAdditionalHeaders`.** URLSession recopie les en-têtes
-/// de session sur la requête redirigée, y compris vers un autre hôte : un serveur
-/// qui répondrait par un `302` vers un domaine tiers lui transmettrait le jeton
-/// Jellyfin. `client(_:willSendRequest:)` ne s'applique qu'à la requête d'origine.
-/// C'est déjà ce que fait le `JellyfinClient` voisin.
+/// Le jeton est posé par requête, et non via
+/// `sessionConfiguration.httpAdditionalHeaders` — c'est déjà ce que fait le
+/// `JellyfinClient` voisin.
+///
+/// ⚠️ **Cela ne protège pas d'une redirection.** URLSession recopie les en-têtes de
+/// la requête d'origine sur la requête redirigée, `Authorization` compris : la façon
+/// de poser l'en-tête n'y change rien. C'est ``EnhancedFinRedirectGuard`` qui s'en
+/// charge, et lui seul.
 ///
 /// La validation de réponse est ici pour une autre raison : c'est le seul endroit
 /// qui voit à la fois le code HTTP et le corps. Sans elle, `Get` lèverait
@@ -315,6 +318,46 @@ private struct EnhancedFinDelegate: APIClientDelegate {
             status: response.statusCode,
             body: try? JSONDecoder().decode(EnhancedFinProblem.Body.self, from: data)
         )
+    }
+}
+
+// MARK: - Redirections
+
+/// Retire le jeton d'une redirection qui sort du serveur.
+///
+/// ⚠️ **Sans lui, un `302` emporte le jeton Jellyfin vers l'hôte d'arrivée.**
+/// URLSession suit les redirections tout seul et recopie les en-têtes de la requête
+/// d'origine sur la suivante ; `Get` laisse passer la proposition telle quelle faute
+/// de délégué (`DataLoader.urlSession(_:task:willPerformHTTPRedirection:…)`). Un
+/// serveur compromis — ou un intermédiaire, l'app autorisant le HTTP en clair pour
+/// les serveurs auto-hébergés — obtiendrait un jeton aux droits complets.
+///
+/// On ne refuse pas la redirection : un serveur derrière un proxy peut légitimement
+/// rediriger chez lui. On retire seulement le jeton quand la destination change
+/// d'hôte ou de schéma.
+private final class EnhancedFinRedirectGuard: NSObject, URLSessionTaskDelegate {
+
+    private let serverURL: URL
+
+    init(serverURL: URL) {
+        self.serverURL = serverURL
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+        guard request.url?.host != serverURL.host || request.url?.scheme != serverURL.scheme else {
+            completionHandler(request)
+            return
+        }
+
+        var stripped = request
+        stripped.setValue(nil, forHTTPHeaderField: "Authorization")
+        completionHandler(stripped)
     }
 }
 

@@ -74,7 +74,7 @@ struct CalendarReleaseRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            ImageView(ImageSource(url: release.posterUrl.flatMap(URL.init(string:))))
+            ImageView(ImageSource(url: URL.enhancedFinImage(release.posterUrl)))
                 .failure {
                     ZStack {
                         Color.secondarySystemFill

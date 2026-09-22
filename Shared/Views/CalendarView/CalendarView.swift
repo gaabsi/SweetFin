@@ -319,7 +319,7 @@ struct FollowRow: View {
                 router.openEnhancedFin(follow, in: namespace)
             } label: {
                 HStack(spacing: 12) {
-                    ImageView(ImageSource(url: follow.posterUrl.flatMap(URL.init(string:))))
+                    ImageView(ImageSource(url: URL.enhancedFinImage(follow.posterUrl)))
                         .failure {
                             ZStack {
                                 Color.secondarySystemFill
