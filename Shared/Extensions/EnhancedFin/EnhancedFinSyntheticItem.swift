@@ -93,9 +93,9 @@ enum EnhancedFinSyntheticItem {
         let itemID = id(for: mediaKey)
 
         var images: [ImageType: URL] = [:]
-        if let url = posterURL.flatMap(URL.init(string:)) { images[.primary] = url }
-        if let url = backdropURL.flatMap(URL.init(string:)) { images[.backdrop] = url }
-        if let url = logoURL.flatMap(URL.init(string:)) { images[.logo] = url }
+        if let url = URL.enhancedFinImage(posterURL) { images[.primary] = url }
+        if let url = URL.enhancedFinImage(backdropURL) { images[.backdrop] = url }
+        if let url = URL.enhancedFinImage(logoURL) { images[.logo] = url }
 
         EnhancedFinImageRegistry.shared.register(itemID: itemID, images: images)
 
@@ -151,7 +151,7 @@ enum EnhancedFinSyntheticItem {
         cast.map { member in
             let personID = personID(for: member.id)
 
-            if let url = member.profileUrl.flatMap(URL.init(string:)) {
+            if let url = URL.enhancedFinImage(member.profileUrl) {
                 EnhancedFinImageRegistry.shared.register(
                     itemID: personID,
                     images: [.primary: url]
@@ -232,7 +232,7 @@ extension EnhancedFinSyntheticItem {
     static func makePerson(_ person: EnhancedFinPerson) -> BaseItemDto {
         let itemID = personID(for: person.tmdbId)
 
-        if let url = person.profileUrl.flatMap(URL.init(string:)) {
+        if let url = URL.enhancedFinImage(person.profileUrl) {
             EnhancedFinImageRegistry.shared.register(itemID: itemID, images: [.primary: url])
         }
 
