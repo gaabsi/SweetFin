@@ -336,17 +336,24 @@ extension View {
     func posterCornerRadius(
         _ type: PosterDisplayType
     ) -> some View {
+        // EnhancedFin : arrondis plus francs, repris d'ElegantFin (`--smallRadius`,
+        // `--largeRadius`) et des cartes du front web. Les valeurs d'origine
+        // (1/30 et 0,0375) donnaient des coins presque droits, que rien d'autre dans
+        // l'app ne rappelait.
         switch type {
         case .landscape:
-            cornerRadius(ratio: 1 / 30, of: \.width)
+            cornerRadius(ratio: 1 / 16, of: \.width)
         case .portrait, .square:
-            cornerRadius(ratio: 0.0375, of: \.width)
+            cornerRadius(ratio: 0.065, of: \.width)
         }
     }
 
     @ViewBuilder
     func subtleShadow() -> some View {
-        shadow(radius: 4, y: 2)
+        // EnhancedFin : ombre portée plus lisible, pour détacher les tuiles du fond
+        // noir. `shadow(radius:)` sans couleur applique un noir à 33 % ; sur un fond
+        // sombre il faut l'assombrir et l'étaler pour qu'elle se voie.
+        shadow(color: .black.opacity(0.5), radius: 8, y: 4)
     }
 
     /// Applies the aspect ratio, corner radius, and border for the given `PosterType`

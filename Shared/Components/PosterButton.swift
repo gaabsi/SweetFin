@@ -65,11 +65,13 @@ struct PosterButton<Item: Poster>: View {
 
     @ViewBuilder
     private func buttonLabel(overlay: some View = EmptyView()) -> some View {
-        VStack(alignment: .leading) {
+        // EnhancedFin : titres centrés sous l'affiche, partout dans l'app.
+        VStack(alignment: .center) {
             posterImage(overlay: overlay)
 
             if posterConfiguration.showLabels {
                 item.posterLabel
+                    .frame(maxWidth: .infinity)
                     .allowsHitTesting(false)
             }
         }

@@ -6,6 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import Defaults
 import PreferencesView
 import SwiftUI
 import Transmission
@@ -23,6 +24,12 @@ struct PresentationControllerShouldDismissPreferenceKey: PreferenceKey {
 }
 
 struct NavigationInjectionView: View {
+
+    // EnhancedFin : `\.appearance` est l'apparence **résolue** posée par
+    // `RootCoordinator.applyAppearance`, et non le réglage brut — celui-ci diffère
+    // selon qu'on est connecté ou non.
+    @Default(.appearance)
+    private var appearance
 
     @StateObject
     private var coordinator: NavigationCoordinator
@@ -43,8 +50,10 @@ struct NavigationInjectionView: View {
     var body: some View {
         NavigationStack(path: $coordinator.path) {
             content
+                .themeContainerBackground(appearance.backgroundColor)
                 .navigationDestination(for: NavigationRoute.self) { route in
                     route.destination
+                        .themeContainerBackground(appearance.backgroundColor)
                         .environment(
                             \.router,
                             .init(
@@ -118,6 +127,41 @@ struct NavigationInjectionView: View {
 
             return vc
         }
+        #endif
+    }
+}
+
+// EnhancedFin
+private extension View {
+
+    /// Pose le fond du thème sur le **conteneur de navigation**.
+    ///
+    /// ⚠️ **Pourquoi `containerBackground` et pas `background`.** Un `.background`
+    /// n'est dessiné qu'une fois la vue montée : à la première ouverture d'un onglet,
+    /// le `UINavigationController` que SwiftUI vient de créer s'affichait avec son
+    /// fond système opaque — une image noire avant le bleu. `containerBackground`
+    /// peint le conteneur lui-même, dans la passe de layout qui le crée, donc sans
+    /// trou. C'est aussi ce qui a permis de supprimer la teinte UIKit manuelle qui
+    /// courait derrière cette image.
+    ///
+    /// ⚠️ **À poser sur chaque vue de la pile**, racine comme destination poussée :
+    /// SwiftUI lit la valeur portée par la vue affichée, et non une fois pour toutes.
+    ///
+    /// ⚠️ **iOS uniquement.** Le placement `.navigation` est indisponible sur tvOS,
+    /// qui n'a de toute façon pas d'apparence à fond coloré.
+    ///
+    /// Parametres :
+    /// - color (Color?) : le fond du thème, ou nil pour garder celui du système
+    @ViewBuilder
+    func themeContainerBackground(_ color: Color?) -> some View {
+        #if os(iOS)
+        if let color {
+            containerBackground(color, for: .navigation)
+        } else {
+            self
+        }
+        #else
+        self
         #endif
     }
 }

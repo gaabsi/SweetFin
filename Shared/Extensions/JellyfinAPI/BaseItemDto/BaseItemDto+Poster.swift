@@ -479,7 +479,13 @@ private struct BaseItemDtoPosterLabel: View {
         }
 
         var body: some View {
-            AlternateLayoutView(alignment: .topLeading) {
+            // EnhancedFin : titres **centrés**, ici et partout.
+            //
+            // Le fork centrait déjà les siens (`EnhancedFinPosterLabel`) ; aligner les
+            // tuiles natives à gauche donnait deux styles selon l'écran. Centrer les
+            // deux a supprimé la valeur d'environnement et le décorateur qui servaient
+            // à ne le faire que sur l'Accueil — deux fichiers de moins à maintenir.
+            AlternateLayoutView(alignment: .top) {
                 VStack(spacing: 2) {
                     Text(String.space)
                     Text(String.space)
@@ -487,10 +493,10 @@ private struct BaseItemDtoPosterLabel: View {
                 .font(.footnote)
                 .frame(maxWidth: .infinity)
             } content: {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .center, spacing: 2) {
                     content.first
                         .font(.footnote)
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
                         .lineLimit(details.isEmpty ? 2 : 1, reservesSpace: true)
 
                     DotHStack {
@@ -504,7 +510,7 @@ private struct BaseItemDtoPosterLabel: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }
