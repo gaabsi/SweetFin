@@ -26,7 +26,7 @@ struct CalendarView: View {
 
     /// Jour dont la feuille est ouverte. `nil` = aucune.
     @State
-    private var selectedDay: Date?
+    private var selectedDay: CalendarDaySelection?
 
     /// Repliée à l'ouverture : le calendrier est le sujet de l'écran, les suivis en
     /// sont la gestion — on n'y va que quand on le décide.
@@ -52,8 +52,8 @@ struct CalendarView: View {
         .task(id: viewModel.start) {
             await viewModel.load()
         }
-        .sheet(item: $selectedDay) { day in
-            CalendarDaySheet(day: day, entries: viewModel.entries(on: day))
+        .sheet(item: $selectedDay) { selection in
+            CalendarDaySheet(day: selection.date, entries: viewModel.entries(on: selection.date))
         }
     }
 
@@ -160,7 +160,7 @@ struct CalendarView: View {
                 )
                 .onTapGesture {
                     guard entries.isNotEmpty else { return }
-                    selectedDay = day
+                    selectedDay = CalendarDaySelection(day: day)
                 }
             }
         }
@@ -246,7 +246,7 @@ struct CalendarDayCell: View {
                     .font(.system(size: 9, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .foregroundStyle(entry.release.mediaType == "movie" ? Color.orange : Color.accentColor)
+                    .foregroundStyle(entry.release.isMovie ? Color.orange : Color.accentColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -292,12 +292,29 @@ struct CalendarDayCell: View {
     }
 }
 
-// `Date` n'est pas `Identifiable`, ce que `.sheet(item:)` exige. La conformance est
-// posée ici plutôt que dans une extension partagée : elle n'a de sens que pour
-// désigner un jour, et l'étendre à tout le projet serait discutable.
-extension Date: @retroactive Identifiable {
+/// Le jour dont la feuille est ouverte, ce que `.sheet(item:)` exige.
+///
+/// ⚠️ **Un type à nous, et non `extension Date: Identifiable`.** `@retroactive` fait
+/// taire l'avertissement, il ne supprime pas le risque : `Date` appartient à
+/// Foundation et `Identifiable` à la bibliothèque standard. Le jour où Apple ajoute
+/// la conformance, le build casse d'un coup — et la portée était le module entier
+/// pour un besoin d'un seul fichier.
+///
+/// L'identité est la **clé de jour**, pas l'horodatage : deux `Date` du même jour
+/// doivent désigner la même feuille, ce que `timeIntervalSince1970` ne faisait pas.
+private struct CalendarDaySelection: Identifiable {
 
-    public var id: TimeInterval { timeIntervalSince1970 }
+    let date: Date
+
+    /// Calculée à la création : `CalendarViewModel.key(for:)` vit sur le `MainActor`
+    /// — son formateur y est isolé — alors que `Identifiable.id` se lit de partout.
+    let id: String
+
+    @MainActor
+    init(day: Date) {
+        self.date = day
+        self.id = CalendarViewModel.key(for: day)
+    }
 }
 
 /// Un média suivi : son affiche, son titre, sa prochaine sortie, et de quoi cesser
