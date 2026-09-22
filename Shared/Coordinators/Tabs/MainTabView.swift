@@ -32,7 +32,11 @@ struct MainTabView: View {
     private static var defaultTabCoordinator: TabCoordinator {
         #if os(iOS)
         TabCoordinator {
-            TabItem.contentGroup(provider: DefaultContentGroupProvider())
+            // EnhancedFin : Accueil du fork — carrousel, bibliothèques, reprise
+            // fusionnée, ajouts récents. `DefaultContentGroupProvider` reste intact
+            // et sert toujours tvOS ; le remplacer ici plutôt que le modifier garde
+            // le rebase indolore.
+            TabItem.contentGroup(provider: HomeContentGroupProvider())
             // EnhancedFin : `TabItem.search` retiré — l'Explorer porte la recherche,
             // et cherche plus large (référentiel + TMDB + bibliothèque, là où la
             // recherche native ne voit que la bibliothèque). Deux onglets à la loupe

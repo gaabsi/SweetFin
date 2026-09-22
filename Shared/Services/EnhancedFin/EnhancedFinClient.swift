@@ -140,6 +140,23 @@ final class EnhancedFinClient {
         try await send(Request(path: "me/watchlist/\(escaped(mediaKey))", method: .delete))
     }
 
+    // MARK: - Reprise
+
+    /// Les lectures en cours connues du plugin.
+    ///
+    /// ⚠️ **Ne couvre que les sources externes.** La table `playback` n'est nourrie
+    /// que par `PUT /me/progress` ; ce que tu regardes sur le serveur Jellyfin n'y
+    /// arrive jamais. L'Accueil complète donc cette liste avec `/UserItems/Resume` et
+    /// `/Shows/NextUp`, et déduplique l'ensemble par identifiant TMDB.
+    ///
+    /// - Parameter limit: nombre maximum d'entrées. Le serveur plafonne à 200.
+    func continueWatching(limit: Int? = nil) async throws -> EnhancedFinList<EnhancedFinContinueWatching> {
+        var query: [(String, String?)] = []
+        if let limit { query.append(("limit", String(limit))) }
+
+        return try await send(Request(path: "me/continue-watching", query: query.isEmpty ? nil : query))
+    }
+
     // MARK: - Calendrier
 
     /// Les sorties des médias suivis, regroupées par jour.

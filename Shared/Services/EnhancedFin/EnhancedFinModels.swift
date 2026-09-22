@@ -249,6 +249,46 @@ struct EnhancedFinFollow: Decodable, Hashable, Identifiable {
     var id: String { mediaKey }
 }
 
+// MARK: - Reprise
+
+/// Une lecture en cours — `GET /me/continue-watching`.
+///
+/// ⚠️ **Cette route ne voit PAS ce que Jellyfin sait.** Elle lit la seule table
+/// `playback` du plugin, alimentée par `PUT /me/progress`, que rien n'appelle
+/// aujourd'hui — elle ne contient donc que l'historique migré des **sources
+/// externes** (source externe, source externe). La reprise côté serveur vient, elle, des
+/// routes Jellyfin natives.
+///
+/// C'est pour ça que l'Accueil fusionne trois sources plutôt qu'une, et que la
+/// fusion déduplique par identifiant TMDB : un même média peut être en cours des
+/// deux côtés, avec des identifiants qui n'ont aucun rapport entre eux.
+struct EnhancedFinContinueWatching: Decodable, Hashable, Identifiable {
+
+    let mediaKey: String
+    let mediaType: String
+    let title: String
+    let year: Int?
+    let posterUrl: String?
+    let backdropUrl: String?
+
+    /// `0` pour un film : le serveur range les films en `season 0, episode 0`.
+    let season: Int
+    let episode: Int
+
+    let positionTicks: Int
+    let durationTicks: Int
+
+    /// Avancement, déjà calculé et arrondi par le serveur. Absent quand la durée
+    /// est inconnue — on ne peut alors pas dessiner de barre de progression.
+    let progress: Double?
+
+    /// Dernière activité, ISO-8601. Reste une `String` : une date au format
+    /// inattendu ferait échouer le décodage de **toute** la liste.
+    let updatedAt: String
+
+    var id: String { mediaKey }
+}
+
 // MARK: - Calendrier
 
 /// Réponse de `GET /me/calendar`.
