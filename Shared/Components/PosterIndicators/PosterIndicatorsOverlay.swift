@@ -15,6 +15,10 @@ struct PosterIndicatorsOverlay: View {
     @Environment(\.posterConfiguration)
     private var posterConfiguration
 
+    // EnhancedFin : voir `showsUnplayedIndicator`.
+    @Environment(\.viewContext)
+    private var viewContext
+
     let item: BaseItemDto
     let posterDisplayType: PosterDisplayType
 
@@ -26,8 +30,15 @@ struct PosterIndicatorsOverlay: View {
         UIDevice.isTV ? 45 : 25
     }
 
+    /// ⚠️ EnhancedFin : **jamais dans un rail de reprise.**
+    ///
+    /// « Continuer de regarder » propose l'épisode suivant d'une série en cours. Cet
+    /// épisode n'a évidemment pas été lu, donc la pastille « nouveau » s'allumait sur
+    /// *chaque* tuile du rail — elle ne distinguait plus rien et contredisait le titre
+    /// de la section. Ailleurs (ajouts récents, bibliothèques) elle garde tout son sens.
     private var showsUnplayedIndicator: Bool {
-        indicators.contains(.unplayed) &&
+        !viewContext.contains(.isInResume) &&
+            indicators.contains(.unplayed) &&
             item.canBePlayed &&
             !item.isLiveStream &&
             item.userData?.isPlayed == false &&
