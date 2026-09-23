@@ -58,6 +58,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
         let userSession = try requireUserSession()
         let fullItem = try await item.getFullItem(userSession: userSession, sendNotification: true)
+        // EnhancedFin : lancé avant les `await` qui suivent, pour courir en parallèle.
+        async let newEnhancedFinMedia = fetchEnhancedFinMedia(fullItem.enhancedFinMediaKey)
         let newMediaPlayerItemProvider = try await resolveMediaPlayerItemProvider(
             for: fullItem,
             userSession: userSession
@@ -65,6 +67,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         let newLocalTrailers = try? await localTrailers(for: fullItem)
         let newRandomBackdropItem = try? await randomBackdropItem(for: fullItem)
 
+        enhancedFinMedia = await newEnhancedFinMedia
         item = fullItem
         localTrailers = newLocalTrailers ?? []
         mediaPlayerItemProvider = newMediaPlayerItemProvider
@@ -106,21 +109,89 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         return groups
     }
 
+    /// EnhancedFin : la fiche du plugin (métadonnées TMDB et notes), si elle a pu
+    /// être obtenue. Lue par `facts(for:)`.
+    var enhancedFinMedia: EnhancedFinMedia?
+
+    /// EnhancedFin : demande au plugin la fiche détaillée d'un média.
+    ///
+    /// `enrich` fait entrer le média au référentiel s'il n'y est pas : la demande
+    /// vient d'une fiche ouverte, elle est explicite, donc la règle « un GET ne crée
+    /// pas de données » tient.
+    ///
+    /// Parametres :
+    /// - mediaKey (String?) : clé EnhancedFin, `nil` pour un item sans équivalent
+    ///   (épisode, personne, pas d'identifiant TMDB)
+    ///
+    /// Output :
+    /// - media (EnhancedFinMedia?) : fiche, `nil` sans clé ou si le plugin échoue
+    func fetchEnhancedFinMedia(_ mediaKey: String?) async -> EnhancedFinMedia? {
+        guard let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
+
+        do {
+            return try await client.media(mediaKey, detail: true, enrich: true)
+        } catch let problem as EnhancedFinProblem where problem.status == 404 {
+            // Inconnu de TMDB : attendu, la fiche garde ce qu'elle a.
+            return nil
+        } catch {
+            logger.warning("EnhancedFin media lookup failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// EnhancedFin : les données du bloc « infos ».
+    ///
+    /// Le plugin d'abord, l'item Jellyfin en secours. Pas de secours pour un item
+    /// de découverte : il n'a qu'une année, datée au 1er janvier, et mieux vaut
+    /// aucun bloc qu'une date fausse.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : item dont on construit la fiche
+    ///
+    /// Output :
+    /// - facts (ItemFacts?) : informations du bloc, `nil` s'il n'y a rien de fiable
+    func facts(for item: BaseItemDto) -> ItemFacts? {
+        if let enhancedFinMedia {
+            return ItemFacts(media: enhancedFinMedia)
+        }
+
+        guard !EnhancedFinSyntheticItem.isSynthetic(item.id) else { return nil }
+
+        return ItemFacts(item: item)
+    }
+
     @ContentGroupBuilder
     func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
 
         Self.personContentGroups(for: item)
 
+        // EnhancedFin : un item de découverte (`enhancedfin:…`) n'existe pas sur le
+        // serveur. Les sections qui l'interrogent — épisodes, saisons, bonus,
+        // similaires — ne récoltaient qu'un 400 chacune, sans rien afficher.
+        let isOnServer = !EnhancedFinSyntheticItem.isSynthetic(itemID)
+
         switch item.type {
         case .season, .series:
-            SeriesEpisodeContentGroup(
-                parent: item,
-                playButtonItem: mediaPlayerItemProvider?.item
-            )
+            if isOnServer {
+                SeriesEpisodeContentGroup(
+                    parent: item,
+                    playButtonItem: mediaPlayerItemProvider?.item
+                )
+            }
         default:
             []
         }
 
+        // EnhancedFin : genres, réalisation, studios, date et notes, voir
+        // `ItemFactsContentGroup`.
+        if let facts = facts(for: item), !facts.isEmpty {
+            ItemFactsContentGroup(facts: facts)
+        }
+
+        // EnhancedFin : sur iOS, genres et studios vivent dans le bloc « infos »
+        // ci-dessus. Les pastilles natives restent pour tvOS, que le fork ne touche
+        // pas encore.
+        #if os(tvOS)
         if let genres = item.itemGenres, genres.isNotEmpty {
             PillGroup(
                 displayTitle: L10n.genres,
@@ -175,6 +246,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
                 )
             }
         }
+        #endif
 
         switch item.type {
         case .movie:
@@ -195,11 +267,13 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
             .makeGroups(environment: .default)
         case .series:
-            try await ItemTypeContentGroupProvider(
-                itemTypes: [.season],
-                parent: item
-            )
-            .makeGroups(environment: .default)
+            if isOnServer {
+                try await ItemTypeContentGroupProvider(
+                    itemTypes: [.season],
+                    parent: item
+                )
+                .makeGroups(environment: .default)
+            }
         case .channel, .liveTvChannel, .tvChannel:
             PosterGroup(
                 id: "channel-programs",
@@ -242,14 +316,16 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
         }
 
-        PosterGroup(
-            id: "special-features",
-            library: SpecialFeaturesLibrary(itemID: itemID),
-            posterDisplayType: .landscape,
-            posterSize: .small
-        )
+        if isOnServer {
+            PosterGroup(
+                id: "special-features",
+                library: SpecialFeaturesLibrary(itemID: itemID),
+                posterDisplayType: .landscape,
+                posterSize: .small
+            )
+        }
 
-        if Defaults[.Customization.shouldShowRecommendations] {
+        if isOnServer, Defaults[.Customization.shouldShowRecommendations] {
             PosterGroup(
                 id: "similar-items",
                 library: SimilarItemsLibrary(itemID: itemID, itemType: item.type),
