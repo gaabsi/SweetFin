@@ -34,6 +34,12 @@ extension EnvironmentValues {
     @Entry
     var posterDisplayType: PosterDisplayType = .portrait
 
+    /// EnhancedFin : l'affiche montre une personne. Lu par `PosterCornerRadiusModifier`
+    /// pour appliquer ``ThemeTokens/personPosterShape`` à elles seules — d'autres
+    /// affiches sont carrées (albums, chaînes) et doivent le rester.
+    @Entry
+    var isPersonPoster: Bool = false
+
     @Entry
     var safeAreaInsets: EdgeInsets = UIApplication.shared.keyWindow?.safeAreaInsets.asEdgeInsets ?? .zero
 

@@ -20,8 +20,16 @@ extension ItemView {
         var alignment: HorizontalAlignment = .center
         var flowDirection: FlowLayout.Direction = .up
 
+        /// ⚠️ EnhancedFin : aucune pastille sous le synopsis (note, classification,
+        /// 4K…), sur les quatre en-têtes à la fois.
+        ///
+        /// Coupé ici et non via le défaut de `itemViewAttributes` : la valeur est
+        /// enregistrée par utilisateur dès le premier accès, un nouveau défaut ne
+        /// touchait donc aucun compte existant.
+        private let isEnabled = false
+
         var body: some View {
-            if attributes.isNotEmpty {
+            if isEnabled, attributes.isNotEmpty {
                 FlowLayout(
                     alignment: alignment,
                     direction: flowDirection,

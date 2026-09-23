@@ -29,10 +29,13 @@ struct MediaBarView: View {
     /// Proportion de l'affiche. Plus haute que l'en-tête d'une fiche (1.6) : ici
     /// l'image *est* le contenu, elle n'introduit pas une page.
     ///
+    /// 0.88 = 1.1 / 1.25 : 25 % plus haute que la première version. Possible depuis
+    /// que la racine de l'onglet n'affiche plus le grand titre « Accueil », que le
+    /// logo venait percuter.
+    ///
     /// ⚠️ Ne pas remonter au-delà de ~1.3 : la diapo devient alors trop courte pour
-    /// loger le logo, le bouton et les points sans que le logo ne vienne percuter le
-    /// grand titre « Accueil » de la barre de navigation.
-    private static let aspectRatio: CGFloat = 1.1
+    /// loger le logo, le bouton et les points.
+    private static let aspectRatio: CGFloat = 0.88
 
     @ObservedObject
     var viewModel: PagingLibraryViewModel<RandomItemsLibrary>

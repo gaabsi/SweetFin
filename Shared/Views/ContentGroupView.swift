@@ -91,7 +91,10 @@ struct ContentGroupView<Provider: ContentGroupProvider>: View {
         .animation(.linear(duration: 0.2), value: viewModel.background.states)
         .navigationTitle(viewModel.provider.displayTitle)
         #if os(iOS)
-        .toolbarTitleDisplayMode(router.isRootOfPath ? .inlineLarge : .inline)
+        // EnhancedFin : plus de grand titre à la racine d'un onglet (« Accueil »
+        // répétait l'onglet sélectionné). Les pages poussées gardent leur titre.
+        .toolbarTitleDisplayMode(.inline)
+        .hidesNavigationTitle(router.isRootOfPath)
         #elseif os(tvOS)
         .toolbar(router.isRootOfPath ? .hidden : .automatic, for: .navigationBar)
         #endif

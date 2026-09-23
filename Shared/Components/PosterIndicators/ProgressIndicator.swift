@@ -14,7 +14,8 @@ struct ProgressIndicator: View {
     @Default(.accentColor)
     private var accentColor
 
-    let title: String
+    // EnhancedFin : optionnel — `nil` ne garde que la barre (rail de reprise).
+    let title: String?
     let progress: Double
     let posterDisplayType: PosterDisplayType
 
@@ -31,9 +32,11 @@ struct ProgressIndicator: View {
     private var regularView: some View {
         VStack(alignment: .leading, spacing: 5) {
 
-            Text(title)
-                .font(.system(.footnote, design: .rounded))
-                .fontWeight(.medium)
+            if let title {
+                Text(title)
+                    .font(.system(.footnote, design: .rounded))
+                    .fontWeight(.medium)
+            }
 
             ProgressView(value: progress)
                 .progressViewStyle(.playback)

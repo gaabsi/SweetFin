@@ -49,6 +49,7 @@ struct CalendarView: View {
             }
         }
         .navigationTitle(CalendarStrings.calendar)
+        .hidesNavigationTitle()
         .task(id: viewModel.start) {
             await viewModel.load()
         }
