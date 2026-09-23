@@ -128,10 +128,12 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         .enhancedFinRating,
         .enhancedFinWatchlist,
         .enhancedFinFollow,
-        .played
     ]
 
+    // « Marquer comme vu » dans le menu : un geste ponctuel, qui n'a pas sa place
+    // à côté des trois gestes du quotidien.
     static let defaultMenuActionButtons: [ItemActionButton] = [
+        .played,
         .favorited,
         .trailers,
         .playback,

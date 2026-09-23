@@ -27,4 +27,12 @@ enum ItemStrings {
     static let directedBy = "Réalisation"
     static let createdBy = "Création"
     static let ratings = "Notes"
+
+    // Saisons et épisodes (`SeasonsContentGroup`).
+    static let markAsWatched = "Marquer comme vu"
+    static let validate = "Valider"
+
+    static func watchedCount(_ watched: Int, of total: Int) -> String {
+        "\(watched)/\(total) vus"
+    }
 }

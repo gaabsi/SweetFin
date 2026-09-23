@@ -396,6 +396,25 @@ struct EnhancedFinMedia: Decodable, Hashable {
     /// Notes Rotten Tomatoes, seulement avec `?detail=true`. Absentes si le plugin
     /// n'a pas de clé MDBList ou si MDBList ne connaît pas le média.
     let scores: EnhancedFinScores?
+
+    /// Série seulement, et seulement si Seerr a répondu.
+    let seerr: EnhancedFinSeerr?
+
+    /// Série du serveur à laquelle il manque des épisodes sortis, selon Seerr.
+    /// Faux si Seerr n'a pas répondu : pas de carte « + » à tort.
+    var isIncompleteSeries: Bool {
+        seerr.map { $0.status != EnhancedFinSeerr.available } ?? false
+    }
+}
+
+/// Disponibilité d'une série selon Seerr (`mediaInfo.status`).
+struct EnhancedFinSeerr: Decodable, Hashable {
+
+    /// 5 : entièrement disponible. Méthode du front media-rating.
+    static let available = 5
+
+    /// Nul : Seerr ne suit pas la série.
+    let status: Int?
 }
 
 /// Notes Rotten Tomatoes d'un média, en pourcentage.
@@ -415,6 +434,58 @@ struct EnhancedFinMediaMe: Decodable, Hashable {
     let inWatchlist: Bool
     let following: Bool
     let hidden: Bool
+
+    /// Dernière progression connue. Pour un film, dit s'il est vu.
+    let progress: EnhancedFinMediaProgress?
+}
+
+/// Dernière progression sur un média, telle que `GET /media` la rend.
+struct EnhancedFinMediaProgress: Decodable, Hashable {
+
+    /// Calculé par le serveur (`SqlIsWatched`) : ne pas le redéduire des ticks.
+    let watched: Bool?
+}
+
+// MARK: - Saisons et épisodes (fiche de découverte)
+
+/// Une saison, telle que `GET /media/{key}/seasons` la rend.
+struct EnhancedFinSeason: Decodable, Hashable {
+
+    let number: Int
+    let name: String?
+    let episodeCount: Int?
+    let posterUrl: String?
+
+    /// Épisodes que j'ai marqués vus dans cette saison.
+    let watchedCount: Int?
+}
+
+struct EnhancedFinSeasons: Decodable {
+
+    let items: [EnhancedFinSeason]
+}
+
+/// Les épisodes d'une saison, `GET /media/{key}/seasons/{n}`.
+struct EnhancedFinSeasonDetail: Decodable {
+
+    let number: Int
+    let name: String?
+    let episodes: [EnhancedFinEpisode]
+}
+
+struct EnhancedFinEpisode: Decodable, Hashable {
+
+    let number: Int
+    let name: String?
+    let overview: String?
+    let stillUrl: String?
+
+    /// `AAAA-MM-JJ`.
+    let airDate: String?
+
+    /// En minutes.
+    let runtime: Int?
+    let watched: Bool?
 }
 
 /// Champs disponibles seulement avec `?detail=true`.

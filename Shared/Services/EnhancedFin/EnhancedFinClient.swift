@@ -240,7 +240,44 @@ final class EnhancedFinClient {
         return try await send(Request(path: "search", query: query))
     }
 
+    // MARK: - Saisons et épisodes vus
+
+    /// Saisons d'une série de découverte (TMDB), avec mes épisodes vus.
+    func seasons(_ mediaKey: String) async throws -> [EnhancedFinSeason] {
+        let response: EnhancedFinSeasons = try await send(
+            Request(path: "media/\(escaped(mediaKey))/seasons")
+        )
+        return response.items
+    }
+
+    /// Épisodes d'une saison (TMDB), chacun avec son état vu.
+    func season(_ mediaKey: String, number: Int) async throws -> EnhancedFinSeasonDetail {
+        try await send(Request(path: "media/\(escaped(mediaKey))/seasons/\(number)"))
+    }
+
+    /// Marque ou démarque des épisodes d'une saison, en un appel.
+    ///
+    /// - Parameters:
+    ///   - season: numéro de saison ; `0` pour un film
+    ///   - episodes: numéros d'épisodes ; `[0]` pour un film
+    ///   - watched: `true` pour marquer vu, `false` pour démarquer
+    func setWatched(_ mediaKey: String, season: Int, episodes: [Int], watched: Bool) async throws {
+        try await send(
+            Request(
+                path: "me/watched/\(escaped(mediaKey))",
+                method: watched ? .put : .delete,
+                body: WatchedBody(season: season, episodes: episodes)
+            )
+        )
+    }
+
     // MARK: - Envoi
+
+    /// Corps de `PUT` et `DELETE /me/watched/{mediaKey}`.
+    private struct WatchedBody: Encodable {
+        let season: Int
+        let episodes: [Int]
+    }
 
     /// Corps de `PUT /me/ratings/{mediaKey}`.
     ///

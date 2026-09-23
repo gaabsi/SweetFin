@@ -160,6 +160,47 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         return ItemFacts(item: item)
     }
 
+    /// EnhancedFin : d'où viennent les saisons d'une série.
+    ///
+    /// Série du serveur : Jellyfin, qui détient aussi l'état vu. Série de découverte :
+    /// le plugin (TMDB + sa table `playback`).
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : la série
+    /// - itemID (String) : identifiant de la fiche
+    ///
+    /// Output :
+    /// - backend (SeasonEpisodesViewModel.Backend?) : source, `nil` si aucune
+    func seasonsBackend(for item: BaseItemDto, itemID: String) -> SeasonEpisodesViewModel.Backend? {
+        if EnhancedFinSyntheticItem.isSynthetic(itemID) {
+            return item.enhancedFinMediaKey.map { .enhancedFin(mediaKey: $0) }
+        }
+
+        return .jellyfin(seriesID: itemID, mediaKey: item.enhancedFinMediaKey)
+    }
+
+    /// EnhancedFin : la carte « + » des saisons, pour une série du serveur que Seerr
+    /// dit incomplète. Jamais sur une série de découverte : elle montre déjà tout TMDB.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : la série
+    /// - itemID (String) : identifiant de la fiche
+    ///
+    /// Output :
+    /// - completion (SeasonsContentGroup.Completion?) : `nil` si rien ne manque ou si
+    ///   Seerr n'a pas répondu
+    func seasonsCompletion(for item: BaseItemDto, itemID: String) -> SeasonsContentGroup.Completion? {
+        guard !EnhancedFinSyntheticItem.isSynthetic(itemID),
+              enhancedFinMedia?.isIncompleteSeries == true,
+              let mediaKey = item.enhancedFinMediaKey
+        else { return nil }
+
+        return .init(
+            mediaKey: mediaKey,
+            poster: item.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 120))
+        )
+    }
+
     @ContentGroupBuilder
     func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
 
@@ -170,23 +211,35 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         // similaires — ne récoltaient qu'un 400 chacune, sans rien afficher.
         let isOnServer = !EnhancedFinSyntheticItem.isSynthetic(itemID)
 
-        switch item.type {
-        case .season, .series:
-            if isOnServer {
-                SeriesEpisodeContentGroup(
-                    parent: item,
-                    playButtonItem: mediaPlayerItemProvider?.item
-                )
-            }
-        default:
-            []
+        // EnhancedFin : sur iOS, une série n'a plus le rail horizontal de sa saison
+        // courante — ses épisodes s'ouvrent depuis `SeasonsContentGroup`, plus bas.
+        // Une page de saison garde le sien : elle n'a pas de rail de saisons.
+        #if os(tvOS)
+        let showsEpisodeRail = item.type == .season || item.type == .series
+        #else
+        let showsEpisodeRail = item.type == .season
+        #endif
+
+        if isOnServer, showsEpisodeRail {
+            SeriesEpisodeContentGroup(
+                parent: item,
+                playButtonItem: mediaPlayerItemProvider?.item
+            )
         }
 
-        // EnhancedFin : genres, réalisation, studios, date et notes, voir
+        // EnhancedFin : date, genres, réalisation et notes, voir
         // `ItemFactsContentGroup`.
         if let facts = facts(for: item), !facts.isEmpty {
             ItemFactsContentGroup(facts: facts)
         }
+
+        // EnhancedFin : saisons, et leurs épisodes à marquer vus — série du serveur
+        // comme de découverte. Voir `SeasonsContentGroup`.
+        #if os(iOS)
+        if item.type == .series, let backend = seasonsBackend(for: item, itemID: itemID) {
+            SeasonsContentGroup(id: itemID, backend: backend, completion: seasonsCompletion(for: item, itemID: itemID))
+        }
+        #endif
 
         // EnhancedFin : sur iOS, genres et studios vivent dans le bloc « infos »
         // ci-dessus. Les pastilles natives restent pour tvOS, que le fork ne touche
@@ -267,13 +320,16 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
             .makeGroups(environment: .default)
         case .series:
-            if isOnServer {
-                try await ItemTypeContentGroupProvider(
-                    itemTypes: [.season],
-                    parent: item
-                )
-                .makeGroups(environment: .default)
-            }
+            // EnhancedFin : remplacé sur iOS par `SeasonsContentGroup`, plus haut.
+            #if os(tvOS)
+            try await ItemTypeContentGroupProvider(
+                itemTypes: [.season],
+                parent: item
+            )
+            .makeGroups(environment: .default)
+            #else
+            []
+            #endif
         case .channel, .liveTvChannel, .tvChannel:
             PosterGroup(
                 id: "channel-programs",
@@ -516,6 +572,17 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
 
     private func setIsPlayed(_ isPlayed: Bool) async throws {
         guard let itemID = item.id else { return }
+
+        // EnhancedFin : un film de découverte n'existe pas sur le serveur, son état vu
+        // vit dans le plugin (saison 0, épisode 0).
+        if EnhancedFinSyntheticItem.isSynthetic(itemID) {
+            guard let mediaKey = item.enhancedFinMediaKey,
+                  let client = userSession?.enhancedFinClient
+            else { return }
+
+            try await client.setWatched(mediaKey, season: 0, episodes: [0], watched: isPlayed)
+            return
+        }
 
         let request: Request<UserItemDataDto> = if isPlayed {
             try Paths.markPlayedItem(
