@@ -332,28 +332,17 @@ extension View {
         }
     }
 
+    // EnhancedFin : valeurs lues sur le thème, voir `ThemeTokens`.
     @ViewBuilder
     func posterCornerRadius(
         _ type: PosterDisplayType
     ) -> some View {
-        // EnhancedFin : arrondis plus francs, repris d'ElegantFin (`--smallRadius`,
-        // `--largeRadius`) et des cartes du front web. Les valeurs d'origine
-        // (1/30 et 0,0375) donnaient des coins presque droits, que rien d'autre dans
-        // l'app ne rappelait.
-        switch type {
-        case .landscape:
-            cornerRadius(ratio: 1 / 16, of: \.width)
-        case .portrait, .square:
-            cornerRadius(ratio: 0.065, of: \.width)
-        }
+        modifier(PosterCornerRadiusModifier(type: type))
     }
 
     @ViewBuilder
     func subtleShadow() -> some View {
-        // EnhancedFin : ombre portée plus lisible, pour détacher les tuiles du fond
-        // noir. `shadow(radius:)` sans couleur applique un noir à 33 % ; sur un fond
-        // sombre il faut l'assombrir et l'étaler pour qu'elle se voie.
-        shadow(color: .black.opacity(0.5), radius: 8, y: 4)
+        modifier(PosterShadowModifier())
     }
 
     /// Applies the aspect ratio, corner radius, and border for the given `PosterType`
@@ -473,4 +462,42 @@ extension View {
         }
     }
     #endif
+}
+
+// MARK: - EnhancedFin
+
+/// ⚠️ **Des `ViewModifier` et non de simples fonctions.** Ces deux réglages viennent
+/// du thème, donc de `Defaults[.appearance]` : une fonction sur `View` ne peut pas
+/// s'abonner à un `@Default`, et les affiches garderaient l'arrondi de l'ancien thème
+/// jusqu'à ce qu'autre chose les invalide.
+private struct PosterCornerRadiusModifier: ViewModifier {
+
+    @Default(.appearance)
+    private var appearance
+
+    let type: PosterDisplayType
+
+    func body(content: Content) -> some View {
+        let ratio = appearance.tokens.posterCornerRatio
+
+        switch type {
+        case .landscape:
+            content.cornerRadius(ratio: ratio.landscape, of: \.width)
+        case .portrait, .square:
+            content.cornerRadius(ratio: ratio.portrait, of: \.width)
+        }
+    }
+}
+
+/// Voir ``PosterCornerRadiusModifier`` pour le choix du `ViewModifier`.
+private struct PosterShadowModifier: ViewModifier {
+
+    @Default(.appearance)
+    private var appearance
+
+    func body(content: Content) -> some View {
+        let shadow = appearance.tokens.posterShadow
+
+        return content.shadow(color: shadow.color, radius: shadow.radius, y: shadow.y)
+    }
 }

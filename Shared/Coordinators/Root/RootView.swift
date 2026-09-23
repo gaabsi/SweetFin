@@ -37,7 +37,7 @@ struct RootView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(appearance.backgroundColor.ignoresSafeArea())
+        .background(appearance.tokens.background.ignoresSafeArea())
         .animation(.linear(duration: 0.1), value: rootCoordinator.state)
         .task {
             rootCoordinator.start()

@@ -140,7 +140,7 @@ final class RootCoordinator: ObservableObject {
     @MainActor
     private func applyAppearance(_ appearance: AppAppearance) {
         Defaults[.appearance] = appearance
-        UIApplication.shared.setAppearance(appearance.style)
+        UIApplication.shared.setAppearance(appearance.tokens.style)
 
         // EnhancedFin : un thème impose sa couleur d'accent.
         //
@@ -148,7 +148,7 @@ final class RootCoordinator: ObservableObject {
         // est le point de passage commun aux réglages de l'app **et** à ceux de
         // l'utilisateur, et c'est le second qui gouverne une fois connecté.
         #if os(iOS)
-        applyAccentColor(appearance.accentColor)
+        applyAccentColor(appearance.tokens.accent)
         #endif
     }
 

@@ -6,6 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import Defaults
 import FactoryKit
 import Foundation
 import Get
@@ -474,17 +475,21 @@ private struct BaseItemDtoPosterLabel: View {
             return posterDisplayType == .landscape ? details.asArray : details.prefix(1).asArray
         }
 
+        @Default(.appearance)
+        private var appearance
+
         init(@ArrayBuilder<any View> content: () -> [any View]) {
             self.content = content().map { AnyView($0) }
         }
 
         var body: some View {
-            // EnhancedFin : titres **centrés**, ici et partout.
-            //
-            // Le fork centrait déjà les siens (`EnhancedFinPosterLabel`) ; aligner les
-            // tuiles natives à gauche donnait deux styles selon l'écran. Centrer les
-            // deux a supprimé la valeur d'environnement et le décorateur qui servaient
-            // à ne le faire que sur l'Accueil — deux fichiers de moins à maintenir.
+            // EnhancedFin : alignement décidé par le thème (`ThemeTokens`), et non
+            // plus câblé ici. Le fork centrait déjà ses propres libellés
+            // (`EnhancedFinPosterLabel`) ; les aligner tous sur la même source a
+            // supprimé la valeur d'environnement et le décorateur qui servaient à ne
+            // le faire que sur l'Accueil — deux fichiers de moins à maintenir.
+            let tokens = appearance.tokens
+
             AlternateLayoutView(alignment: .top) {
                 VStack(spacing: 2) {
                     Text(String.space)
@@ -493,10 +498,10 @@ private struct BaseItemDtoPosterLabel: View {
                 .font(.footnote)
                 .frame(maxWidth: .infinity)
             } content: {
-                VStack(alignment: .center, spacing: 2) {
+                VStack(alignment: tokens.posterLabelAlignment, spacing: 2) {
                     content.first
                         .font(.footnote)
-                        .multilineTextAlignment(.center)
+                        .multilineTextAlignment(tokens.posterLabelTextAlignment)
                         .lineLimit(details.isEmpty ? 2 : 1, reservesSpace: true)
 
                     DotHStack {
@@ -510,7 +515,7 @@ private struct BaseItemDtoPosterLabel: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity, alignment: Alignment(horizontal: tokens.posterLabelAlignment, vertical: .center))
             }
         }
     }
