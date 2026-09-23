@@ -75,6 +75,7 @@ enum EnhancedFinSyntheticItem {
     /// - genres ([String]?) : noms de genres
     /// - rating (Double?) : note TMDB sur 10
     /// - cast ([EnhancedFinCastMember]?) : rôles, dans l'ordre d'affiche
+    /// - isPlayed (Bool) : marqué vu dans le plugin
     ///
     /// Output :
     /// - item (BaseItemDto) : item synthétique prêt à être affiché
@@ -88,7 +89,8 @@ enum EnhancedFinSyntheticItem {
         logoURL: String? = nil,
         genres: [String]? = nil,
         rating: Double? = nil,
-        cast: [EnhancedFinCastMember]? = nil
+        cast: [EnhancedFinCastMember]? = nil,
+        isPlayed: Bool = false
     ) -> BaseItemDto {
         let itemID = id(for: mediaKey)
 
@@ -114,6 +116,9 @@ enum EnhancedFinSyntheticItem {
         item.communityRating = rating.map(Float.init)
         item.people = cast.map(people(from:))
         item.type = EnhancedFinMediaType(mediaKey: mediaKey) == .tv ? .series : .movie
+        // Lu par le bouton natif « Marquer comme vu » du menu : sans `userData`,
+        // `toggleIsPlayed` ne saurait pas dans quel état est le film.
+        item.userData = UserItemDataDto(isPlayed: isPlayed, itemID: itemID, key: itemID)
 
         // `ItemView` choisit sa présentation enrichie sur la présence d'un tag de
         // backdrop. Le tag lui-même n'est jamais utilisé — l'URL vient du registre —

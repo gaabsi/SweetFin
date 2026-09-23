@@ -83,7 +83,10 @@ struct ItemActionButtons: View {
     ) -> Bool {
         switch button {
         case .played:
+            // EnhancedFin : un film de découverte se marque vu aussi, dans le plugin
+            // (voir `ItemContentGroupProvider.setIsPlayed`).
             provider.item.canBePlayed
+                || (EnhancedFinSyntheticItem.isSynthetic(provider.item.id) && provider.item.type == .movie)
         case .favorited:
             provider.item.canBeFavorited
         case .trailers:

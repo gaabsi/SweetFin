@@ -131,8 +131,9 @@ struct NavigationInjectionView: View {
     }
 }
 
-// EnhancedFin
-private extension View {
+// EnhancedFin : aussi utilisé par les feuilles qui ont leur propre `NavigationStack`
+// (`SeasonsContentGroup`).
+extension View {
 
     /// Pose le fond du thème sur le **conteneur de navigation**.
     ///

@@ -72,7 +72,8 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
             logoURL: media.logoUrl,
             genres: media.genreNames,
             rating: media.voteAverage,
-            cast: media.detail?.cast
+            cast: media.detail?.cast,
+            isPlayed: media.me.progress?.watched == true
         )
     }
 }
