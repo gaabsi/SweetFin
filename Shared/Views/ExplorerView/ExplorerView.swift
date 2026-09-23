@@ -41,6 +41,7 @@ struct ExplorerView: View {
             .padding(.vertical)
         }
         .navigationTitle(ExplorerStrings.explore)
+        .hidesNavigationTitle()
         .searchable(
             text: $searchText,
             placement: .navigationBarDrawer(displayMode: .always),

@@ -85,7 +85,9 @@ struct PosterIndicatorsOverlay: View {
 
             if showsProgressIndicator {
                 ProgressIndicator(
-                    title: item.progressLabel ?? "",
+                    // EnhancedFin : pas de temps restant dans un rail de reprise, la
+                    // barre suffit à dire où on en est.
+                    title: viewContext.contains(.isInResume) ? nil : item.progressLabel,
                     progress: item.progressPercentage ?? 0,
                     posterDisplayType: posterDisplayType
                 )

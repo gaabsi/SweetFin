@@ -340,6 +340,29 @@ extension View {
         modifier(PosterCornerRadiusModifier(type: type))
     }
 
+    /// EnhancedFin : n'affiche pas le titre de navigation, sans le retirer.
+    ///
+    /// À la racine d'un onglet, le titre répète l'onglet sélectionné juste en dessous.
+    /// `navigationTitle` reste posé : VoiceOver et l'historique du bouton retour le
+    /// lisent toujours. `.inline` évite que la barre réserve la hauteur du grand titre
+    /// devenu vide.
+    ///
+    /// Parametres :
+    /// - isHidden (Bool) : faux, la vue est rendue telle quelle
+    @ViewBuilder
+    func hidesNavigationTitle(_ isHidden: Bool = true) -> some View {
+        #if os(iOS)
+        if isHidden {
+            toolbarTitleDisplayMode(.inline)
+                .toolbar(removing: .title)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder
     func subtleShadow() -> some View {
         modifier(PosterShadowModifier())
@@ -475,16 +498,28 @@ private struct PosterCornerRadiusModifier: ViewModifier {
     @Default(.appearance)
     private var appearance
 
+    // EnhancedFin : voir `ThemeTokens.personPosterShape`.
+    @Environment(\.isPersonPoster)
+    private var isPersonPoster
+
     let type: PosterDisplayType
 
     func body(content: Content) -> some View {
         let ratio = appearance.tokens.posterCornerRatio
 
-        switch type {
-        case .landscape:
-            content.cornerRadius(ratio: ratio.landscape, of: \.width)
-        case .portrait, .square:
-            content.cornerRadius(ratio: ratio.portrait, of: \.width)
+        // `containerShape` en plus du `clipShape` : la bordure de `posterBorder` trace
+        // un `ContainerRelativeShape`, elle devient ainsi ronde elle aussi.
+        if isPersonPoster, type == .square, appearance.tokens.personPosterShape == .circle {
+            content
+                .clipShape(Circle())
+                .containerShape(Circle())
+        } else {
+            switch type {
+            case .landscape:
+                content.cornerRadius(ratio: ratio.landscape, of: \.width)
+            case .portrait, .square:
+                content.cornerRadius(ratio: ratio.portrait, of: \.width)
+            }
         }
     }
 }

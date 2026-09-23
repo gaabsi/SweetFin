@@ -44,6 +44,24 @@ extension BaseItemPerson: Poster {
         BaseItemDto(person: self).posterContextMenu
     }
 
+    /// EnhancedFin : remplit le cadre, visage au centre.
+    ///
+    /// Sans ce `transform`, l'image n'était que `resizable` : invisible tant que le
+    /// cadre avait le ratio de la photo (2:3), mais étirée dans un rond du casting,
+    /// qui est carré.
+    ///
+    /// ⚠️ Pas `.top` : ancrée en haut, la photo montre surtout le front et le visage
+    /// tombe en bas du rond, menton coupé. Voir `VerticalAlignment.face`.
+    @ViewBuilder
+    func transform(image: Image, displayType: PosterDisplayType) -> some View {
+        Color.clear
+            .overlay(alignment: Alignment(horizontal: .center, vertical: .face)) {
+                image
+                    .aspectRatio(contentMode: .fill)
+            }
+            .clipped()
+    }
+
     func portraitImageSources(
         environment: Environment
     ) -> [ImageSource] {
@@ -51,6 +69,15 @@ extension BaseItemPerson: Poster {
             .portraitImageSources(
                 environment: baseItemDtoEnvironment(from: environment)
             )
+    }
+
+    /// EnhancedFin : les ronds du casting sont carrés, et une personne n'a pas
+    /// d'image carrée. Sans ça, le défaut du protocole (`[]`) laissait l'icône de
+    /// remplacement ; la photo portrait est recadrée par `transform(image:)`.
+    func squareImageSources(
+        environment: Environment
+    ) -> [ImageSource] {
+        portraitImageSources(environment: environment)
     }
 
     private func baseItemDtoEnvironment(from environment: Environment) -> BaseItemDto.Environment {
@@ -61,4 +88,22 @@ extension BaseItemPerson: Poster {
 
         return itemEnvironment
     }
+}
+
+private extension VerticalAlignment {
+
+    /// EnhancedFin : le point à 33 % de la hauteur, repris d'ElegantFin
+    /// (`#castCollapsible .cardImageContainer { background-position-y: 33% }`).
+    ///
+    /// Aligner ce point du cadre sur ce même point de la photo décale celle-ci de
+    /// 33 % de ce qui dépasse — exactement le calcul de `background-position` en CSS.
+    /// Les photos de casting sont des portraits serrés dont le visage est vers le
+    /// tiers haut : à 33 %, il tombe au centre du rond.
+    enum FaceAlignment: AlignmentID {
+        static func defaultValue(in dimensions: ViewDimensions) -> CGFloat {
+            dimensions.height * 0.33
+        }
+    }
+
+    static let face = VerticalAlignment(FaceAlignment.self)
 }

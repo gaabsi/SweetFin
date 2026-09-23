@@ -7,6 +7,7 @@
 //
 
 import BlurHashKit
+import JellyfinAPI
 import Nuke
 import SwiftUI
 
@@ -81,6 +82,8 @@ struct PosterImage<Element: Poster>: View {
             displayType,
             contentMode: contentMode
         )
+        // EnhancedFin : voir `EnvironmentValues.isPersonPoster`.
+        .environment(\.isPersonPoster, element is BaseItemPerson)
     }
 }
 

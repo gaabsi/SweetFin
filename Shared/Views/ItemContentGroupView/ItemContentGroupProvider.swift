@@ -232,11 +232,12 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             PosterGroup(
                 id: "cast-and-crew",
                 library: StaticLibrary(
-                    title: L10n.castAndCrew.localizedCapitalized,
+                    title: ItemStrings.cast, // EnhancedFin : « Casting »
                     id: "cast-and-crew",
                     elements: castAndCrew
                 ),
-                posterDisplayType: .portrait,
+                // EnhancedFin : forme décidée par le thème (ronds pour ElegantFin).
+                posterDisplayType: Defaults[.appearance].tokens.personPosterShape.displayType,
                 posterSize: .small
             )
         }

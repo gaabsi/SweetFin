@@ -49,6 +49,9 @@ struct ThemeTokens {
     /// Alignement du titre sous une affiche, natif comme EnhancedFin.
     let posterLabelAlignment: HorizontalAlignment
 
+    /// Forme des photos du casting.
+    let personPosterShape: PersonPosterShape
+
     /// L'équivalent `TextAlignment` de ``posterLabelAlignment``, pour les titres qui
     /// passent à la ligne. Dérivé plutôt que déclaré : deux champs à tenir d'accord
     /// finiraient par diverger.
@@ -83,8 +86,28 @@ extension AppAppearance {
                 posterShadow: (color: .black.opacity(0.5), radius: 8, y: 4),
                 // Titres centrés partout : le fork centrait déjà les siens, et aligner
                 // les tuiles natives à gauche donnait deux styles selon l'écran.
-                posterLabelAlignment: .center
+                posterLabelAlignment: .center,
+                // Casting en ronds, comme le front web d'ElegantFin
+                // (`#castCollapsible .cardScalable { border-radius: 50% }`).
+                personPosterShape: .circle
             )
+        }
+    }
+}
+
+/// Forme des photos du casting, voir ``ThemeTokens/personPosterShape``.
+enum PersonPosterShape {
+
+    /// Rond, recadré sur le visage.
+    case circle
+    /// Affiche portrait, comme un média.
+    case poster
+
+    /// Le type d'affiche à demander au rail : un rond ne se découpe que dans un carré.
+    var displayType: PosterDisplayType {
+        switch self {
+        case .circle: .square
+        case .poster: .portrait
         }
     }
 }
