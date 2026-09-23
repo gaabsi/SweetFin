@@ -51,7 +51,11 @@ struct ExplorerView: View {
             viewModel.search(newValue)
         }
         .refreshable {
-            await viewModel.refresh()
+            // ⚠️ Tâche détachée à dessein : SwiftUI annule celle de `.refreshable`
+            // quand la vue se redessine pendant le geste — ce que fait `isLoading`.
+            // Attendue directement, la requête mourait en « annulé » et le
+            // rafraîchissement n'aboutissait jamais.
+            await Task { await viewModel.refresh() }.value
         }
         .task {
             await viewModel.refresh()
