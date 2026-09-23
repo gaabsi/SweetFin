@@ -277,7 +277,7 @@ extension EnhancedFinSyntheticItem {
     }
 
     /// TMDB rend les dates en `AAAA-MM-JJ`, sans heure ni fuseau.
-    private static func day(_ string: String) -> Date? {
+    static func day(_ string: String) -> Date? {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")

@@ -392,6 +392,20 @@ struct EnhancedFinMedia: Decodable, Hashable {
     let voteCount: Int?
     let me: EnhancedFinMediaMe
     let detail: EnhancedFinMediaDetail?
+
+    /// Notes Rotten Tomatoes, seulement avec `?detail=true`. Absentes si le plugin
+    /// n'a pas de clé MDBList ou si MDBList ne connaît pas le média.
+    let scores: EnhancedFinScores?
+}
+
+/// Notes Rotten Tomatoes d'un média, en pourcentage.
+struct EnhancedFinScores: Decodable, Hashable {
+
+    /// Tomatometer : la critique.
+    let rtCritics: Int?
+
+    /// Popcornmeter : le public.
+    let rtAudience: Int?
 }
 
 /// Mon état sur un média.
@@ -415,9 +429,17 @@ struct EnhancedFinMediaDetail: Decodable, Hashable {
     /// Les vingt premiers rôles, dans l'ordre d'affiche de TMDB.
     let cast: [EnhancedFinCastMember]?
 
+    /// Date de sortie d'un film, ou de première diffusion d'une série, `AAAA-MM-JJ`.
+    let releaseDate: String?
+
+    /// Réalisation d'un film, ou créateurs d'une série, déjà joints (« A, B »).
+    let directors: String?
+
     private enum CodingKeys: String, CodingKey {
         case overview
         case cast
+        case releaseDate
+        case directors
     }
 
     /// Décodage écrit à la main pour **isoler** le casting.
@@ -436,6 +458,8 @@ struct EnhancedFinMediaDetail: Decodable, Hashable {
 
         overview = try container.decodeIfPresent(String.self, forKey: .overview)
         cast = try? container.decodeIfPresent([EnhancedFinCastMember].self, forKey: .cast)
+        releaseDate = try container.decodeIfPresent(String.self, forKey: .releaseDate)
+        directors = try container.decodeIfPresent(String.self, forKey: .directors)
     }
 }
 
