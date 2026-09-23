@@ -246,6 +246,13 @@ struct EnhancedFinFollow: Decodable, Hashable, Identifiable {
     /// qui semble incomplète.
     let nextAirDate: String?
 
+    /// Le fichier est sur ce serveur : la fiche native est ouvrable.
+    ///
+    /// Rendus depuis la correction de `GET /me/follows` côté plugin — c'était la
+    /// seule route de liste à ne pas les porter.
+    let inLibrary: Bool
+    let jellyfinId: String?
+
     var id: String { mediaKey }
 }
 
