@@ -50,10 +50,10 @@ struct NavigationInjectionView: View {
     var body: some View {
         NavigationStack(path: $coordinator.path) {
             content
-                .themeContainerBackground(appearance.backgroundColor)
+                .themeContainerBackground(appearance.tokens.background)
                 .navigationDestination(for: NavigationRoute.self) { route in
                     route.destination
-                        .themeContainerBackground(appearance.backgroundColor)
+                        .themeContainerBackground(appearance.tokens.background)
                         .environment(
                             \.router,
                             .init(
@@ -148,18 +148,14 @@ private extension View {
     /// SwiftUI lit la valeur portée par la vue affichée, et non une fois pour toutes.
     ///
     /// ⚠️ **iOS uniquement.** Le placement `.navigation` est indisponible sur tvOS,
-    /// qui n'a de toute façon pas d'apparence à fond coloré.
+    /// qui garde le fond du système.
     ///
     /// Parametres :
-    /// - color (Color?) : le fond du thème, ou nil pour garder celui du système
+    /// - color (Color) : le fond du thème
     @ViewBuilder
-    func themeContainerBackground(_ color: Color?) -> some View {
+    func themeContainerBackground(_ color: Color) -> some View {
         #if os(iOS)
-        if let color {
-            containerBackground(color, for: .navigation)
-        } else {
-            self
-        }
+        containerBackground(color, for: .navigation)
         #else
         self
         #endif

@@ -6,9 +6,14 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import Defaults
 import SwiftUI
 
 struct PosterButton<Item: Poster>: View {
+
+    // EnhancedFin : l'alignement du libellé est un token de thème.
+    @Default(.appearance)
+    private var appearance
 
     @Environment(\.posterConfiguration)
     private var posterConfiguration
@@ -65,8 +70,8 @@ struct PosterButton<Item: Poster>: View {
 
     @ViewBuilder
     private func buttonLabel(overlay: some View = EmptyView()) -> some View {
-        // EnhancedFin : titres centrés sous l'affiche, partout dans l'app.
-        VStack(alignment: .center) {
+        // EnhancedFin : alignement décidé par le thème, voir `ThemeTokens`.
+        VStack(alignment: appearance.tokens.posterLabelAlignment) {
             posterImage(overlay: overlay)
 
             if posterConfiguration.showLabels {

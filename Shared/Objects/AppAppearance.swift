@@ -16,12 +16,9 @@ import SwiftUI
 /// utilisé, et « Système » pouvait ramener l'app en clair sur un appareil clair, avec
 /// des couleurs de texte pensées pour du sombre.
 ///
-/// ### Ajouter un thème
-///
-/// Un `case` de plus, et le compilateur fait le reste : les `switch` ci-dessous sont
-/// **exhaustifs et sans `default:`**, donc il lève une erreur sur chacun des quatre
-/// tokens tant qu'ils ne sont pas renseignés. C'est volontaire — c'est ce qui rend
-/// impossible d'ajouter un thème en oubliant sa couleur d'accent ou son fond.
+/// Ce type ne porte que l'identité d'un thème ; tout ce qu'il décide est dans
+/// ``ThemeTokens``. Ajouter un thème, c'est donc un `case` ici et un littéral là-bas —
+/// que le compilateur réclame tant qu'il manque.
 enum AppAppearance: String, CaseIterable, Displayable, Storable {
 
     /// Le thème web **ElegantFin** (`lscambo13/ElegantFin`) : indigo `#5D55E7`
@@ -35,48 +32,4 @@ enum AppAppearance: String, CaseIterable, Displayable, Storable {
             "ElegantFin"
         }
     }
-
-    /// Le style d'interface imposé par le thème.
-    ///
-    /// Tous les thèmes sont sombres aujourd'hui, mais ça reste un token **par thème**
-    /// plutôt qu'un `.dark` en dur : un thème clair resterait une simple addition.
-    var style: UIUserInterfaceStyle {
-        switch self {
-        case .elegantFin:
-            .dark
-        }
-    }
-
-    /// Couleur d'accent du thème.
-    ///
-    /// ⚠️ Elle écrase la couleur choisie dans les réglages — c'est le propre d'un
-    /// thème. Changer de thème ne restitue pas l'ancienne : il faut la reprendre à la
-    /// main.
-    var accentColor: Color {
-        switch self {
-        case .elegantFin:
-            Color(uiColor: .elegantFinAccent)
-        }
-    }
-
-    /// Fond du thème, peint par ``themeContainerBackground(_:)`` et par ``RootView``.
-    ///
-    /// ⚠️ Toute valeur ajoutée ici doit l'être **aussi** dans le color set
-    /// `LaunchBackground` si c'est le thème par défaut : l'écran de lancement est
-    /// rendu par iOS avant que le code s'exécute, il ne peut pas lire ce token.
-    var backgroundColor: Color {
-        switch self {
-        case .elegantFin:
-            Color(uiColor: .elegantFinBackground)
-        }
-    }
-}
-
-private extension UIColor {
-
-    /// `hsl(243, 75%, 62%)`
-    static let elegantFinAccent = UIColor(red: 93 / 255, green: 85 / 255, blue: 231 / 255, alpha: 1)
-
-    /// `#111827`
-    static let elegantFinBackground = UIColor(red: 17 / 255, green: 24 / 255, blue: 39 / 255, alpha: 1)
 }
