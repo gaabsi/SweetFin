@@ -119,6 +119,11 @@ final class ExplorerViewModel: ViewModel {
 
         let (p, w, r, t) = await (pending, watchlist, ratings, trending)
 
+        // Annulée (onglet quitté pendant le chargement), toutes les requêtes échouent
+        // en « annulé » : ce n'est pas le plugin qui manque. On garde l'état affiché
+        // plutôt que de le remplacer par une erreur.
+        guard !Task.isCancelled else { return }
+
         self.pending = p.value ?? []
         self.watchlist = w.value ?? []
         self.ratings = r.value ?? []
