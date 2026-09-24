@@ -89,7 +89,11 @@ extension EnhancedFinPosterItem {
             return ImageSource(url: url)
         }
 
-        return jellyfinItem?.imageSource(serverType, environment: ImageSourceOptions()) ?? ImageSource()
+        // ⚠️ `maxWidth` en points (×3 à l'écran) : sans lui, le Pi servait l'image
+        // originale pour chaque tuile. Assez large pour les grilles, pas plus.
+        let options = ImageSourceOptions(maxWidth: serverType == .primary ? 200 : 400)
+
+        return jellyfinItem?.imageSource(serverType, environment: options) ?? ImageSource()
     }
 
     @MainActor

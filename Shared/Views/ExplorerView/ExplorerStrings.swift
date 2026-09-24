@@ -53,9 +53,6 @@ enum ExplorerStrings {
 
     static let trending = "Tendances"
 
-    /// Tuile d'une catégorie de watchlist sans aucun média.
-    static let categoryEmpty = "Vide"
-
     /// Titre de l'écran ouvert depuis une tuile de catégorie.
     ///
     /// Parametres :
