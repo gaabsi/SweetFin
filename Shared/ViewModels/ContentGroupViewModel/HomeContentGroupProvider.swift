@@ -36,37 +36,32 @@ struct HomeContentGroupProvider: ContentGroupProvider {
     @ContentGroupBuilder
     func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
 
+        // Chaque section est activée dans Réglages → Avancé (`AdvancedSettingsView`) ;
+        // l'Accueil ne fait que lire ces réglages.
+        //
+        // Aucun titre de section n'est cliquable : l'Accueil montre une sélection, pas
+        // un catalogue. Les bibliothèques complètes s'ouvrent depuis « Mes médias ».
+
         // tvOS garde `DefaultContentGroupProvider` et son sélecteur cinématique ;
         // ce provider n'y est pas branché, mais il s'y compile quand même.
         #if os(iOS)
-        MediaBarContentGroup()
+        if Defaults[.Customization.Home.showMediaBar] {
+            MediaBarContentGroup()
+        }
         #endif
 
-        UserViewsContentGroup()
+        if Defaults[.Customization.Home.showLibraries] {
+            UserViewsContentGroup()
+        }
 
-        PosterGroup(
-            library: ContinueWatchingLibrary(),
-            posterDisplayType: .landscape,
-            // `.medium` donne 1,5 tuile par écran — des vignettes énormes pour une
-            // liste qu'on parcourt. `.small` en met deux, comme les autres rails.
-            posterSize: .small,
-            // Affiche la barre de progression et le libellé « S1E4 » sur les tuiles.
-            _viewContext: .isInResume
-        )
+        if Defaults[.Customization.Home.showContinueWatching] {
+            ContinueWatchingContentGroup()
+        }
 
-        // Le réglage « Ajoutés récemment » d'upstream continue de gouverner cette
-        // section : il existe toujours dans les réglages, et ne plus le lire en
-        // faisait un interrupteur qui ne fait rien.
         if Defaults[.Customization.Home.showRecentlyAdded] {
             PosterGroup(
-                library: ItemLibrary(
-                    parent: BaseItemDto(name: HomeStrings.recentlyAdded),
-                    filters: .init(
-                        itemTypes: [.movie, .series],
-                        sortBy: [.dateCreated],
-                        sortOrder: [.descending]
-                    )
-                )
+                library: HomeRecentlyAddedLibrary(),
+                environment: .init(isHeaderButtonEnabled: false)
             )
         }
     }

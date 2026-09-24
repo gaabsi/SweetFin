@@ -125,7 +125,13 @@ struct SettingsView: View {
             #endif
 
             ChevronButton(L10n.advanced) {
+                // EnhancedFin : l'écran Avancé du fork sur iOS ; tvOS garde celui
+                // d'upstream tant qu'il n'est pas porté.
+                #if os(iOS)
+                router.route(to: .advancedSettings)
+                #else
                 router.route(to: .customizeSettingsView)
+                #endif
             }
         } header: {
             Text(L10n.customize)
@@ -136,8 +142,21 @@ struct SettingsView: View {
 
     // MARK: - Diagnostics Section
 
+    /// EnhancedFin : les journaux contiennent les en-têtes des requêtes, donc les
+    /// jetons d'authentification. Rien de tout ça pour un compte non administrateur.
+    private var isAdministrator: Bool {
+        viewModel.userSession?.user.data.policy?.isAdministrator == true
+    }
+
     @ViewBuilder
     private var diagnosticsSection: some View {
+        if isAdministrator {
+            _diagnosticsSection
+        }
+    }
+
+    @ViewBuilder
+    private var _diagnosticsSection: some View {
         Section {
 
             if ExperimentalSettingsView.isEnabled {
