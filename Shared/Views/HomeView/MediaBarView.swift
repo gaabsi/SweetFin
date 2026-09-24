@@ -382,26 +382,7 @@ private struct MediaBarPlayButton: View {
 
         Task { @MainActor in
             defer { isResolving = false }
-
-            let provider = ItemContentGroupProvider(item: item)
-
-            // `makeGroups` fait tout le travail : récupère l'item complet, résout
-            // l'épisode à lire, et publie `mediaPlayerItemProvider`. On jette les
-            // groupes, pas le reste.
-            _ = try? await provider.makeGroups(environment: .init())
-
-            guard let playbackProvider = provider.mediaPlayerItemProvider else {
-                // Rien de lisible — un média sans fichier, par exemple. Ouvrir la
-                // fiche vaut mieux qu'un bouton qui ne fait rien.
-                router.route(to: .item(item: item))
-                return
-            }
-
-            let queue: (any MediaPlayerQueue)? = playbackProvider.item.type == .episode
-                ? EpisodeMediaPlayerQueue(episode: playbackProvider.item)
-                : nil
-
-            router.route(to: .videoPlayer(provider: playbackProvider, queue: queue))
+            await router.play(item)
         }
     }
 }

@@ -171,6 +171,25 @@ final class EnhancedFinClient {
         try await send(Request(path: "me/hidden/\(escaped(mediaKey))", method: .put))
     }
 
+    // MARK: - Seerr
+
+    /// Le statut Seerr d'un média, et de chacune de ses saisons pour une série.
+    func seerr(_ mediaKey: String) async throws -> EnhancedFinSeerrDetail {
+        try await send(Request(path: "seerr/\(escaped(mediaKey))"))
+    }
+
+    /// Demande un média sur Seerr, au nom de l'utilisateur connecté (tiré du jeton par
+    /// le plugin, avec ses droits Seerr).
+    ///
+    /// - Parameter seasons: les saisons voulues pour une série ; ignoré pour un film.
+    func requestOnSeerr(_ mediaKey: String, seasons: [Int]) async throws {
+        try await send(Request(
+            path: "me/requests/\(escaped(mediaKey))",
+            method: .post,
+            body: SeerrRequestBody(seasons: seasons)
+        ))
+    }
+
     // MARK: - Calendrier
 
     /// Les sorties des médias suivis, regroupées par jour.
@@ -301,6 +320,11 @@ final class EnhancedFinClient {
         let score: Int
     }
 
+    /// Corps de `POST /me/requests/{mediaKey}`.
+    private struct SeerrRequestBody: Encodable {
+        let seasons: [Int]
+    }
+
     /// Échappe une clé média avant de l'interpoler dans un chemin d'URL.
     ///
     /// `movie:550` passe brut (vérifié : Jellyfin ne s'offusque pas du `:`), mais la
@@ -400,7 +424,13 @@ private final class EnhancedFinRedirectGuard: NSObject, URLSessionTaskDelegate {
         newRequest request: URLRequest,
         completionHandler: @escaping (URLRequest?) -> Void
     ) {
-        guard request.url?.host != serverURL.host || request.url?.scheme != serverURL.scheme else {
+        // Même origine = même schéma, même hôte **et même port** : sans le port, un 302
+        // vers un autre service de la même machine emportait le jeton.
+        let isSameOrigin = request.url?.scheme == serverURL.scheme
+            && request.url?.host == serverURL.host
+            && request.url?.port == serverURL.port
+
+        guard !isSameOrigin else {
             completionHandler(request)
             return
         }
