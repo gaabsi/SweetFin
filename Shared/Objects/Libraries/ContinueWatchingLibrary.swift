@@ -58,8 +58,9 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         async let resume = resumeItems(pageState)
         async let nextUp = nextUpItems(pageState)
         async let external = externalItems(pageState)
+        async let hiddenDates = hiddenDates(pageState)
 
-        let (resumed, next, externals) = await (resume, nextUp, external)
+        let (resumed, next, externals, hidden) = await (resume, nextUp, external, hiddenDates)
 
         // L'ordre de concaténation EST l'ordre de priorité : être au milieu d'un
         // épisode l'emporte sur en avoir un suivant à proposer, qui l'emporte sur une
@@ -67,7 +68,13 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         let merged = resumed + next + externals
         let keys = await mediaKeys(for: merged, pageState: pageState)
 
-        let ordered = stableSorted(deduplicated(merged, keys: keys))
+        let visible = await withoutHidden(
+            deduplicated(merged, keys: keys),
+            keys: keys,
+            hidden: hidden,
+            pageState: pageState
+        )
+        let ordered = stableSorted(visible)
 
         return Array(ordered.prefix(Self.itemLimit))
     }
@@ -117,6 +124,108 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         let entries = (try? await client.continueWatching(limit: Self.externalLimit).items) ?? []
 
         return entries.map(syntheticItem(for:))
+    }
+
+    // MARK: - Masquage
+
+    /// Les items masqués (bouton « Masquer » de l'appui long) et leur date de
+    /// masquage.
+    ///
+    /// Un plugin muet ne masque rien : un item masqué qui réapparaît vaut mieux qu'un
+    /// rail vide.
+    ///
+    /// Parametres :
+    /// - pageState (LibraryPageState) : la session en cours
+    ///
+    /// Output :
+    /// - hidden ([String: Date]) : clé média → date de masquage
+    private func hiddenDates(_ pageState: LibraryPageState) async -> [String: Date] {
+        let entries = (try? await pageState.userSession.enhancedFinClient.hidden().items) ?? []
+
+        return entries.reduce(into: [:]) { dates, entry in
+            dates[entry.mediaKey] = Self.date(fromISO: entry.hiddenAt)
+        }
+    }
+
+    /// Retire les items masqués **qui n'ont pas été relus depuis**.
+    ///
+    /// On masque un média entier : un épisode masqué emporte sa série, et n'importe
+    /// quel épisode relu après la fait revenir. Les reprises externes ne sont pas
+    /// regardées ici : le plugin les filtre déjà lui-même, avec la même règle.
+    ///
+    /// Parametres :
+    /// - items ([BaseItemDto]) : les items dédupliqués
+    /// - keys ([String: String]) : identifiant d'item → clé média
+    /// - hidden ([String: Date]) : clé média → date de masquage
+    /// - pageState (LibraryPageState) : la session en cours
+    ///
+    /// Output :
+    /// - visible ([BaseItemDto]) : les items à afficher, dans le même ordre
+    private func withoutHidden(
+        _ items: [BaseItemDto],
+        keys: [String: String],
+        hidden: [String: Date],
+        pageState: LibraryPageState
+    ) async -> [BaseItemDto] {
+        let candidates: [(id: String, hiddenAt: Date, item: BaseItemDto)] = items.compactMap { item in
+            guard let id = item.id,
+                  Self.syntheticKey(of: item) == nil,
+                  let key = keys[id],
+                  let hiddenAt = hidden[key]
+            else { return nil }
+
+            return (id, hiddenAt, item)
+        }
+
+        guard candidates.isNotEmpty else { return items }
+
+        let stillHidden = await withTaskGroup(of: String?.self) { group in
+            for candidate in candidates {
+                group.addTask {
+                    let lastPlayed = await lastPlayedDate(of: candidate.item, pageState: pageState)
+
+                    return (lastPlayed ?? .distantPast) > candidate.hiddenAt ? nil : candidate.id
+                }
+            }
+
+            return await group.reduce(into: Set<String>()) { ids, id in
+                if let id { ids.insert(id) }
+            }
+        }
+
+        return items.filter { !stillHidden.contains($0.id ?? "") }
+    }
+
+    /// La dernière lecture d'un item, à l'échelle du média entier.
+    ///
+    /// ⚠️ **Jellyfin ne date jamais la lecture d'une série** (`LastPlayedDate` vide,
+    /// même sur une série vue) : pour un épisode, on prend donc l'épisode de sa série
+    /// lu le plus récemment — pas forcément celui de la tuile, qu'un épisode suivant
+    /// n'a jamais été lu.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : un film ou un épisode
+    /// - pageState (LibraryPageState) : la session en cours
+    ///
+    /// Output :
+    /// - date (Date?) : `nil` si rien n'a jamais été lu
+    private func lastPlayedDate(of item: BaseItemDto, pageState: LibraryPageState) async -> Date? {
+        guard let seriesID = item.seriesID else { return item.userData?.lastPlayedDate }
+
+        var parameters = Paths.GetItemsParameters()
+        parameters.enableUserData = true
+        parameters.includeItemTypes = [.episode]
+        parameters.isRecursive = true
+        parameters.limit = 1
+        parameters.parentID = seriesID
+        parameters.sortBy = [.datePlayed]
+        parameters.sortOrder = [.descending]
+        parameters.userID = pageState.userSession.user.id
+
+        let request = Paths.getItems(parameters: parameters)
+        let episodes = try? await pageState.userSession.client.send(request).value.items
+
+        return episodes?.first?.userData?.lastPlayedDate
     }
 
     // MARK: - Résolution des identifiants TMDB

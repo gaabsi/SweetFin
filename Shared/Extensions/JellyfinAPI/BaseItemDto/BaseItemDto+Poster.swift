@@ -262,7 +262,23 @@ extension BaseItemDto: Poster {
     }
 }
 
+/// EnhancedFin : le menu d'appui long d'une affiche, **le même partout** — médiathèques,
+/// rails, recherche. C'est une propriété de l'élément, pas de la zone.
+///
+/// - Aller à l'élément, et à la série pour un épisode ;
+/// - Marquer comme vu / non vu ;
+/// - Watchlist (pour un épisode : sa série).
+///
+/// Dans « Continuer de regarder », le menu suit la liste, qui est une liste de
+/// **médias en cours** : un épisode y représente sa série, donc « Aller à l'élément »
+/// ouvre la série (sans second bouton) ; pas de Watchlist, puisqu'on regarde déjà ;
+/// et « Masquer », qui veut dire « retirer de cette liste ».
+///
+/// Plus de favoris : le fork ne s'en sert pas.
 private struct BaseItemDtoPosterContextMenu: View {
+
+    @ViewContextContains(.isInContinueWatching)
+    private var isInContinueWatching
 
     @Router
     private var router
@@ -274,28 +290,42 @@ private struct BaseItemDtoPosterContextMenu: View {
         self.item = item
     }
 
-    private var isFavorite: Bool {
-        item.userData?.isFavorite == true
-    }
-
     private var isPlayed: Bool {
         item.userData?.isPlayed == true
     }
 
+    /// Dans « Continuer de regarder », un épisode s'efface derrière sa série.
+    private var representsSeries: Bool {
+        isInContinueWatching && item.type == .episode && item.seriesID != nil
+    }
+
+    /// Une reprise externe (`enhancedfin:…`), inconnue de Jellyfin.
+    private var isSynthetic: Bool {
+        item.id?.hasPrefix(EnhancedFinSyntheticItem.idPrefix) == true
+    }
+
+    /// Les types qui ont un équivalent TMDB : film, série, et épisode (via sa série).
+    private var hasMediaKey: Bool {
+        isSynthetic || [.movie, .series, .episode].contains(item.type)
+    }
+
     var body: some View {
-        if let itemID = item.id {
+        if let itemID = representsSeries ? item.seriesID : item.id {
             Button(L10n.goToItem, systemImage: "info.circle") {
-                router.route(to: .item(id: itemID))
+                // Un item synthétique passe par l'item lui-même, comme au tap : son
+                // identifiant enverrait Jellyfin chercher un item qui n'existe pas.
+                router.route(to: isSynthetic ? .item(item: item) : .item(id: itemID))
             }
         }
 
-        if item.type == .episode, let seriesID = item.seriesID {
+        if item.type == .episode, !representsSeries, let seriesID = item.seriesID {
             Button(L10n.goToSeries, systemImage: "tv") {
                 router.route(to: .item(id: seriesID))
             }
         }
 
-        if item.canBePlayed {
+        // Pas pour un item synthétique : Jellyfin ne le connaît pas.
+        if item.canBePlayed, !isSynthetic {
             Button(isPlayed ? L10n.markAsUnplayed : L10n.markAsPlayed, systemImage: isPlayed ? "circle" : "checkmark.circle") {
                 Task {
                     await toggleIsPlayed()
@@ -303,13 +333,74 @@ private struct BaseItemDtoPosterContextMenu: View {
             }
         }
 
-        if item.id != nil {
-            Button(isFavorite ? L10n.removeFromFavorites : L10n.addToFavorites, systemImage: isFavorite ? "heart.slash" : "heart") {
+        if hasMediaKey, !isInContinueWatching {
+            Button(HomeStrings.watchlist, systemImage: ItemActionButton.enhancedFinWatchlist.secondarySystemImage) {
                 Task {
-                    await toggleIsFavorite()
+                    await addToWatchlist()
                 }
             }
         }
+
+        if isInContinueWatching, hasMediaKey {
+            Button(HomeStrings.hide, systemImage: "eye.slash") {
+                Task {
+                    await hide()
+                }
+            }
+        }
+    }
+
+    /// Ajoute le média à la watchlist du plugin.
+    ///
+    /// Ajout seul, sans « Retirer » : connaître l'état demanderait d'interroger le
+    /// plugin à chaque ouverture du menu. Ajouter deux fois ne crée pas de doublon.
+    private func addToWatchlist() async {
+        guard let userSession = Container.shared.currentUserSession(),
+              let mediaKey = await resolvedMediaKey(userSession: userSession)
+        else { return }
+
+        try? await userSession.enhancedFinClient.addToWatchlist(mediaKey)
+    }
+
+    /// Masque le média de « Continuer de regarder », dans le plugin. Il revient de
+    /// lui-même dès qu'on le relit (`ContinueWatchingLibrary`).
+    private func hide() async {
+        guard let userSession = Container.shared.currentUserSession(),
+              let mediaKey = await resolvedMediaKey(userSession: userSession)
+        else { return }
+
+        // Échec silencieux : la tuile reste, ce qui dit déjà que rien n'a changé.
+        guard (try? await userSession.enhancedFinClient.hide(mediaKey)) != nil else { return }
+
+        Notifications[.didHideContinueWatchingItem].post(mediaKey)
+    }
+
+    /// La clé EnhancedFin du **média** : celle de l'item, ou de sa série pour un
+    /// épisode.
+    ///
+    /// Résolue au tap et non à l'affichage : les requêtes de liste (médiathèques…) ne
+    /// demandent pas les `ProviderIds`, et les y ajouter toucherait du code upstream
+    /// pour un bouton qu'on ne tape presque jamais.
+    ///
+    /// Parametres :
+    /// - userSession (UserSession) : la session en cours
+    ///
+    /// Output :
+    /// - mediaKey (String?) : `nil` si le média n'a pas d'identifiant TMDB
+    private func resolvedMediaKey(userSession: UserSession) async -> String? {
+        if let key = item.enhancedFinMediaKey { return key }
+
+        guard let mediaID = item.type == .episode ? item.seriesID : item.id else { return nil }
+
+        var parameters = Paths.GetItemsParameters()
+        parameters.fields = [.providerIDs]
+        parameters.ids = [mediaID]
+        parameters.userID = userSession.user.id
+
+        let request = Paths.getItems(parameters: parameters)
+        let media = try? await userSession.client.send(request).value.items?.first
+
+        return media?.enhancedFinMediaKey
     }
 
     @MainActor
@@ -321,18 +412,6 @@ private struct BaseItemDtoPosterContextMenu: View {
             try await setIsPlayed(!beforeIsPlayed)
         } catch {
             item.userData?.isPlayed = beforeIsPlayed
-        }
-    }
-
-    @MainActor
-    private func toggleIsFavorite() async {
-        let beforeIsFavorite = item.userData?.isFavorite ?? false
-
-        item.userData?.isFavorite = !beforeIsFavorite
-        do {
-            try await setIsFavorite(!beforeIsFavorite)
-        } catch {
-            item.userData?.isFavorite = beforeIsFavorite
         }
     }
 
@@ -348,29 +427,6 @@ private struct BaseItemDtoPosterContextMenu: View {
             )
         } else {
             Paths.markUnplayedItem(
-                itemID: itemID,
-                userID: userSession.user.id
-            )
-        }
-
-        let response = try await userSession.client.send(request)
-        item.userData = response.value
-        Notifications[.itemUserDataDidChange].post(response.value)
-        Notifications[.itemShouldRefreshMetadata].post(itemID)
-    }
-
-    private func setIsFavorite(_ isFavorite: Bool) async throws {
-        guard let itemID = item.id,
-              let userSession = Container.shared.currentUserSession()
-        else { return }
-
-        let request: Request<UserItemDataDto> = if isFavorite {
-            Paths.markFavoriteItem(
-                itemID: itemID,
-                userID: userSession.user.id
-            )
-        } else {
-            Paths.unmarkFavoriteItem(
                 itemID: itemID,
                 userID: userSession.user.id
             )

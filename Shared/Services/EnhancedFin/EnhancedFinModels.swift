@@ -296,6 +296,20 @@ struct EnhancedFinContinueWatching: Decodable, Hashable, Identifiable {
     var id: String { mediaKey }
 }
 
+// MARK: - Masquage
+
+/// Un item masqué de « Continuer de regarder » — `GET /me/hidden`.
+///
+/// Le plugin filtre lui-même sa reprise externe ; les reprises Jellyfin, elles, sont
+/// filtrées par `ContinueWatchingLibrary`.
+struct EnhancedFinHiddenItem: Decodable {
+
+    let mediaKey: String
+
+    /// ISO 8601, avec ou sans fraction de seconde selon l'origine de la ligne.
+    let hiddenAt: String
+}
+
 // MARK: - Calendrier
 
 /// Réponse de `GET /me/calendar`.

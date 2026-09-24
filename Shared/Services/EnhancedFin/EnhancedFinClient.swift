@@ -158,6 +158,19 @@ final class EnhancedFinClient {
         return try await send(Request(path: "me/continue-watching", query: query.isEmpty ? nil : query))
     }
 
+    // MARK: - Masquage
+
+    /// Tous les items masqués, les plus récents d'abord (500 au plus, la page max du
+    /// plugin).
+    func hidden() async throws -> EnhancedFinList<EnhancedFinHiddenItem> {
+        try await send(Request(path: "me/hidden"))
+    }
+
+    /// Masque un média. Il revient de lui-même dès qu'on le relit.
+    func hide(_ mediaKey: String) async throws {
+        try await send(Request(path: "me/hidden/\(escaped(mediaKey))", method: .put))
+    }
+
     // MARK: - Calendrier
 
     /// Les sorties des médias suivis, regroupées par jour.

@@ -234,6 +234,25 @@ extension Defaults.Keys {
             static var showRecentlyPlayed: Key<Bool> {
                 UserKey("showRecentlyPlayed", default: false)
             }
+
+            // EnhancedFin : les sections de l'Accueil du fork (`HomeContentGroupProvider`),
+            // réglées dans `AdvancedSettingsView`.
+            static var showMediaBar: Key<Bool> {
+                UserKey("homeShowMediaBar", default: true)
+            }
+
+            static var showLibraries: Key<Bool> {
+                UserKey("homeShowLibraries", default: true)
+            }
+
+            static var showContinueWatching: Key<Bool> {
+                UserKey("homeShowContinueWatching", default: true)
+            }
+
+            /// Nombre de tuiles d'« Ajoutés récemment » (`HomeRecentlyAddedLibrary`).
+            static var recentlyAddedLimit: Key<Int> {
+                UserKey("homeRecentlyAddedLimit", default: 20)
+            }
         }
 
         enum Search {

@@ -19,6 +19,12 @@ enum HomeStrings {
     static let myMedia = "Mes médias"
     static let continueWatching = "Continuer de regarder"
     static let recentlyAdded = "Ajoutés récemment"
+    static let recentlyAddedLimit = "Nombre de tuiles"
+    static let hide = "Masquer"
+
+    /// « Ajouter à ma watchlist » passait sur deux lignes dans le menu d'appui long ;
+    /// l'icône (signet +) porte déjà l'action.
+    static let watchlist = "Watchlist"
 
     /// Libellé d'accessibilité du carrousel. Il n'est pas affiché : les diapos portent
     /// déjà le logo du média, et un titre au-dessus ferait doublon.

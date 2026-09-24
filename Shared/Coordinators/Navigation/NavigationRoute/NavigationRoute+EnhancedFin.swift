@@ -102,4 +102,11 @@ extension NavigationRoute {
             ItemView(provider: provider)
         }
     }
+
+    /// L'écran « Avancé » du fork, voir `AdvancedSettingsView`.
+    static var advancedSettings: NavigationRoute {
+        NavigationRoute(id: "advancedSettings") {
+            AdvancedSettingsView()
+        }
+    }
 }
