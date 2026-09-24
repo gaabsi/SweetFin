@@ -203,6 +203,9 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
                         .focused($focusedElement, equals: .focusBoundary)
 
                     tabButtons
+                        // EnhancedFin : sur iOS, les onglets n'apparaissent qu'avec un
+                        // panneau ouvert, pour passer de l'un à l'autre.
+                        .isVisible(UIDevice.isTV || containerState.isPresentingSupplement)
 
                     supplementContent
                         .isVisible(containerState.isPresentingSupplement)

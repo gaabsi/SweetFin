@@ -253,6 +253,10 @@ extension EpisodeMediaPlayerQueue {
 
         private struct _Body: View {
 
+            // EnhancedFin : lu ici et passé à `EpisodeRow`, voir la note d'`EpisodeButton`.
+            @EnvironmentObject
+            private var manager: MediaPlayerManager
+
             @ObservedObject
             var selectionViewModel: PagingLibraryViewModel<EpisodeLibrary>
 
@@ -269,7 +273,7 @@ extension EpisodeMediaPlayerQueue {
                                 insets: .edgeInsets
                             )
                         ) { item in
-                            EpisodeRow(episode: item) {
+                            EpisodeRow(episode: item, isSelected: manager.item.id == item.id) {
                                 action(item)
                             }
                         }
@@ -312,6 +316,10 @@ extension EpisodeMediaPlayerQueue {
             private var safeAreaInsets: EdgeInsets
             #endif
 
+            // EnhancedFin : lu ici et passé à `EpisodeButton`, voir sa note.
+            @EnvironmentObject
+            private var manager: MediaPlayerManager
+
             @ObservedObject
             var selectionViewModel: PagingLibraryViewModel<EpisodeLibrary>
 
@@ -325,7 +333,7 @@ extension EpisodeMediaPlayerQueue {
                     id: \.id,
                     layout: .grid(columns: 5, rows: 1, columnTrailingInset: 0)
                 ) { episode in
-                    EpisodeButton(episode: episode) {
+                    EpisodeButton(episode: episode, isSelected: manager.item.id == episode.id) {
                         action(episode)
                     }
                 }
@@ -337,7 +345,7 @@ extension EpisodeMediaPlayerQueue {
                     id: \.id,
                     layout: .minimumWidth(columnWidth: 170, rows: 1)
                 ) { item in
-                    EpisodeButton(episode: item) {
+                    EpisodeButton(episode: item, isSelected: manager.item.id == item.id) {
                         action(item)
                     }
                 }
@@ -483,17 +491,12 @@ extension EpisodeMediaPlayerQueue {
         }
     }
 
+    // EnhancedFin : même correctif qu'`EpisodeButton`, pour `CollectionVGrid`.
     private struct EpisodeRow: View {
 
-        @EnvironmentObject
-        private var manager: MediaPlayerManager
-
         let episode: BaseItemDto
+        let isSelected: Bool
         let action: () -> Void
-
-        private var isCurrentEpisode: Bool {
-            manager.item.id == episode.id
-        }
 
         var body: some View {
             ListRow(insets: .init(horizontal: EdgeInsets.edgePadding)) {
@@ -515,16 +518,19 @@ extension EpisodeMediaPlayerQueue {
             } action: {
                 action()
             }
-            .isSelected(isCurrentEpisode)
+            .isSelected(isSelected)
         }
     }
 
+    // EnhancedFin : plus de `@EnvironmentObject` ici. `CollectionHStack` et
+    // `CollectionVGrid` mesurent la première cellule dans un `UIHostingController`
+    // vierge, sans environnement : lire le manager y faisait planter l'ouverture du
+    // panneau « Épisodes » (depuis la mise à jour des paquets upstream `a1c5abb5`).
+    // Le parent passe `isSelected`.
     private struct EpisodeButton: View {
 
-        @EnvironmentObject
-        private var manager: MediaPlayerManager
-
         let episode: BaseItemDto
+        let isSelected: Bool
         let action: () -> Void
 
         var body: some View {
@@ -541,7 +547,7 @@ extension EpisodeMediaPlayerQueue {
             ) { _ in
                 action()
             }
-            .isSelected(manager.item.id == episode.id)
+            .isSelected(isSelected)
         }
     }
 }
