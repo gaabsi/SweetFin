@@ -63,10 +63,8 @@ struct PosterIndicatorsOverlay: View {
                 }
 
                 HStack(spacing: 5) {
-                    if indicators.contains(.favorited), item.userData?.isFavorite == true {
-                        FavoriteIndicator()
-                            .frame(width: indicatorSize, height: indicatorSize)
-                    }
+                    // EnhancedFin : pas d'indicateur favori, quel que soit le réglage
+                    // enregistré du compte.
 
                     if indicators.contains(.played),
                        item.canBePlayed,

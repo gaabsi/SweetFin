@@ -113,7 +113,7 @@ extension ItemSortBy: Displayable, SupportedCaseIterable {
             .artist,
 
             // Status
-            .isFavoriteOrLiked,
+            // EnhancedFin : pas de favoris dans le fork (`.isFavoriteOrLiked` retiré).
             .isFolder,
             .isPlayed,
             .isUnplayed,

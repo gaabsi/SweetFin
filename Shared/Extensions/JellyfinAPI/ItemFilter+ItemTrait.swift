@@ -48,7 +48,7 @@ extension ItemTrait: SupportedCaseIterable {
         [
             .isUnplayed,
             .isPlayed,
-            .isFavorite,
+            // EnhancedFin : pas de favoris dans le fork (`.isFavorite` retiré).
             .likes,
         ]
     }
