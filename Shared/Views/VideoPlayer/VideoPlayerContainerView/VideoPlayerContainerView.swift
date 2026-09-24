@@ -311,7 +311,10 @@ extension VideoPlayer {
         }
 
         private var dismissedSupplementContainerOffset: CGFloat {
-            UIDevice.isTV ? 120 : 50.0 + EdgeInsets.edgePadding * 2
+            // EnhancedFin : sur iOS, plus d'onglets « Info / Épisodes » sous la barre
+            // (l'icône pile de `EnhancedFinPlaybackControls` les ouvre) ; on ne garde
+            // que la marge du bas.
+            UIDevice.isTV ? 120 : EdgeInsets.edgePadding * 2
         }
 
         private let compactMinimumTranslation: CGFloat = 100.0
