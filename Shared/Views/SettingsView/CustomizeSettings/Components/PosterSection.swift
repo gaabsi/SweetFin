@@ -112,8 +112,6 @@ extension CustomizeSettingsView {
 
                 Section(L10n.indicators) {
 
-                    Toggle(L10n.favorited, isOn: $posterConfiguration.indicators.contains(.favorited))
-
                     Toggle(L10n.progress, isOn: $posterConfiguration.indicators.contains(.progress))
 
                     Toggle(L10n.played, isOn: $posterConfiguration.indicators.contains(.played))

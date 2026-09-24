@@ -19,8 +19,6 @@ extension CustomizeSettingsView {
         typealias PlatformPicker = Picker
         #endif
 
-        @Default(.Customization.Library.showFavorites)
-        private var showFavorites
         @Default(.Customization.Library.enabledDrawerFilters)
         private var libraryEnabledDrawerFilters
         @Default(.Customization.Library.randomImage)
@@ -42,8 +40,7 @@ extension CustomizeSettingsView {
             Form(systemImage: "gear") {
 
                 Section {
-                    Toggle(L10n.favorites, isOn: $showFavorites)
-
+                    // EnhancedFin : plus d'interrupteur « Favoris », le fork n'en a pas.
                     Toggle(L10n.randomImage, isOn: $libraryRandomImage)
                 }
 

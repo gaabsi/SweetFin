@@ -88,7 +88,9 @@ struct ItemActionButtons: View {
             provider.item.canBePlayed
                 || (EnhancedFinSyntheticItem.isSynthetic(provider.item.id) && provider.item.type == .movie)
         case .favorited:
-            provider.item.canBeFavorited
+            // EnhancedFin : pas de favoris dans le fork, quel que soit le réglage
+            // enregistré du compte.
+            false
         case .trailers:
             hasTrailers(for: provider, enabledTrailers: enabledTrailers)
         case .playback:
