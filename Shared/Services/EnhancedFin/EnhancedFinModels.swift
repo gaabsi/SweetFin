@@ -411,24 +411,74 @@ struct EnhancedFinMedia: Decodable, Hashable {
     /// n'a pas de clé MDBList ou si MDBList ne connaît pas le média.
     let scores: EnhancedFinScores?
 
-    /// Série seulement, et seulement si Seerr a répondu.
+    /// Film ou série, seulement si Seerr a répondu.
     let seerr: EnhancedFinSeerr?
 
-    /// Série du serveur à laquelle il manque des épisodes sortis, selon Seerr.
-    /// Faux si Seerr n'a pas répondu : pas de carte « + » à tort.
+    /// Série à laquelle il manque des épisodes sortis, selon Seerr (carte « + »).
+    /// Faux si Seerr n'a pas répondu : pas de carte à tort.
     var isIncompleteSeries: Bool {
         seerr.map { $0.status != EnhancedFinSeerr.available } ?? false
     }
+
+    /// EnhancedFin : « Demander sur Seerr » a un sens pour ce média.
+    ///
+    /// - série : tant qu'elle n'est pas entièrement disponible — la fenêtre de demande
+    ///   grise ensuite, saison par saison, ce qui est déjà demandé ou disponible ;
+    /// - film : seulement s'il n'est ni demandé, ni en cours, ni disponible.
+    ///
+    /// Faux si Seerr n'a pas répondu : pas de proposition à tort.
+    var canRequestOnSeerr: Bool {
+        guard let seerr else { return false }
+
+        return mediaType == EnhancedFinMediaType.tv.rawValue
+            ? seerr.status != EnhancedFinSeerr.available
+            : seerr.status == nil || seerr.status == EnhancedFinSeerr.unknown
+    }
 }
 
-/// Disponibilité d'une série selon Seerr (`mediaInfo.status`).
+/// Disponibilité d'un média selon Seerr (`mediaInfo.status`) : 1 inconnu, 2 en
+/// attente, 3 en cours, 4 partiellement disponible, 5 disponible.
 struct EnhancedFinSeerr: Decodable, Hashable {
 
+    /// 1 : jamais demandé.
+    static let unknown = 1
+    /// 2 : demandé, en attente d'approbation.
+    static let pending = 2
+    /// 3 : approuvé, en cours de téléchargement.
+    static let processing = 3
+    /// 4 : partiellement disponible.
+    static let partiallyAvailable = 4
     /// 5 : entièrement disponible. Méthode du front media-rating.
     static let available = 5
 
-    /// Nul : Seerr ne suit pas la série.
+    /// Nul : Seerr ne suit pas le média.
     let status: Int?
+}
+
+/// Statut Seerr détaillé — `GET /seerr/{mediaKey}` : de quoi remplir la fenêtre de
+/// demande.
+struct EnhancedFinSeerrDetail: Decodable {
+
+    let status: Int?
+    /// Vide pour un film. Sans les spéciaux (saison 0), que Seerr ne demande pas.
+    let seasons: [EnhancedFinSeerrSeason]
+}
+
+struct EnhancedFinSeerrSeason: Decodable, Identifiable {
+
+    let number: Int
+    let name: String?
+    let episodeCount: Int
+    /// `AAAA-MM-JJ`.
+    let airDate: String?
+    let status: Int
+
+    var id: Int { number }
+
+    /// Déjà disponible, en attente ou en cours : rien à demander.
+    var isLocked: Bool {
+        status != EnhancedFinSeerr.unknown
+    }
 }
 
 /// Notes Rotten Tomatoes d'un média, en pourcentage.

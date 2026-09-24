@@ -45,7 +45,7 @@ struct AdvancedSettingsView: View {
             }
 
             ChevronButton(L10n.videoPlayer) {
-                router.route(to: .videoPlayerSettings)
+                router.route(to: .playerSettings)
             }
 
             Section(L10n.home) {
@@ -62,5 +62,12 @@ struct AdvancedSettingsView: View {
             }
         }
         .navigationTitle(L10n.advanced)
+        // L'Accueil reste ouvert sous cette feuille : on lui dit de se reconstruire.
+        .onChange(of: [showMediaBar, showLibraries, showContinueWatching, showRecentlyAdded]) {
+            Notifications[.didRequestGlobalRefresh].post()
+        }
+        .onChange(of: recentlyAddedLimit) {
+            Notifications[.didRequestGlobalRefresh].post()
+        }
     }
 }

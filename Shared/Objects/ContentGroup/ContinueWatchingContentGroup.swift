@@ -20,17 +20,15 @@ extension Notifications.Key {
     }
 }
 
-/// EnhancedFin : « Continuer de regarder », qui reste à l'écran même vide et se
-/// recharge dès qu'un item est masqué.
+/// EnhancedFin : « Continuer de regarder ».
 ///
-/// Un `PosterGroup` vide s'efface de l'Accueil (`_shouldBeResolved`). Sur un compte
-/// neuf, on croyait alors la section perdue. Quand elle est activée dans les réglages,
-/// elle doit donc rester visible : des emplacements vides tiennent sa place.
-///
-/// Recharger après un masquage plutôt que retirer la tuile à la main : un autre item
-/// vient combler le rail.
-///
-/// Enveloppe le `PosterGroup` plutôt que de le modifier : c'est un fichier upstream.
+/// Trois écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
+/// - **un tap lance la lecture** (`Router.play`) au lieu d'ouvrir la fiche : c'est une
+///   liste de choses en cours. Une reprise externe, illisible ici, ouvre sa fiche ;
+/// - **toujours affiché**, même vide : un `PosterGroup` vide s'efface de l'Accueil
+///   (`_shouldBeResolved`), et sur un compte neuf on croyait la section perdue. Des
+///   emplacements vides tiennent sa place ;
+/// - **rechargé** dès qu'un item est masqué : un autre vient combler le rail.
 struct ContinueWatchingContentGroup: ContentGroup {
 
     /// Le nombre d'emplacements vides : une largeur d'écran de tuiles paysage
@@ -39,28 +37,11 @@ struct ContinueWatchingContentGroup: ContentGroup {
 
     let id: String = "home-continue-watching"
 
-    private let posterGroup = PosterGroup(
-        library: ContinueWatchingLibrary(),
-        posterDisplayType: .landscape,
-        // `.medium` donne 1,5 tuile par écran — des vignettes énormes pour une
-        // liste qu'on parcourt. `.small` en met deux, comme les autres rails.
-        posterSize: .small,
-        environment: .init(
-            // Titres de l'Accueil non cliquables, voir `HomeContentGroupProvider`.
-            isHeaderButtonEnabled: false,
-            // `isInResume` : barre de progression et libellé « S1E4 » sur les tuiles.
-            // `isInContinueWatching` : le menu d'appui long de ce rail.
-            viewContext: [.isInResume, .isInContinueWatching]
-        )
-    )
-
-    var viewModel: PagingLibraryViewModel<ContinueWatchingLibrary> {
-        posterGroup.viewModel
-    }
+    let viewModel = PagingLibraryViewModel(library: ContinueWatchingLibrary(), pageSize: 20)
 
     @ViewBuilder
     func body(with viewModel: PagingLibraryViewModel<ContinueWatchingLibrary>) -> some View {
-        _Body(viewModel: viewModel, posterGroup: posterGroup)
+        _Body(viewModel: viewModel)
             .onReceive(Notifications[.didHideContinueWatchingItem].publisher) { _ in
                 viewModel.refresh()
             }
@@ -70,29 +51,21 @@ struct ContinueWatchingContentGroup: ContentGroup {
     /// de « vide » à « rempli » ne redessinerait rien.
     private struct _Body: View {
 
+        @Router
+        private var router
+
         @ObservedObject
         var viewModel: PagingLibraryViewModel<ContinueWatchingLibrary>
 
-        let posterGroup: PosterGroup<ContinueWatchingLibrary>
-
         var body: some View {
-            if viewModel.elements.isNotEmpty {
-                posterGroup.body(with: viewModel)
-            } else {
-                emptySlots
-            }
-        }
-
-        private var emptySlots: some View {
             ContentGroupSection {
-                HStack(spacing: PosterHStackMetrics.itemSpacing) {
-                    ForEach(0 ..< ContinueWatchingContentGroup.emptySlotCount, id: \.self) { _ in
-                        Color.secondarySystemFill
-                            .posterStyle(.landscape)
-                    }
+                if viewModel.elements.isNotEmpty {
+                    rail
+                } else {
+                    emptySlots
                 }
-                .edgePadding(.horizontal)
             } header: {
+                // Titre non cliquable, comme toutes les sections de l'Accueil.
                 Text(HomeStrings.continueWatching)
                     .font(.title3)
                     .fontWeight(.semibold)
@@ -100,6 +73,35 @@ struct ContinueWatchingContentGroup: ContentGroup {
                     .edgePadding(.horizontal)
                     .accessibilityAddTraits(.isHeader)
             }
+        }
+
+        private var rail: some View {
+            PosterHStack(
+                elements: viewModel.elements.elements,
+                // `.small` : deux tuiles par écran. `.medium` en donnait 1,5, énormes
+                // pour une liste qu'on parcourt.
+                displayType: .landscape,
+                size: .small
+            ) { item, namespace in
+                if EnhancedFinSyntheticItem.isSynthetic(item.id) {
+                    router.route(to: .item(item: item), in: namespace)
+                } else {
+                    Task { await router.play(item) }
+                }
+            }
+            // `isInResume` : barre de progression et libellé « S1E4 » sur les tuiles.
+            // `isInContinueWatching` : le menu d'appui long de ce rail.
+            .withViewContext([.isInResume, .isInContinueWatching])
+        }
+
+        private var emptySlots: some View {
+            HStack(spacing: PosterHStackMetrics.itemSpacing) {
+                ForEach(0 ..< ContinueWatchingContentGroup.emptySlotCount, id: \.self) { _ in
+                    Color.secondarySystemFill
+                        .posterStyle(.landscape)
+                }
+            }
+            .edgePadding(.horizontal)
         }
     }
 }

@@ -301,7 +301,7 @@ private struct BaseItemDtoPosterContextMenu: View {
 
     /// Une reprise externe (`enhancedfin:…`), inconnue de Jellyfin.
     private var isSynthetic: Bool {
-        item.id?.hasPrefix(EnhancedFinSyntheticItem.idPrefix) == true
+        EnhancedFinSyntheticItem.isSynthetic(item.id)
     }
 
     /// Les types qui ont un équivalent TMDB : film, série, et épisode (via sa série).

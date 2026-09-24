@@ -33,6 +33,36 @@ extension Router.Wrapper {
             route(to: .explorerItem(mediaKey: item.mediaKey, item: item.syntheticItem), in: namespace)
         }
     }
+
+    /// Lance la lecture d'un item depuis une tuile, sans passer par sa fiche.
+    ///
+    /// `ItemContentGroupProvider.makeGroups` fait tout le travail : récupère l'item
+    /// complet, résout l'épisode à lire et sa position, et publie
+    /// `mediaPlayerItemProvider`. On jette les groupes, pas le reste. Un épisode part
+    /// avec sa file (précédent / suivant, panneau Épisodes).
+    ///
+    /// Partagé par la media bar et « Continuer de regarder ».
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : l'item à lire
+    @MainActor
+    func play(_ item: BaseItemDto) async {
+        let provider = ItemContentGroupProvider(item: item)
+        _ = try? await provider.makeGroups(environment: .init())
+
+        guard let playbackProvider = provider.mediaPlayerItemProvider else {
+            // Rien de lisible (un média sans fichier) : la fiche vaut mieux qu'un tap
+            // qui ne fait rien.
+            route(to: .item(item: item))
+            return
+        }
+
+        let queue: (any MediaPlayerQueue)? = playbackProvider.item.type == .episode
+            ? EpisodeMediaPlayerQueue(episode: playbackProvider.item)
+            : nil
+
+        route(to: .videoPlayer(provider: playbackProvider, queue: queue))
+    }
 }
 
 extension NavigationRoute {
@@ -107,6 +137,20 @@ extension NavigationRoute {
     static var advancedSettings: NavigationRoute {
         NavigationRoute(id: "advancedSettings") {
             AdvancedSettingsView()
+        }
+    }
+
+    /// La fenêtre « Demander sur Seerr », voir `SeerrRequestView`.
+    static func seerrRequest(media: EnhancedFinMedia) -> NavigationRoute {
+        NavigationRoute(id: "seerrRequest-\(media.mediaKey)", style: .sheet) {
+            SeerrRequestView(media: media)
+        }
+    }
+
+    /// Les réglages du lecteur du fork, voir `PlayerSettingsView`.
+    static var playerSettings: NavigationRoute {
+        NavigationRoute(id: "playerSettings") {
+            PlayerSettingsView()
         }
     }
 }

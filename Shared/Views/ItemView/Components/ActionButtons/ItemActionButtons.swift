@@ -238,6 +238,9 @@ extension ItemActionButtons {
 
     struct MenuContent: View {
 
+        @Router
+        private var router
+
         @ObservedObject
         var provider: ItemContentGroupProvider
 
@@ -259,6 +262,17 @@ extension ItemActionButtons {
                     menuButtons,
                     content: ItemActionButtons.view(for:)
                 )
+
+                // EnhancedFin : demander le média sur Seerr, quand la fiche est
+                // incomplète ou de découverte. Hors de la liste configurable des
+                // boutons : ce n'est pas une préférence, c'est une situation.
+                if let media = provider.enhancedFinMedia, media.canRequestOnSeerr {
+                    Divider()
+
+                    Button(SeerrStrings.requestOnSeerr, systemImage: "arrow.down.circle") {
+                        router.route(to: .seerrRequest(media: media))
+                    }
+                }
             }
             .environmentObject(provider)
             .withViewContext(.isInMenu)
