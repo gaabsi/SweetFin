@@ -101,7 +101,10 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
         selectedSeason = number
         isLoadingEpisodes = true
-        defer { isLoadingEpisodes = false }
+        // Une saison abandonnée ne coupe pas l'indicateur de celle qui charge.
+        defer {
+            if selectedSeason == number { isLoadingEpisodes = false }
+        }
 
         do {
             let loaded = switch backend {
@@ -123,8 +126,9 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
     /// Marque ou démarque des épisodes de la saison ouverte.
     ///
-    /// Optimiste : l'écran change tout de suite, et revient en arrière si l'appel
-    /// échoue — comme `ItemContentGroupProvider.toggleIsPlayed`.
+    /// Optimiste : l'écran change tout de suite. En cas d'échec, on **recharge** la
+    /// saison plutôt que de tout annuler : une partie des appels a pu réussir, et seul
+    /// le serveur sait laquelle.
     ///
     /// Parametres :
     /// - ids (Set<String>) : épisodes visés ; ceux déjà dans l'état voulu sont ignorés
@@ -146,7 +150,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
             }
         } catch {
             logger.warning("Set watched failed: \(error.localizedDescription)")
-            apply(targets, watched: !watched)
+            await select(season: season.number)
         }
     }
 
@@ -267,13 +271,21 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
             targets.compactMap(\.jellyfinID)
         }
 
-        for itemID in itemIDs {
-            let request = watched
+        let requests = try itemIDs.map { itemID in
+            watched
                 ? try Paths.markPlayedItem(itemID: itemID, userID: authenticatedUser.id)
                 : try Paths.markUnplayedItem(itemID: itemID, userID: authenticatedUser.id)
+        }
 
-            let response = try await send(request)
-            Notifications[.itemUserDataDidChange].post(response.value)
+        // En parallèle : un appel par épisode, qui s'enchaînaient un à un.
+        try await withThrowingTaskGroup(of: UserItemDataDto.self) { group in
+            for request in requests {
+                group.addTask { try await self.send(request).value }
+            }
+
+            for try await userData in group {
+                Notifications[.itemUserDataDidChange].post(userData)
+            }
         }
     }
 

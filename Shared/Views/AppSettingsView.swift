@@ -127,11 +127,14 @@ struct AppSettingsView: View {
                 Text(L10n.signoutBackgroundFooter)
             }
 
+            // EnhancedFin : hors connexion, pas de notion d'admin, et les journaux sont
+            // communs à tout l'appareil. Réservés aux builds de debug ; une fois connecté,
+            // un admin les retrouve dans ses réglages (`SettingsView`).
+            #if DEBUG
             ChevronButton(L10n.logs) {
                 router.route(to: .log)
             }
 
-            #if DEBUG
             ChevronButton("Debug") {
                 router.route(to: .debugSettings)
             }

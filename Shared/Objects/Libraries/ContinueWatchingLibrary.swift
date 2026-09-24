@@ -176,7 +176,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     ) -> [BaseItemDto] {
         items.filter { item in
             guard let id = item.id,
-                  Self.syntheticKey(of: item) == nil,
+                  !EnhancedFinSyntheticItem.isSynthetic(id),
                   let key = keys[id],
                   let hiddenAt = hidden[key]
             else { return true }
@@ -254,12 +254,12 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         for item in items {
             guard let id = item.id else { continue }
 
-            if let key = Self.syntheticKey(of: item) {
+            // Reprise externe, film ou série : la clé est connue tout de suite. Un épisode
+            // n'en a pas (`nil`) et passe par sa série.
+            if let key = item.enhancedFinMediaKey {
                 keys[id] = key
             } else if let seriesID = item.seriesID {
                 seriesToResolve.insert(seriesID)
-            } else if let tmdb = item.providerIDs?["Tmdb"] {
-                keys[id] = Self.mediaKey(type: item.type, tmdb: tmdb)
             }
         }
 
@@ -275,8 +275,8 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
 
         var seriesKeys: [String: String] = [:]
         for show in series {
-            guard let id = show.id, let tmdb = show.providerIDs?["Tmdb"] else { continue }
-            seriesKeys[id] = Self.mediaKey(type: show.type, tmdb: tmdb)
+            guard let id = show.id, let key = show.enhancedFinMediaKey else { continue }
+            seriesKeys[id] = key
         }
 
         for item in items {
@@ -290,21 +290,6 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         }
 
         return keys
-    }
-
-    /// Forge la clé d'un item du serveur, au format du plugin : `movie:550`, `tv:1396`.
-    ///
-    /// C'est ce qui permet de dédupliquer une reprise Jellyfin contre une reprise
-    /// externe : les deux côtés parlent alors la même langue.
-    ///
-    /// Parametres :
-    /// - type (BaseItemKind?) : le type de l'item côté Jellyfin
-    /// - tmdb (String) : son identifiant TMDB
-    ///
-    /// Output :
-    /// - key (String) : la clé média
-    private static func mediaKey(type: BaseItemKind?, tmdb: String) -> String {
-        "\(type == .movie ? "movie" : "tv"):\(tmdb)"
     }
 
     /// Ne garde qu'un item par clé, le premier rencontré.
@@ -409,18 +394,6 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         }
 
         return item
-    }
-
-    /// La clé de dédup d'un item synthétique : son `mediaKey`, tel quel.
-    ///
-    /// ⚠️ **Le type fait partie de la clé.** `movie:550` et `tv:550` désignent deux
-    /// œuvres sans aucun rapport — TMDB a des espaces d'identifiants séparés par type.
-    /// Ne garder que le nombre faisait disparaître du rail celui des deux qui arrivait
-    /// en second.
-    private static func syntheticKey(of item: BaseItemDto) -> String? {
-        guard let id = item.id, id.hasPrefix(EnhancedFinSyntheticItem.idPrefix) else { return nil }
-
-        return String(id.dropFirst(EnhancedFinSyntheticItem.idPrefix.count))
     }
 
     /// Lit une date ISO-8601 **avec ou sans** fraction de seconde.

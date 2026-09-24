@@ -159,7 +159,11 @@ final class CalendarViewModel: ViewModel {
         else { return }
 
         isLoading = true
-        defer { isLoading = false }
+        // Une tâche annulée (changement de période, `.task(id:)`) ne touche plus à l'état :
+        // la suivante est déjà en train de charger.
+        defer {
+            if !Task.isCancelled { isLoading = false }
+        }
 
         do {
             // En parallèle : les deux listes sont indépendantes, et les enchaîner
@@ -172,6 +176,9 @@ final class CalendarViewModel: ViewModel {
 
             let (days, followed) = try await (calendar.days, follows.items)
 
+            // Réponse d'une période déjà quittée : ne pas l'écrire par-dessus la nouvelle.
+            guard !Task.isCancelled else { return }
+
             // ⚠️ **Fusionner, et non faire confiance.** `Dictionary(uniqueKeysWithValues:)`
             // *trap* sur une clé en double — un crash, pas une erreur, que le `catch`
             // ci-dessous ne rattraperait pas. Or `date` vient du serveur : deux
@@ -180,6 +187,8 @@ final class CalendarViewModel: ViewModel {
             self.follows = followed
             error = nil
         } catch {
+            guard !Task.isCancelled else { return }
+
             logger.warning("EnhancedFin calendar failed: \(error.localizedDescription)")
             releasesByDay = [:]
             follows = []

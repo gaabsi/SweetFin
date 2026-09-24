@@ -60,6 +60,15 @@ final class ContentGroupViewModel<Provider: ContentGroupProvider>: ViewModel {
             self?.lastRefreshSignalDate = Date.now
         }
         .store(in: &cancellables)
+
+        // EnhancedFin : reconstruit les sections quand on change ce qu'elles affichent
+        // (interrupteurs de l'Accueil, `AdvancedSettingsView`). Sans lui, un réglage ne
+        // s'appliquait qu'au prochain « tirer pour rafraîchir ».
+        Notifications[.didRequestGlobalRefresh].publisher
+            .sink { [weak self] in
+                self?.refresh()
+            }
+            .store(in: &cancellables)
     }
 
     func refreshIfNeeded(

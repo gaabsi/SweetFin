@@ -17,6 +17,20 @@ extension NetworkLogger {
     static func swiftfin() -> NetworkLogger {
         var configuration = NetworkLogger.Configuration()
 
+        // EnhancedFin : les jetons ne doivent jamais finir dans les journaux, qu'on peut
+        // lire et exporter depuis l'app. Pulse les masque lui-même.
+        // - en-têtes : le jeton Jellyfin sous toutes ses formes ;
+        // - paramètres d'URL : `api_key` (images, flux) ;
+        // - champs JSON : `AccessToken` (réponse de connexion).
+        configuration.sensitiveHeaders = [
+            "Authorization",
+            "X-Emby-Authorization",
+            "X-Emby-Token",
+            "X-MediaBrowser-Token",
+        ]
+        configuration.sensitiveQueryItems = ["api_key", "ApiKey"]
+        configuration.sensitiveDataFields = ["AccessToken"]
+
         configuration.willHandleEvent = { event -> LoggerStore.Event? in
             if case var LoggerStore.Event.networkTaskCompleted(task) = event {
                 guard let url = task.originalRequest.url,
