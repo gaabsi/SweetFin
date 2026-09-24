@@ -39,6 +39,10 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     /// ensemble par date d'activité.
     private static let externalLimit = 10
 
+    /// Épisodes lus récents interrogés pour dater l'activité des séries
+    /// (`seriesActivityDates`).
+    private static let recentEpisodesLimit = 100
+
     let libraryItemTypes: [BaseItemKind] = [.episode, .movie, .video]
     let parent: TitledLibraryParent = .init(
         displayTitle: HomeStrings.continueWatching,
@@ -59,8 +63,11 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         async let nextUp = nextUpItems(pageState)
         async let external = externalItems(pageState)
         async let hiddenDates = hiddenDates(pageState)
+        async let seriesActivity = seriesActivityDates(pageState)
 
-        let (resumed, next, externals, hidden) = await (resume, nextUp, external, hiddenDates)
+        let (resumed, next, externals, hidden, seriesDates) = await (
+            resume, nextUp, external, hiddenDates, seriesActivity
+        )
 
         // L'ordre de concaténation EST l'ordre de priorité : être au milieu d'un
         // épisode l'emporte sur en avoir un suivant à proposer, qui l'emporte sur une
@@ -68,13 +75,13 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         let merged = resumed + next + externals
         let keys = await mediaKeys(for: merged, pageState: pageState)
 
-        let visible = await withoutHidden(
+        let visible = withoutHidden(
             deduplicated(merged, keys: keys),
             keys: keys,
             hidden: hidden,
-            pageState: pageState
+            seriesDates: seriesDates
         )
-        let ordered = stableSorted(visible)
+        let ordered = stableSorted(visible, seriesDates: seriesDates)
 
         return Array(ordered.prefix(Self.itemLimit))
     }
@@ -157,7 +164,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     /// - items ([BaseItemDto]) : les items dédupliqués
     /// - keys ([String: String]) : identifiant d'item → clé média
     /// - hidden ([String: Date]) : clé média → date de masquage
-    /// - pageState (LibraryPageState) : la session en cours
+    /// - seriesDates ([String: Date]) : série → dernière activité
     ///
     /// Output :
     /// - visible ([BaseItemDto]) : les items à afficher, dans le même ordre
@@ -165,67 +172,60 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         _ items: [BaseItemDto],
         keys: [String: String],
         hidden: [String: Date],
-        pageState: LibraryPageState
-    ) async -> [BaseItemDto] {
-        let candidates: [(id: String, hiddenAt: Date, item: BaseItemDto)] = items.compactMap { item in
+        seriesDates: [String: Date]
+    ) -> [BaseItemDto] {
+        items.filter { item in
             guard let id = item.id,
                   Self.syntheticKey(of: item) == nil,
                   let key = keys[id],
                   let hiddenAt = hidden[key]
-            else { return nil }
+            else { return true }
 
-            return (id, hiddenAt, item)
+            return activityDate(of: item, seriesDates: seriesDates) > hiddenAt
         }
-
-        guard candidates.isNotEmpty else { return items }
-
-        let stillHidden = await withTaskGroup(of: String?.self) { group in
-            for candidate in candidates {
-                group.addTask {
-                    let lastPlayed = await lastPlayedDate(of: candidate.item, pageState: pageState)
-
-                    return (lastPlayed ?? .distantPast) > candidate.hiddenAt ? nil : candidate.id
-                }
-            }
-
-            return await group.reduce(into: Set<String>()) { ids, id in
-                if let id { ids.insert(id) }
-            }
-        }
-
-        return items.filter { !stillHidden.contains($0.id ?? "") }
     }
 
-    /// La dernière lecture d'un item, à l'échelle du média entier.
+    // MARK: - Activité par série
+
+    /// La dernière activité de chaque série : la lecture de son épisode lu le plus
+    /// récemment.
     ///
     /// ⚠️ **Jellyfin ne date jamais la lecture d'une série** (`LastPlayedDate` vide,
-    /// même sur une série vue) : pour un épisode, on prend donc l'épisode de sa série
-    /// lu le plus récemment — pas forcément celui de la tuile, qu'un épisode suivant
-    /// n'a jamais été lu.
+    /// même sur une série vue), et un épisode suivant de `/Shows/NextUp` n'a jamais été
+    /// lu : sans cette date, tous les « à suivre » tombaient au fond du rail, derrière
+    /// les reprises, au lieu d'être mélangés avec elles.
+    ///
+    /// **Une seule requête** pour toutes les séries : les derniers épisodes lus. Une
+    /// série dont la dernière lecture est plus ancienne que ce lot part au fond, ce
+    /// qui est de toute façon sa place.
     ///
     /// Parametres :
-    /// - item (BaseItemDto) : un film ou un épisode
     /// - pageState (LibraryPageState) : la session en cours
     ///
     /// Output :
-    /// - date (Date?) : `nil` si rien n'a jamais été lu
-    private func lastPlayedDate(of item: BaseItemDto, pageState: LibraryPageState) async -> Date? {
-        guard let seriesID = item.seriesID else { return item.userData?.lastPlayedDate }
-
+    /// - dates ([String: Date]) : identifiant de série → dernière lecture
+    private func seriesActivityDates(_ pageState: LibraryPageState) async -> [String: Date] {
         var parameters = Paths.GetItemsParameters()
         parameters.enableUserData = true
         parameters.includeItemTypes = [.episode]
         parameters.isRecursive = true
-        parameters.limit = 1
-        parameters.parentID = seriesID
+        parameters.limit = Self.recentEpisodesLimit
         parameters.sortBy = [.datePlayed]
         parameters.sortOrder = [.descending]
         parameters.userID = pageState.userSession.user.id
 
         let request = Paths.getItems(parameters: parameters)
-        let episodes = try? await pageState.userSession.client.send(request).value.items
+        let episodes = (try? await pageState.userSession.client.send(request).value.items) ?? []
 
-        return episodes?.first?.userData?.lastPlayedDate
+        // Triés du plus récent au plus ancien : la première date vue par série gagne.
+        return episodes.reduce(into: [:]) { dates, episode in
+            guard let seriesID = episode.seriesID,
+                  dates[seriesID] == nil,
+                  let date = episode.userData?.lastPlayedDate
+            else { return }
+
+            dates[seriesID] = date
+        }
     }
 
     // MARK: - Résolution des identifiants TMDB
@@ -330,10 +330,9 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     ///
     /// Range les items du plus récemment touché au plus ancien, **à égalité près**.
     ///
-    /// ⚠️ **`sorted(by:)` n'est pas stable en Swift**, et les égalités sont ici la
-    /// règle, pas l'exception : un épisode suivant n'a jamais été lu, donc
-    /// `/Shows/NextUp` ne lui donne aucune date de lecture et ils se retrouvent tous
-    /// égaux. Sans ce départage, leur ordre changerait d'un chargement à l'autre.
+    /// ⚠️ **`sorted(by:)` n'est pas stable en Swift** : sans ce départage, deux items à
+    /// égalité (sans aucune date, par exemple) changeraient d'ordre d'un chargement à
+    /// l'autre.
     ///
     /// Le rang d'origine sert d'arbitre : il porte à la fois l'ordre de pertinence
     /// voulu par chaque source et la priorité entre sources, fixée par l'ordre de
@@ -341,14 +340,15 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     ///
     /// Parametres :
     /// - items ([BaseItemDto]) : les items fusionnés et dédupliqués
+    /// - seriesDates ([String: Date]) : série → dernière activité
     ///
     /// Output :
     /// - sorted ([BaseItemDto]) : les mêmes, du plus récent au plus ancien
-    private func stableSorted(_ items: [BaseItemDto]) -> [BaseItemDto] {
+    private func stableSorted(_ items: [BaseItemDto], seriesDates: [String: Date]) -> [BaseItemDto] {
         items.enumerated()
             .sorted { left, right in
-                let leftDate = activityDate(of: left.element)
-                let rightDate = activityDate(of: right.element)
+                let leftDate = activityDate(of: left.element, seriesDates: seriesDates)
+                let rightDate = activityDate(of: right.element, seriesDates: seriesDates)
 
                 if leftDate == rightDate { return left.offset < right.offset }
 
@@ -357,12 +357,24 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
             .map(\.element)
     }
 
-    /// Les trois sources la rangent au même endroit : `userData.lastPlayedDate`.
+    /// La dernière activité sur le **média** : sa propre lecture, ou pour un épisode
+    /// celle de sa série si elle est plus récente — c'est ce qui date un épisode
+    /// suivant, jamais lu.
     ///
-    /// Un item sans date part au fond plutôt que de disparaître — c'est le cas d'un
-    /// épisode suivant jamais lu.
-    private func activityDate(of item: BaseItemDto) -> Date {
-        item.userData?.lastPlayedDate ?? .distantPast
+    /// Les trois sources rangent leur date au même endroit : `userData.lastPlayedDate`.
+    /// Un item sans aucune date part au fond plutôt que de disparaître.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : un item du rail
+    /// - seriesDates ([String: Date]) : série → dernière activité
+    ///
+    /// Output :
+    /// - date (Date) : `.distantPast` si rien n'est connu
+    private func activityDate(of item: BaseItemDto, seriesDates: [String: Date]) -> Date {
+        let own = item.userData?.lastPlayedDate ?? .distantPast
+        let series = item.seriesID.flatMap { seriesDates[$0] } ?? .distantPast
+
+        return max(own, series)
     }
 
     /// Fabrique la tuile d'une reprise externe.
