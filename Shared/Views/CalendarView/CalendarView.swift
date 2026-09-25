@@ -15,11 +15,13 @@ import SwiftUI
 /// du jour, qui laisse la grille visible.
 struct CalendarView: View {
 
-    /// Titres affichés dans une case avant de résumer le reste.
-    ///
-    /// Deux : une case fait le quart de la largeur d'écran, et au-delà les lignes
-    /// deviennent trop serrées pour être lues. Le web applique le même plafond.
-    private static let maxInlineReleases = 2
+    @Environment(\.horizontalSizeClass)
+    private var horizontalSizeClass
+
+    /// Les mesures de la grille : iPhone, ou grand écran (iPad).
+    private var metrics: CalendarDayCell.Metrics {
+        horizontalSizeClass == .regular ? .regular : .compact
+    }
 
     @StateObject
     private var viewModel = CalendarViewModel()
@@ -157,7 +159,7 @@ struct CalendarView: View {
                 CalendarDayCell(
                     day: day,
                     entries: entries,
-                    maxInline: Self.maxInlineReleases
+                    metrics: metrics
                 )
                 .onTapGesture {
                     guard entries.isNotEmpty else { return }
@@ -229,9 +231,29 @@ struct CalendarView: View {
 /// Une case de jour : son jour, les médias qui sortent, et le reste en compteur.
 struct CalendarDayCell: View {
 
+    /// Tout ce qui change entre l'iPhone et un grand écran, en un seul endroit.
+    struct Metrics {
+
+        let height: CGFloat
+        /// Titres affichés avant de résumer le reste.
+        let maxInline: Int
+        let titleLines: Int
+        let titleSize: CGFloat
+        let daySize: CGFloat
+
+        /// iPhone. Deux titres au plus : une case fait le quart de la largeur, au-delà
+        /// les lignes deviennent trop serrées. Le web applique le même plafond.
+        static let compact = Metrics(height: 82, maxInline: 2, titleLines: 1, titleSize: 9, daySize: 11)
+
+        /// iPad : la grille de l'iPhone, agrandie. Des cases plus hautes et un texte
+        /// plus grand, 150 pt pour que les quatre lignes tiennent encore en paysage.
+        /// ❌ 8 colonnes : cases étroites, texte minuscule, la moitié de l'écran vide.
+        static let regular = Metrics(height: 150, maxInline: 3, titleLines: 2, titleSize: 13, daySize: 15)
+    }
+
     let day: Date
     let entries: [CalendarEntry]
-    let maxInline: Int
+    let metrics: Metrics
 
     private var isToday: Bool { CalendarViewModel.isToday(day) }
     private var isPast: Bool { CalendarViewModel.isPast(day) }
@@ -242,18 +264,18 @@ struct CalendarDayCell: View {
 
             // Un média par ligne, quel que soit le nombre d'épisodes qu'il diffuse
             // ce jour-là : une case de calendrier dit *ce qui sort*, pas le détail.
-            ForEach(entries.prefix(maxInline)) { entry in
+            ForEach(entries.prefix(metrics.maxInline)) { entry in
                 Text(entry.release.title)
-                    .font(.system(size: 9, weight: .medium))
-                    .lineLimit(1)
+                    .font(.system(size: metrics.titleSize, weight: .medium))
+                    .lineLimit(metrics.titleLines)
                     .truncationMode(.tail)
                     .foregroundStyle(entry.release.isMovie ? Color.orange : Color.accentColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if entries.count > maxInline {
-                Text(CalendarStrings.more(entries.count - maxInline))
-                    .font(.system(size: 9))
+            if entries.count > metrics.maxInline {
+                Text(CalendarStrings.more(entries.count - metrics.maxInline))
+                    .font(.system(size: metrics.titleSize))
                     .foregroundStyle(.secondary)
             }
 
@@ -263,7 +285,7 @@ struct CalendarDayCell: View {
         // ⚠️ `maxWidth: .infinity` est indispensable : sans lui chaque case épouse
         // la largeur de son contenu, les cases vides se rétrécissent et les colonnes
         // cessent d'être alignées — une grille de calendrier qui n'aligne rien.
-        .frame(maxWidth: .infinity, minHeight: 82, maxHeight: 82, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: metrics.height, maxHeight: metrics.height, alignment: .topLeading)
         .background(background, in: .rect(cornerRadius: 8))
         // Le passé s'efface sans disparaître : on le lit encore, il ne retient plus
         // l'œil. Même intention que `is-past` dans le front web.
@@ -272,7 +294,7 @@ struct CalendarDayCell: View {
 
     /// « lun. 14 », et non le seul numéro.
     ///
-    /// ⚠️ Sur **quatre** colonnes, seize jours font tourner les jours de la semaine
+    /// ⚠️ Sur **quatre** colonnes (iPhone), seize jours font tourner les jours de la semaine
     /// d'une ligne à l'autre : la première colonne est lundi, puis vendredi, puis
     /// mardi. Une colonne ne désigne donc aucun jour fixe, et sans ce rappel dans
     /// chaque case on ne sait plus quel jour on regarde. Le front web mobile fait de
@@ -280,7 +302,7 @@ struct CalendarDayCell: View {
     @ViewBuilder
     private var dayNumber: some View {
         Text(day.formatted(.dateTime.weekday(.abbreviated).day()))
-            .font(.system(size: 11, weight: isToday ? .bold : .regular))
+            .font(.system(size: metrics.daySize, weight: isToday ? .bold : .regular))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
             .foregroundStyle(isToday ? Color.accentColor : .primary)

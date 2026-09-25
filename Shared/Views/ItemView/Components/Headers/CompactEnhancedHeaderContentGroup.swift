@@ -31,12 +31,21 @@ extension ItemView {
 
             private let headerAspectRatio = 1.6
 
+            // EnhancedFin : cet en-tête sert aussi sur iPad (`ItemView.isCompact`), où
+            // 70 pt donnaient un logo minuscule sous un fond pleine largeur.
+            @Environment(\.horizontalSizeClass)
+            private var horizontalSizeClass
+
+            private var logoHeight: CGFloat {
+                horizontalSizeClass == .regular ? 140 : 70
+            }
+
             @ViewBuilder
             private var logo: some View {
                 ImageView(
                     provider.item.imageSource(
                         .logo,
-                        environment: ImageSourceOptions(maxHeight: 70)
+                        environment: ImageSourceOptions(maxHeight: logoHeight)
                     )
                 )
                 .placeholder { _ in
@@ -52,7 +61,7 @@ extension ItemView {
                         .foregroundStyle(.primary)
                 }
                 .aspectRatio(contentMode: .fit)
-                .frame(height: 70, alignment: .bottom)
+                .frame(height: logoHeight, alignment: .bottom)
                 .accessibilityLabel(provider.item.displayTitle)
                 .accessibilityRemoveTraits(.isImage)
             }

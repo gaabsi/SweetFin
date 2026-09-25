@@ -47,7 +47,14 @@ struct ItemView: View {
     }
 
     private var isCompact: Bool {
+        // EnhancedFin : la fiche de l'iPhone partout sur iOS, iPad compris. Le modèle
+        // est l'iPhone ; la disposition « large » (logo à gauche, résumé à droite)
+        // reste à tvOS.
+        #if os(iOS)
+        true
+        #else
         contentSize.width < 600
+        #endif
     }
 
     private var isEnhanced: Bool {

@@ -33,9 +33,25 @@ struct MediaBarView: View {
     /// que la racine de l'onglet n'affiche plus le grand titre « Accueil », que le
     /// logo venait percuter.
     ///
-    /// ⚠️ Ne pas remonter au-delà de ~1.3 : la diapo devient alors trop courte pour
-    /// loger le logo, le bouton et les points.
-    private static let aspectRatio: CGFloat = 0.88
+    /// ⚠️ Ne pas remonter au-delà de ~1.3 **sur iPhone portrait** : la diapo devient
+    /// alors trop courte pour loger le logo, le bouton et les points.
+    private static let compactAspectRatio: CGFloat = 0.88
+
+    /// Sur grand écran (iPad, iPhone en paysage), 0.88 en pleine largeur donnait une
+    /// diapo plus haute que l'écran. 1.6 : un peu plus haut que 16:9 (jugé trop plat),
+    /// et le même ratio que l'en-tête des fiches (`CompactEnhancedHeaderContentGroup`).
+    private static let wideAspectRatio: CGFloat = 1.6
+
+    @Environment(\.horizontalSizeClass)
+    private var horizontalSizeClass
+    @Environment(\.verticalSizeClass)
+    private var verticalSizeClass
+
+    private var aspectRatio: CGFloat {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+            ? Self.wideAspectRatio
+            : Self.compactAspectRatio
+    }
 
     @ObservedObject
     var viewModel: PagingLibraryViewModel<RandomItemsLibrary>
@@ -80,7 +96,13 @@ struct MediaBarView: View {
         TabView(selection: $position) {
             ForEach(0 ..< windowSize, id: \.self) { slot in
                 if let item = item(at: slot) {
-                    MediaBarSlide(item: item, aspectRatio: Self.aspectRatio)
+                    // ⚠️ `.id(item.id)` : une case garde son identité (`slot`) quand la
+                    // liste aléatoire est renouvelée (rafraîchissement de l'Accueil au
+                    // retour d'une fiche). `ImageView` garde ses sources en `@State` :
+                    // sans ce `.id`, la diapo affichait l'**ancien** média et un tap
+                    // ouvrait le nouveau.
+                    MediaBarSlide(item: item, aspectRatio: aspectRatio)
+                        .id(item.id)
                         .tag(slot)
                 }
             }
@@ -89,7 +111,7 @@ struct MediaBarView: View {
         // la liste, elles en afficheraient donc trois fois trop. Les nôtres comptent
         // les items réels.
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .aspectRatio(Self.aspectRatio, contentMode: .fit)
+        .aspectRatio(aspectRatio, contentMode: .fit)
         .frame(maxWidth: .infinity)
         // Une carte aux coins arrondis collée aux bords de l'écran ne se lit pas comme
         // une carte : il lui faut de la marge pour que l'arrondi ait un sens. Visible
@@ -173,7 +195,12 @@ struct MediaBarView: View {
 
         // Départ au cycle du milieu : on peut alors balayer vers l'arrière dès la
         // première diapo.
-        select(items.count)
+        // ⚠️ **Seulement si on n'y est pas déjà.** La tâche redémarre à chaque retour
+        // sur l'Accueil (elle est annulée quand il disparaît) : un `select` sans
+        // condition ramenait le carrousel à la première diapo au retour d'une fiche.
+        if !(items.count ..< items.count * 2).contains(position) {
+            select(items.count)
+        }
 
         // ⚠️ **Une seule diapo ne tourne pas.** `recenterIfNeeded` sort sur
         // `items.count > 1`, donc rien ne ramènerait la position dans la fenêtre :
@@ -215,6 +242,18 @@ private struct MediaBarSlide: View {
 
     let item: BaseItemDto
     let aspectRatio: CGFloat
+
+    @Environment(\.horizontalSizeClass)
+    private var horizontalSizeClass
+
+    /// Cadre maximal du logo. ❌ 80 pt de haut sur iPad aussi : minuscule sur une
+    /// diapo deux fois plus large. La largeur est plafonnée sur iPad : sans elle, un
+    /// logo très large (« A Silent Voice ») couvrait toute la diapo et le bouton.
+    private var logoSize: CGSize {
+        horizontalSizeClass == .regular
+            ? CGSize(width: 520, height: 150)
+            : CGSize(width: CGFloat.infinity, height: 80)
+    }
 
     var body: some View {
         // ⚠️ **Le backdrop ne doit PAS dicter la taille de la diapo.** En `.fill` il
@@ -296,7 +335,7 @@ private struct MediaBarSlide: View {
         ImageView(
             item.imageSource(
                 .logo,
-                environment: ImageSourceOptions(maxHeight: 90)
+                environment: ImageSourceOptions(maxHeight: logoSize.height + 10)
             )
         )
         // ⚠️ **Redimensionner l'image explicitement est indispensable.** `ImageView`
@@ -320,7 +359,7 @@ private struct MediaBarSlide: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, maxHeight: 80)
+        .frame(maxWidth: logoSize.width, maxHeight: logoSize.height)
         .accessibilityLabel(item.displayTitle)
         .accessibilityRemoveTraits(.isImage)
     }
