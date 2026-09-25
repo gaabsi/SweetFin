@@ -7,6 +7,7 @@
 //
 
 import JellyfinAPI
+import os
 
 /// Un tirage aléatoire de films et de séries, pour alimenter la media bar.
 ///
@@ -29,6 +30,18 @@ struct RandomItemsLibrary: BaseItemKindLibrary {
 
     /// Un tirage aléatoire ne se pagine pas : la page 2 rejouerait les mêmes titres.
     let hasNextPage = false
+
+    /// Les ids du tirage en cours, pour qu'il **survive au rafraîchissement
+    /// d'arrière-plan**.
+    ///
+    /// ⚠️ Ouvrir une fiche rafraîchit l'Accueil à son retour (upstream,
+    /// `ContentGroupView.sinceLastDisappear`) : sans ce tirage retenu, le carrousel
+    /// changeait de médias à chaque retour. « Tirer pour rafraîchir » reconstruit les
+    /// groupes, donc une nouvelle bibliothèque : là, on tire à nouveau.
+    ///
+    /// Un verrou et non une variable : la bibliothèque est une valeur partagée entre
+    /// des tâches concurrentes.
+    private let draw = OSAllocatedUnfairLock<[String]?>(initialState: nil)
 
     func retrievePage(
         environment: Empty,
@@ -62,9 +75,23 @@ struct RandomItemsLibrary: BaseItemKindLibrary {
         // Le total ne sert à rien ici et coûte un comptage au serveur.
         parameters.enableTotalRecordCount = false
 
+        if let ids = draw.withLock({ $0 }) {
+            parameters.ids = ids
+        }
+
         let request = Paths.getItems(parameters: parameters)
         let response = try await pageState.userSession.client.send(request)
+        let items = response.value.items ?? []
 
-        return response.value.items ?? []
+        guard let ids = draw.withLock({ $0 }) else {
+            draw.withLock { $0 = items.compactMap(\.id) }
+            return items
+        }
+
+        // Relu par ids, le serveur ne garde pas l'ordre du tirage : on le remet. Un
+        // média vu depuis (`isPlayed = false`) sort simplement de la liste.
+        return items.sorted { a, b in
+            (ids.firstIndex(of: a.id ?? "") ?? .max) < (ids.firstIndex(of: b.id ?? "") ?? .max)
+        }
     }
 }

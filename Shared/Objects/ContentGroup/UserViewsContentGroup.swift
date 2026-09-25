@@ -49,10 +49,15 @@ private struct UserViewsRail: View {
     @ObservedObject
     var viewModel: PagingLibraryViewModel<UserViewLibrary>
 
-    /// Les vignettes de bibliothèque sont en paysage : deux par écran, comme les rails
-    /// paysage de `PosterHStack`.
+    /// Les vignettes de bibliothèque sont en paysage : deux par écran sur iPhone,
+    /// comme les petits rails paysage de `PosterHStack`. Sur iPad, 180 pt minimum
+    /// (quatre par écran en portrait) : plus petites que Continuer de regarder (300 pt).
+    /// ❌ Deux par écran sur iPad : plus grandes que les tuiles du dessous. ❌ 220 pt
+    /// (petits rails paysage) : exactement la même taille qu'elles.
     private var layout: CollectionHStackLayout {
-        .grid(columns: 2, rows: 1, columnTrailingInset: 0)
+        UIDevice.isPad
+            ? .minimumWidth(columnWidth: 180, rows: 1)
+            : .grid(columns: 2, rows: 1, columnTrailingInset: 0)
     }
 
     /// Les bibliothèques réelles du serveur, et rien d'autre.

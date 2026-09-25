@@ -251,22 +251,12 @@ struct ExplorerView: View {
 
     // MARK: - Mes notes
 
-    /// Repliée sur une rangée : la liste complète compte plusieurs centaines de
-    /// titres et occuperait tout l'écran sous les autres sections.
-    @ViewBuilder
+    /// **Repliée** : seul le titre, qui ouvre la liste complète. Plusieurs centaines de
+    /// titres, qu'on consulte à la demande — pas une section à parcourir à chaque
+    /// visite. ❌ Un rail toujours déplié occupait le bas de l'Explorer.
     private var ratingsSection: some View {
-        ContentGroupSection {
-            PosterHStack(
-                elements: viewModel.ratings,
-                displayType: .portrait,
-                size: .small
-            ) { item, namespace in
-                router.openEnhancedFin(item, in: namespace)
-            }
-        } header: {
-            ExplorerSectionHeader(title: ExplorerStrings.myRatings) {
-                router.route(to: .explorerRatings(items: viewModel.ratings))
-            }
+        ExplorerSectionHeader(title: ExplorerStrings.myRatings) {
+            router.route(to: .explorerRatings(items: viewModel.ratings))
         }
     }
 
