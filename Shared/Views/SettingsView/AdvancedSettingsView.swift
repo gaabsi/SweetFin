@@ -9,6 +9,9 @@
 import Defaults
 import SwiftUI
 
+// iOS uniquement : tvOS garde `CustomizeSettingsView` (et n'a pas de `Stepper`).
+#if os(iOS)
+
 /// EnhancedFin : l'écran « Avancé » du fork, à la place de `CustomizeSettingsView`.
 ///
 /// Remplace l'écran upstream plutôt que de le modifier : `CustomizeSettingsView` reste
@@ -71,3 +74,5 @@ struct AdvancedSettingsView: View {
         }
     }
 }
+
+#endif

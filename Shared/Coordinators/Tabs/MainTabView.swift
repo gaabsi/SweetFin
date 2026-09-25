@@ -50,20 +50,15 @@ struct MainTabView: View {
             TabItem.calendar
         }
         #else
+        // EnhancedFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
+        // profil en haut à droite qui les ouvre sur iOS. Séries, Films et Recherche
+        // d'upstream retirés pour les mêmes raisons que sur iOS (« Mes médias » sur
+        // l'Accueil, l'Explorer porte la recherche). `DefaultContentGroupProvider`
+        // reste intact.
         TabCoordinator {
-            TabItem.contentGroup(provider: DefaultContentGroupProvider())
-            TabItem.library(
-                title: L10n.tvShowsCapitalized,
-                systemName: "tv",
-                filters: .init(itemTypes: [.series])
-            )
-            TabItem.library(
-                title: L10n.movies,
-                systemName: "film",
-                filters: .init(itemTypes: [.movie])
-            )
-            TabItem.search
+            TabItem.contentGroup(provider: HomeContentGroupProvider())
             TabItem.media
+            TabItem.calendar
             TabItem.settings
         }
         #endif

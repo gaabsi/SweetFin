@@ -7,6 +7,7 @@
 //
 
 import Defaults
+import JellyfinAPI
 import SwiftUI
 
 struct PosterButton<Item: Poster>: View {
@@ -42,6 +43,11 @@ struct PosterButton<Item: Poster>: View {
         self.displayType = displayType
         self.size = size
         self.action = action
+    }
+
+    // EnhancedFin : même règle que `PosterCornerRadiusModifier` (casting en ronds).
+    private var isCirclePerson: Bool {
+        item is BaseItemPerson && displayType == .square && appearance.tokens.personPosterShape == .circle
     }
 
     @ViewBuilder
@@ -102,7 +108,9 @@ struct PosterButton<Item: Poster>: View {
         .environment(\.posterDisplayType, displayType)
         .foregroundStyle(.primary, .secondary)
         .buttonStyle(.borderless)
-        .buttonBorderShape(.roundedRectangle)
+        // EnhancedFin : sur tvOS, le style de bouton découpe l'image à sa forme et
+        // écrasait le rond du casting (`ThemeTokens.personPosterShape`).
+        .buttonBorderShape(isCirclePerson ? .circle : .roundedRectangle)
         #if os(tvOS)
         .focusedValue(\.focusedPoster, AnyPoster(item))
         #endif

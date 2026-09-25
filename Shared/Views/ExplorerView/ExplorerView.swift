@@ -20,6 +20,16 @@ import SwiftUI
 /// Remplace entièrement l'ancien onglet « Médias ».
 struct ExplorerView: View {
 
+    /// Barre de recherche toujours visible sur iOS ; tvOS n'a pas de tiroir de barre
+    /// de navigation, il garde le placement du système.
+    private static var searchPlacement: SearchFieldPlacement {
+        #if os(iOS)
+        .navigationBarDrawer(displayMode: .always)
+        #else
+        .automatic
+        #endif
+    }
+
     @Router
     private var router
 
@@ -44,7 +54,7 @@ struct ExplorerView: View {
         .hidesNavigationTitle()
         .searchable(
             text: $searchText,
-            placement: .navigationBarDrawer(displayMode: .always),
+            placement: Self.searchPlacement,
             prompt: L10n.search
         )
         .onChange(of: searchText) { _, newValue in

@@ -241,65 +241,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
         #endif
 
-        // EnhancedFin : sur iOS, genres et studios vivent dans le bloc « infos »
-        // ci-dessus. Les pastilles natives restent pour tvOS, que le fork ne touche
-        // pas encore.
-        #if os(tvOS)
-        if let genres = item.itemGenres, genres.isNotEmpty {
-            PillGroup(
-                displayTitle: L10n.genres,
-                id: "genres",
-                elements: genres
-            ) { router, element in
-                router.route(
-                    to: .contentGroup(
-                        provider: ItemTypeContentGroupProvider(
-                            itemTypes: [
-                                BaseItemKind.movie,
-                                .series,
-                                .boxSet,
-                                .episode,
-                                .musicVideo,
-                                .video,
-                                .liveTvProgram,
-                                .tvChannel,
-                                .person,
-                            ],
-                            parent: BaseItemDto(name: element.displayTitle),
-                            environment: .init(filters: .init(genres: [element]))
-                        )
-                    )
-                )
-            }
-        }
-
-        if let studios = item.studios, studios.isNotEmpty {
-            PillGroup(
-                displayTitle: L10n.studios,
-                id: "studios",
-                elements: studios
-            ) { router, element in
-                router.route(
-                    to: .contentGroup(
-                        provider: ItemTypeContentGroupProvider(
-                            itemTypes: [
-                                BaseItemKind.movie,
-                                .series,
-                                .boxSet,
-                                .episode,
-                                .musicVideo,
-                                .video,
-                                .liveTvProgram,
-                                .tvChannel,
-                                .person,
-                            ],
-                            parent: BaseItemDto(id: element.id, name: element.displayTitle, type: .studio)
-                        )
-                    )
-                )
-            }
-        }
-        #endif
+        // EnhancedFin : pastilles Genres et Studios retirées (iOS et tvOS) : les genres
+        // vivent dans le bloc « infos » ci-dessus (`ItemFactsContentGroup`).
 
         switch item.type {
         case .movie:
