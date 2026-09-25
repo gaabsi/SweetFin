@@ -54,10 +54,16 @@ private struct UserViewsRail: View {
     /// (quatre par écran en portrait) : plus petites que Continuer de regarder (300 pt).
     /// ❌ Deux par écran sur iPad : plus grandes que les tuiles du dessous. ❌ 220 pt
     /// (petits rails paysage) : exactement la même taille qu'elles.
+    ///
+    /// tvOS : 5 par écran, la grille des rails paysage de `PosterHStack` là-bas.
     private var layout: CollectionHStackLayout {
+        #if os(tvOS)
+        .grid(columns: 5, rows: 1, columnTrailingInset: 0)
+        #else
         UIDevice.isPad
             ? .minimumWidth(columnWidth: 180, rows: 1)
             : .grid(columns: 2, rows: 1, columnTrailingInset: 0)
+        #endif
     }
 
     /// Les bibliothèques réelles du serveur, et rien d'autre.

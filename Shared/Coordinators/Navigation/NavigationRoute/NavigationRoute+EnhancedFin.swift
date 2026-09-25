@@ -133,12 +133,14 @@ extension NavigationRoute {
         }
     }
 
-    /// L'écran « Avancé » du fork, voir `AdvancedSettingsView`.
+    #if os(iOS)
+    /// L'écran « Avancé » du fork, voir `AdvancedSettingsView`. iOS uniquement.
     static var advancedSettings: NavigationRoute {
         NavigationRoute(id: "advancedSettings") {
             AdvancedSettingsView()
         }
     }
+    #endif
 
     /// La fenêtre « Demander sur Seerr », voir `SeerrRequestView`.
     static func seerrRequest(media: EnhancedFinMedia) -> NavigationRoute {

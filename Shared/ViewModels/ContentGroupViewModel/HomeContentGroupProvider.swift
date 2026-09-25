@@ -42,13 +42,15 @@ struct HomeContentGroupProvider: ContentGroupProvider {
         // Aucun titre de section n'est cliquable : l'Accueil montre une sélection, pas
         // un catalogue. Les bibliothèques complètes s'ouvrent depuis « Mes médias ».
 
-        // tvOS garde `DefaultContentGroupProvider` et son sélecteur cinématique ;
-        // ce provider n'y est pas branché, mais il s'y compile quand même.
-        #if os(iOS)
+        // La media bar : carrousel à balayer sur iOS, sélecteur cinématique (le fond
+        // suit le focus) sur tvOS. Même tirage aléatoire des deux côtés.
         if Defaults[.Customization.Home.showMediaBar] {
+            #if os(iOS)
             MediaBarContentGroup()
+            #else
+            CinematicMediaBarContentGroup()
+            #endif
         }
-        #endif
 
         if Defaults[.Customization.Home.showLibraries] {
             UserViewsContentGroup()

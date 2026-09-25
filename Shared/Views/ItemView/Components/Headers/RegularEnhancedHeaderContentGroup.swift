@@ -42,8 +42,10 @@ extension ItemView {
             }
             #endif
 
+            // EnhancedFin : logo et colonne agrandis sur tvOS (100 pt dans 450 pt de
+            // large : un logo large devenait minuscule sous le fond plein écran).
             private var logoHeight: CGFloat {
-                UIDevice.isTV ? 100 : 70
+                UIDevice.isTV ? 300 : 70
             }
 
             @ViewBuilder
@@ -91,7 +93,7 @@ extension ItemView {
 
                         ItemView.ActionBar(provider: provider)
                     }
-                    .frame(width: UIDevice.isTV ? 450 : 300)
+                    .frame(width: UIDevice.isTV ? 650 : 300)
 
                     VStack(alignment: .leading, spacing: 10) {
                         ItemView.Description(item: provider.item)

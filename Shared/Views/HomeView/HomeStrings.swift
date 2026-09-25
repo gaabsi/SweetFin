@@ -29,4 +29,6 @@ enum HomeStrings {
     /// Libellé d'accessibilité du carrousel. Il n'est pas affiché : les diapos portent
     /// déjà le logo du média, et un titre au-dessus ferait doublon.
     static let mediaBar = "À l'affiche"
+    /// Bouton de la vitrine tvOS qui ouvre la fiche.
+    static let info = "Infos"
 }
