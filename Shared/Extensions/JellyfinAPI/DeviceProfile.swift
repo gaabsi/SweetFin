@@ -20,6 +20,15 @@ extension DeviceProfile {
 
         var deviceProfile: DeviceProfile = .init()
 
+        // EnhancedFin : VLC et MPV lisent tout côté client → lecture directe dans 100 % des
+        // cas, le Pi ne transcode jamais. Ni conditions par codec, ni profil de transcodage,
+        // ni sous-titres incrustés : les réglages de compatibilité (masqués) sont ignorés.
+        if videoPlayer != .native {
+            deviceProfile.directPlayProfiles = PlaybackCompatibility.Video.forcedDirectPlayProfile
+            deviceProfile.subtitleProfiles = videoPlayer.subtitleProfiles
+            return deviceProfile
+        }
+
         // MARK: - Video Player Specific Logic
 
         deviceProfile.codecProfiles = videoPlayer.codecProfiles
