@@ -12,62 +12,28 @@ import SwiftUI
 
 struct PosterIndicatorsOverlay: View {
 
-    @Environment(\.posterConfiguration)
-    private var posterConfiguration
-
-    // EnhancedFin : voir `showsUnplayedIndicator`.
+    // EnhancedFin : pas de temps restant dans un rail de reprise, voir plus bas.
     @Environment(\.viewContext)
     private var viewContext
 
     let item: BaseItemDto
     let posterDisplayType: PosterDisplayType
 
-    private var indicators: PosterIndicator {
-        posterConfiguration.indicators
-    }
-
     private var indicatorSize: CGFloat {
         UIDevice.isTV ? 45 : 25
     }
 
-    /// ⚠️ EnhancedFin : **jamais dans un rail de reprise.**
-    ///
-    /// « Continuer de regarder » propose l'épisode suivant d'une série en cours. Cet
-    /// épisode n'a évidemment pas été lu, donc la pastille « nouveau » s'allumait sur
-    /// *chaque* tuile du rail — elle ne distinguait plus rien et contredisait le titre
-    /// de la section. Ailleurs (ajouts récents, bibliothèques) elle garde tout son sens.
-    private var showsUnplayedIndicator: Bool {
-        !viewContext.contains(.isInResume) &&
-            indicators.contains(.unplayed) &&
-            item.canBePlayed &&
-            !item.isLiveStream &&
-            item.userData?.isPlayed == false &&
-            (item.userData?.playbackPositionTicks ?? 0) == 0
-    }
-
+    // EnhancedFin : indicateurs imposés — progression et « vu », jamais « non vu ».
     private var showsProgressIndicator: Bool {
-        indicators.contains(.progress) &&
-            item.progressLabel != nil &&
+        item.progressLabel != nil &&
             item.userData?.isPlayed != true
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                if showsUnplayedIndicator {
-                    UnplayedIndicator(
-                        count: posterConfiguration.unplayedStyle == .count ? item.userData?.unplayedItemCount : nil
-                    )
-                    .frame(height: indicatorSize)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                }
-
                 HStack(spacing: 5) {
-                    // EnhancedFin : pas d'indicateur favori, quel que soit le réglage
-                    // enregistré du compte.
-
-                    if indicators.contains(.played),
-                       item.canBePlayed,
+                    if item.canBePlayed,
                        !item.isLiveStream,
                        item.userData?.isPlayed == true
                     {

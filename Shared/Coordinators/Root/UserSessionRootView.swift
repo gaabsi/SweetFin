@@ -6,7 +6,6 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import FactoryKit
 import SwiftUI
 
@@ -25,10 +24,8 @@ struct UserSessionRootView: View {
                     SelectUserView()
                 }
             case .signedIn:
-                PosterPreferencesEnvironment {
-                    MainTabView()
-                }
-                .id(userSessionManager.currentSession?.user.id)
+                MainTabView()
+                    .id(userSessionManager.currentSession?.user.id)
             }
         }
         .animation(.linear(duration: 0.1), value: userSessionManager.state)
@@ -40,22 +37,5 @@ struct UserSessionRootView: View {
                 await userSessionManager.handleOpenURL(url)
             }
         }
-    }
-}
-
-private struct PosterPreferencesEnvironment<Content: View>: View {
-
-    @Default(.Customization.Poster.configuration)
-    private var posterConfiguration
-
-    let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        content
-            .environment(\.posterConfiguration, posterConfiguration)
     }
 }

@@ -103,13 +103,6 @@ extension Defaults.Keys {
             UserKey("tabBarPlacement", default: .sidebar)
         }
 
-        enum Poster {
-
-            static var configuration: Key<PosterConfiguration> {
-                UserKey("posterConfiguration", default: .default)
-            }
-        }
-
         enum Library {
 
             static var cinematicBackground: Key<Bool> {
@@ -119,9 +112,21 @@ extension Defaults.Keys {
         }
 
         enum Home {
-            /// Nombre de tuiles d'« Ajoutés récemment » (`HomeRecentlyAddedLibrary`).
-            static var recentlyAddedLimit: Key<Int> {
-                UserKey("homeRecentlyAddedLimit", default: 20)
+            // EnhancedFin : sections optionnelles de l'Accueil (la media bar et « Continuer
+            // de regarder » sont imposées). Anciens noms de clé gardés : un compte retrouve
+            // son choix.
+            static var showLibraries: Key<Bool> {
+                UserKey("homeShowLibraries", default: true)
+            }
+
+            static var showRecentlyAdded: Key<Bool> {
+                UserKey("showRecentlyAdded", default: true)
+            }
+
+            /// Ancienneté maximale, en jours, d'un média d'« Ajoutés récemment »
+            /// (`HomeRecentlyAddedLibrary`).
+            static var recentlyAddedDays: Key<Int> {
+                UserKey("homeRecentlyAddedDays", default: 30)
             }
         }
     }

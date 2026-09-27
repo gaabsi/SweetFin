@@ -13,8 +13,6 @@ extension SeriesEpisodeContentGroup {
 
     struct EpisodeCard: View {
 
-        @Environment(\.posterConfiguration)
-        private var posterConfiguration
 
         @Namespace
         private var namespace
@@ -26,13 +24,13 @@ extension SeriesEpisodeContentGroup {
 
         @ViewBuilder
         private var overlayView: some View {
-            if posterConfiguration.indicators.contains(.progress), let progressLabel = episode.progressLabel {
+            if let progressLabel = episode.progressLabel {
                 ProgressIndicator(
                     title: progressLabel,
                     progress: (episode.userData?.playedPercentage ?? 0) / 100,
                     posterDisplayType: .landscape
                 )
-            } else if posterConfiguration.indicators.contains(.played), episode.userData?.isPlayed ?? false {
+            } else if episode.userData?.isPlayed ?? false {
                 PlayedIndicator()
                     .frame(width: UIDevice.isTV ? 45 : 25, height: UIDevice.isTV ? 45 : 25)
                     .padding(3)

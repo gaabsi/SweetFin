@@ -50,13 +50,17 @@ struct HomeContentGroupProvider: ContentGroupProvider {
         CinematicMediaBarContentGroup()
         #endif
 
-        UserViewsContentGroup()
+        if Defaults[.Customization.Home.showLibraries] {
+            UserViewsContentGroup()
+        }
 
         ContinueWatchingContentGroup()
 
-        PosterGroup(
-            library: HomeRecentlyAddedLibrary(),
-            environment: .init(isHeaderButtonEnabled: false)
-        )
+        if Defaults[.Customization.Home.showRecentlyAdded] {
+            PosterGroup(
+                library: HomeRecentlyAddedLibrary(),
+                environment: .init(isHeaderButtonEnabled: false)
+            )
+        }
     }
 }

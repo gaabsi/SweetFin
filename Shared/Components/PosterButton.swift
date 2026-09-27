@@ -16,9 +16,6 @@ struct PosterButton<Item: Poster>: View {
     @Default(.appearance)
     private var appearance
 
-    @Environment(\.posterConfiguration)
-    private var posterConfiguration
-
     @Environment(\.viewContext)
     private var viewContext
 

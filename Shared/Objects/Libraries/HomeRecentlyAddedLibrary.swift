@@ -12,9 +12,18 @@ import JellyfinAPI
 
 /// EnhancedFin : « Ajoutés récemment » de l'Accueil, films et séries confondus.
 ///
-/// Une librairie à part plutôt qu'un `ItemLibrary` : le rail est plafonné par le
-/// réglage, et `ItemLibrary` pagine par 20 sans point d'accroche pour ça.
+/// Les 20 derniers ajouts, limités aux `recentlyAddedDays` derniers jours.
+///
+/// L'API `/Items` ne filtre pas sur la date d'ajout (`DateLastSaved` bouge à chaque
+/// rafraîchissement de métadonnées) : on demande les 20 plus récents et on écarte les
+/// trop anciens. Une librairie à part plutôt qu'un `ItemLibrary`, qui pagine sans point
+/// d'accroche pour ça.
 struct HomeRecentlyAddedLibrary: BaseItemKindLibrary {
+
+    /// Choix proposés dans les réglages, en jours.
+    static let dayOptions = [7, 14, 30, 60, 90]
+
+    private static let itemLimit = 20
 
     let libraryItemTypes: [BaseItemKind] = [.movie, .series]
     let parent: TitledLibraryParent = .init(
@@ -32,15 +41,20 @@ struct HomeRecentlyAddedLibrary: BaseItemKindLibrary {
     ) async throws -> [BaseItemDto] {
         var parameters = Paths.GetItemsParameters()
         parameters.enableUserData = true
+        parameters.fields = [.dateCreated]
         parameters.includeItemTypes = libraryItemTypes
         parameters.isRecursive = true
-        parameters.limit = Defaults[.Customization.Home.recentlyAddedLimit]
+        parameters.limit = Self.itemLimit
         parameters.sortBy = [.dateCreated]
         parameters.sortOrder = [.descending]
         parameters.userID = pageState.userSession.user.id
 
         let request = Paths.getItems(parameters: parameters)
+        let items = try await pageState.userSession.client.send(request).value.items ?? []
 
-        return try await pageState.userSession.client.send(request).value.items ?? []
+        let days = Defaults[.Customization.Home.recentlyAddedDays]
+        let cutoff = Date.now.addingTimeInterval(-TimeInterval(days) * 86400)
+
+        return items.filter { ($0.dateCreated ?? .distantPast) >= cutoff }
     }
 }
