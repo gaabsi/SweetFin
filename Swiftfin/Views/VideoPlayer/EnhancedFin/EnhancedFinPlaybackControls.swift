@@ -319,8 +319,7 @@ private struct QueueButton: View {
 /// `PlaybackRateMenu`) : pensés pour la barre, ils ouvrent chacun leur propre menu.
 private struct SettingsMenu: View {
 
-    @Default(.VideoPlayer.Playback.rates)
-    private var rates: [Float]
+    private let rates = EnhancedFinPlayerPolicy.playbackRates
 
     @EnvironmentObject
     private var manager: MediaPlayerManager

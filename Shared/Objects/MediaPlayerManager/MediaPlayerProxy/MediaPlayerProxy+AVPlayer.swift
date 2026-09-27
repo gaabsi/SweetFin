@@ -200,7 +200,7 @@ extension AVMediaPlayerProxy {
                     }
                 }
             case .none, .readyToPlay, .unknown:
-                let startSeconds = max(.zero, (baseItem.startSeconds ?? .zero) - Duration.seconds(Defaults[.VideoPlayer.resumeOffset]))
+                let startSeconds = max(.zero, baseItem.startSeconds ?? .zero)
 
                 self.player.seek(
                     to: CMTimeMake(

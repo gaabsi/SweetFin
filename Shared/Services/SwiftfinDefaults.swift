@@ -156,34 +156,9 @@ extension Defaults.Keys {
         }
 
         enum Home {
-            static var resumeNextUp: Key<Bool> {
-                UserKey("homeResumeNextUp", default: false)
-            }
-
-            static var maxNextUp: Key<TimeInterval> {
-                UserKey(
-                    "homeMaxNextUp",
-                    default: 366 * 86400
-                )
-            }
-
-            static var showRecentlyPlayed: Key<Bool> {
-                UserKey("showRecentlyPlayed", default: false)
-            }
-
             /// Nombre de tuiles d'« Ajoutés récemment » (`HomeRecentlyAddedLibrary`).
             static var recentlyAddedLimit: Key<Int> {
                 UserKey("homeRecentlyAddedLimit", default: 20)
-            }
-        }
-
-        enum Search {
-
-            static var enabledDrawerFilters: Key<[ItemFilterType]> {
-                UserKey(
-                    "searchEnabledDrawerFilters",
-                    default: ItemFilterType.allCases
-                )
             }
         }
     }
@@ -198,30 +173,12 @@ extension Defaults.Keys {
             UserKey("appMaximumBitrateTest", default: .regular)
         }
 
-        static var barActionButtons: Key<[VideoPlayerActionButton]> {
-            UserKey(
-                "barActionButtons",
-                default: VideoPlayerActionButton.defaultBarActionButtons
-            )
-        }
-
         static var jumpBackwardInterval: Key<MediaJumpInterval> {
             UserKey("jumpBackwardLength", default: .fifteen)
         }
 
         static var jumpForwardInterval: Key<MediaJumpInterval> {
             UserKey("jumpForwardLength", default: .fifteen)
-        }
-
-        static var menuActionButtons: Key<[VideoPlayerActionButton]> {
-            UserKey(
-                "menuActionButtons",
-                default: VideoPlayerActionButton.defaultMenuActionButtons
-            )
-        }
-
-        static var resumeOffset: Key<Int> {
-            UserKey("resumeOffset", default: 0)
         }
 
         static var supplements: Key<[VideoPlayerSupplement]> {
@@ -283,10 +240,6 @@ extension Defaults.Keys {
                 UserKey("chapterSlider", default: true)
             }
 
-            // Timestamp
-            static var trailingTimestampType: Key<TrailingTimestampType> {
-                UserKey("trailingTimestamp", default: .timeLeft)
-            }
         }
 
         enum Playback {
@@ -306,31 +259,11 @@ extension Defaults.Keys {
                 UserKey("compatibilityMode", default: .auto)
             }
 
-            static var customDeviceProfileAction: Key<CustomDeviceProfileAction> {
-                UserKey("customDeviceProfileAction", default: .add)
-            }
-
-            static var rates: Key<[Float]> {
-                UserKey("videoPlayerPlaybackRates", default: [0.5, 1.0, 1.25, 1.5, 2.0])
-            }
-
             static var playbackRate: Key<Float> {
                 UserKey("playbackRate", default: Float(1.0))
             }
         }
 
-        enum Subtitle {
-
-            static var configuration: Key<SubtitleConfiguration> {
-                UserKey("subtitleConfiguration", default: .default)
-            }
-        }
-
-        enum Transition {
-            static var pauseOnBackground: Key<Bool> {
-                UserKey("playInBackground", default: true)
-            }
-        }
     }
 
     // Experimental settings
@@ -351,9 +284,6 @@ extension Defaults.Keys {
 
     // tvos specific
 
-    static var confirmClose: Key<Bool> {
-        UserKey("confirmClose", default: false)
-    }
 }
 
 // MARK: Debug

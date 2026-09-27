@@ -15,10 +15,9 @@ extension VideoPlayer.PlaybackControls.Toolbar {
 
     struct ActionButtons: View {
 
-        @Default(.VideoPlayer.barActionButtons)
-        private var rawBarActionButtons
-        @Default(.VideoPlayer.menuActionButtons)
-        private var rawMenuActionButtons
+        // EnhancedFin : boutons imposés, plus de réglage.
+        private let rawBarActionButtons = VideoPlayerActionButton.defaultBarActionButtons
+        private let rawMenuActionButtons = VideoPlayerActionButton.defaultMenuActionButtons
 
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState

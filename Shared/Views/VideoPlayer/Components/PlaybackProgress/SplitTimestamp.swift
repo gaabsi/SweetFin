@@ -6,15 +6,11 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import SwiftUI
 
 extension VideoPlayer.PlaybackControls {
 
     struct SplitTimeStamp: PlatformView {
-
-        @Default(.VideoPlayer.Overlay.trailingTimestampType)
-        private var trailingTimestampType
 
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState
@@ -91,12 +87,7 @@ extension VideoPlayer.PlaybackControls {
                 .isVisible(isScrubbing)
 
                 if let runtime = manager.item.runtime {
-                    switch trailingTimestampType {
-                    case .timeLeft:
-                        Text(.zero - (runtime - scrubbedSeconds), format: .runtime)
-                    case .totalTime:
-                        Text(runtime, format: .runtime)
-                    }
+                    Text(.zero - (runtime - scrubbedSeconds), format: .runtime)
                 } else {
                     Text(verbatim: .emptyRuntime)
                 }
@@ -105,31 +96,14 @@ extension VideoPlayer.PlaybackControls {
 
         var iOSView: some View {
             HStack {
-                Button {
-                    switch trailingTimestampType {
-                    case .timeLeft:
-                        trailingTimestampType = .totalTime
-                    case .totalTime:
-                        trailingTimestampType = .timeLeft
-                    }
-                } label: {
-                    leadingTimestamp
-                }
-                .foregroundStyle(.primary, .secondary)
+                // EnhancedFin : temps restant imposé, plus de bascule au toucher.
+                leadingTimestamp
+                    .foregroundStyle(.primary, .secondary)
 
                 Spacer()
 
-                Button {
-                    switch trailingTimestampType {
-                    case .timeLeft:
-                        trailingTimestampType = .totalTime
-                    case .totalTime:
-                        trailingTimestampType = .timeLeft
-                    }
-                } label: {
-                    trailingTimestamp
-                }
-                .foregroundStyle(.primary, .secondary)
+                trailingTimestamp
+                    .foregroundStyle(.primary, .secondary)
             }
             .font(.caption2)
             .monospacedDigit()

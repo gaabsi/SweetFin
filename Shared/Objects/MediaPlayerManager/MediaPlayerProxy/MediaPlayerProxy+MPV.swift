@@ -144,7 +144,7 @@ extension MPVMediaPlayerProxy {
             item.setTrackIndexes(.init())
             proxy.isBuffering.value = true
 
-            let start = max(.zero, (item.baseItem.startSeconds ?? .zero) - .seconds(Defaults[.VideoPlayer.resumeOffset]))
+            let start = max(.zero, item.baseItem.startSeconds ?? .zero)
             player.load(item.url, autoPlay: manager.playbackRequestStatus == .playing, startTime: item.baseItem.isLiveStream ? nil : start)
             proxy.setRate(manager.rate)
             proxy.setAspectFill(false)

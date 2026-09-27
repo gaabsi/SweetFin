@@ -21,6 +21,12 @@ import Foundation
 /// moteur est choisi dès la construction du lecteur, trop tôt pour l'overlay.
 enum EnhancedFinPlayerPolicy {
 
+    /// Vitesses proposées dans le lecteur.
+    static let playbackRates: [Float] = [0.5, 1.0, 1.25, 1.5, 2.0]
+
+    /// Ancienneté maximale d'un épisode « à suivre » : 366 jours.
+    static let maxNextUp: TimeInterval = 366 * 86400
+
     @MainActor
     static func enforce() {
         #if os(iOS)

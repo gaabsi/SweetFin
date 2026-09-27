@@ -38,20 +38,10 @@ struct MainTabView: View {
         #if os(iOS)
         TabCoordinator {
             // EnhancedFin : Accueil du fork — carrousel, bibliothèques, reprise
-            // fusionnée, ajouts récents. `DefaultContentGroupProvider` reste intact
-            // et sert toujours tvOS ; le remplacer ici plutôt que le modifier garde
-            // le rebase indolore.
-            // EnhancedFin : `.home` = cet Accueil + le fond que son thème demande (GlassFin).
+            // fusionnée, ajouts récents — avec le fond que son thème demande (GlassFin).
             TabItem.home
-            // EnhancedFin : `TabItem.search` retiré — l'Explorer porte la recherche,
-            // et cherche plus large (référentiel + TMDB + bibliothèque, là où la
-            // recherche native ne voit que la bibliothèque). Deux onglets à la loupe
-            // n'auraient rien apporté.
-            //
-            // ⚠️ Effet de bord : le rôle iOS 26 est attribué par identifiant plus bas
-            // (`tab.item.id == TabItem.search.id ? .search : nil`). Sans cet onglet,
-            // plus aucune tuile ne porte `.search`, donc la capsule de recherche
-            // flottante disparaît de la barre.
+            // EnhancedFin : pas d'onglet Recherche, l'Explorer porte la recherche
+            // (référentiel + TMDB + bibliothèque).
             TabItem.media
             TabItem.calendar
             // EnhancedFin : iPhone seulement — une TV ne part pas en voyage.
@@ -61,8 +51,7 @@ struct MainTabView: View {
         // EnhancedFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
         // profil en haut à droite qui les ouvre sur iOS. Séries, Films et Recherche
         // d'upstream retirés pour les mêmes raisons que sur iOS (« Mes médias » sur
-        // l'Accueil, l'Explorer porte la recherche). `DefaultContentGroupProvider`
-        // reste intact.
+        // l'Accueil, l'Explorer porte la recherche).
         TabCoordinator {
             TabItem.contentGroup(provider: HomeContentGroupProvider())
             TabItem.media
@@ -85,10 +74,7 @@ struct MainTabView: View {
     private func tabView() -> some View {
         TabView(selection: $tabCoordinator.selectedTabID) {
             ForEach(tabCoordinator.tabs, id: \.item.id) { tab in
-                Tab(
-                    value: tab.item.id,
-                    role: tab.item.id == TabItem.search.id ? .search : nil
-                ) {
+                Tab(value: tab.item.id) {
                     NavigationInjectionView(
                         coordinator: tab.coordinator
                     ) {
