@@ -27,10 +27,6 @@ struct AdvancedSettingsView: View {
 
     var body: some View {
         Form(systemImage: "gear") {
-            ChevronButton(L10n.libraries) {
-                router.route(to: .librarySettings)
-            }
-
             ChevronButton(L10n.posters) {
                 router.route(to: .posterSettings)
             }

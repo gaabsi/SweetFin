@@ -74,14 +74,6 @@ extension NavigationRoute {
         }
     }
 
-    static var librarySettings: NavigationRoute {
-        NavigationRoute(
-            id: "librarySettings"
-        ) {
-            CustomizeSettingsView.LibrarySection()
-        }
-    }
-
     static var posterSettings: NavigationRoute {
         NavigationRoute(
             id: "posterSettings"
@@ -95,13 +87,6 @@ extension NavigationRoute {
             id: "indicatorSettings"
         ) {
             IndicatorSettingsView()
-        }
-    }
-
-    static func itemFilterDrawerSelector(selection: Binding<[ItemFilterType]>) -> NavigationRoute {
-        NavigationRoute(id: "itemFilterDrawerSelector") {
-            OrderedSectionSelectorView(systemImage: "line.3.horizontal.decrease", selection: selection, sources: ItemFilterType.allCases)
-                .navigationTitle(L10n.filters)
         }
     }
 

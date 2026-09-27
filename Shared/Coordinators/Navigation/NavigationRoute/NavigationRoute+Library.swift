@@ -11,18 +11,6 @@ import SwiftUI
 
 extension NavigationRoute {
 
-    static func filter(type: ItemFilterType, viewModel: FilterViewModel) -> NavigationRoute {
-        NavigationRoute(
-            id: "filter",
-            style: .sheet
-        ) {
-            FilterView(
-                viewModel: viewModel,
-                type: type
-            )
-        }
-    }
-
     @MainActor
     static func contentGroup(
         provider: some ContentGroupProvider

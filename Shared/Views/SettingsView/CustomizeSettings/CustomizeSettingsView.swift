@@ -34,10 +34,6 @@ struct CustomizeSettingsView: View {
             }
             #endif
 
-            ChevronButton(L10n.libraries) {
-                router.route(to: .librarySettings)
-            }
-
             ChevronButton(L10n.posters) {
                 router.route(to: .posterSettings)
             }

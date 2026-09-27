@@ -14,11 +14,6 @@ struct PagingLibraryView<Library: PagingLibrary>: View where Library.Element: Li
 
     typealias Element = Library.Element
 
-    @Default(.Customization.Library.rememberLayout)
-    private var rememberIndividualLibraryStyle
-    @Default(.Customization.Library.style)
-    private var defaultLibraryStyle
-
     @Namespace
     private var namespace
 
@@ -33,9 +28,6 @@ struct PagingLibraryView<Library: PagingLibrary>: View where Library.Element: Li
     @StateObject
     private var viewModel: PagingLibraryViewModel<Library>
 
-    @StoredValue
-    private var parentLibraryStyle: LibraryStyle
-
     @TabItemSelected
     private var tabItemSelected
 
@@ -43,29 +35,13 @@ struct PagingLibraryView<Library: PagingLibrary>: View where Library.Element: Li
         viewModel.libraryStyleOptions
     }
 
+    /// EnhancedFin : disposition imposée (grille, affiches portrait), adaptée seulement à
+    /// ce que les éléments savent afficher.
     private var libraryStyle: LibraryStyle {
-        libraryStyleOptions.normalized(storedLibraryStyle)
-    }
-
-    private var isLibraryStyleSectionVisible: Bool {
-        libraryStyleOptions.hasVisibleControls ||
-            (
-                libraryStyle.displayType == .list &&
-                    UIDevice.isPad &&
-                    libraryStyleOptions.displayTypes.contains(.list)
-            )
-    }
-
-    private var storedLibraryStyle: LibraryStyle {
-        rememberIndividualLibraryStyle ? parentLibraryStyle : defaultLibraryStyle
-    }
-
-    private var storedLibraryStyleBinding: Binding<LibraryStyle> {
-        rememberIndividualLibraryStyle ? $parentLibraryStyle : $defaultLibraryStyle
+        libraryStyleOptions.normalized(.default)
     }
 
     init(library: Library) {
-        self._parentLibraryStyle = StoredValue(.User.libraryStyle(id: library.parent.pagingLibraryID))
         self._viewModel = StateObject(wrappedValue: PagingLibraryViewModel(library: library))
     }
 
@@ -114,22 +90,6 @@ struct PagingLibraryView<Library: PagingLibrary>: View where Library.Element: Li
         }
     }
 
-    @ViewBuilder
-    private var menuContent: some View {
-        if isLibraryStyleSectionVisible {
-            LibraryStyleSection(
-                libraryStyle: storedLibraryStyleBinding,
-                options: libraryStyleOptions
-            )
-        }
-
-        viewModel.library.makeMenuContent(environment: $viewModel.environment)
-
-        Button(L10n.random, systemImage: "dice.fill") {
-            viewModel.getRandomItem()
-        }
-    }
-
     var body: some View {
         viewModel.library.makeLibraryBody(viewModel: viewModel) {
             ZStack {
@@ -168,28 +128,8 @@ struct PagingLibraryView<Library: PagingLibrary>: View where Library.Element: Li
         .onChange(of: viewModel.environment) {
             viewModel.refreshForEnvironmentChange()
         }
-        .onChange(of: libraryStyle) { oldStyle, newStyle in
-            if Element.layout(for: oldStyle, options: libraryStyleOptions, insets: .zero) ==
-                Element.layout(for: newStyle, options: libraryStyleOptions, insets: .zero)
-            {
-                gridProxy.redraw()
-            }
-        }
-        .onReceive(viewModel.events) { event in
-            switch event {
-            case let .gotRandomItem(element):
-                element.libraryDidSelectElement(router: router, in: namespace)
-            }
-        }
         .onFirstAppear {
             viewModel.refresh()
         }
-        #if os(iOS)
-        .navigationBarMenuButton(
-            isLoading: viewModel.background.is(.gettingNextPage) || viewModel.background.is(.gettingNextSearchPage)
-        ) {
-            menuContent
-        }
-        #endif
     }
 }

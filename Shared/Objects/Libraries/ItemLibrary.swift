@@ -12,7 +12,7 @@ import JellyfinAPI
 import SwiftUI
 
 @MainActor
-struct ItemLibrary: PagingLibrary, SearchablePagingLibrary, WithRandomElementLibrary {
+struct ItemLibrary: PagingLibrary, SearchablePagingLibrary {
 
     struct Environment: WithDefaultValue {
         var grouping: BaseItemDto.Grouping?
@@ -32,50 +32,14 @@ struct ItemLibrary: PagingLibrary, SearchablePagingLibrary, WithRandomElementLib
         parent: BaseItemDto,
         filters: ItemFilterCollection? = nil
     ) {
-        var environment = Environment(
+        let environment = Environment(
             grouping: parent.groupings?.defaultSelection,
             filters: filters ?? .default
         )
 
-        if let id = parent.id, Defaults[.Customization.Library.rememberSort] {
-            let storedFilters = StoredValues[.User.libraryFilters(parentID: id)]
-
-            environment.filters.sortBy = storedFilters.sortBy
-            environment.filters.sortOrder = storedFilters.sortOrder
-        }
-
         self.environment = environment
-        self.filterViewModel = .init(
-            parent: parent,
-            currentFilters: environment.filters
-        )
+        self.filterViewModel = .init(currentFilters: environment.filters)
         self.parent = parent
-    }
-
-    func makeMenuContent(environment: Binding<Environment>) -> AnyView {
-        Group {
-            if let groupings = parent.groupings, groupings.elements.isNotEmpty {
-                Picker(
-                    selection: environment.map(
-                        getter: { $0.grouping },
-                        setter: { .init(grouping: $0, filters: environment.wrappedValue.filters) }
-                    )
-                ) {
-                    ForEach(groupings.elements) { grouping in
-                        Text(grouping.displayTitle)
-                            .tag(grouping as BaseItemDto.Grouping?)
-                    }
-                } label: {
-                    Text(L10n.grouping)
-
-                    if let grouping = environment.wrappedValue.grouping {
-                        Text(grouping.displayTitle)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-        }
-        .eraseToAnyView()
     }
 
     func makeLibraryBody(
@@ -115,24 +79,6 @@ struct ItemLibrary: PagingLibrary, SearchablePagingLibrary, WithRandomElementLib
         let response = try await pageState.userSession.client.send(request)
 
         return normalize(response.value.items ?? [])
-    }
-
-    func retrieveRandomElement(
-        environment: Environment,
-        pageState: LibraryPageState
-    ) async throws -> BaseItemDto? {
-        var parameters = attachFilters(
-            to: makeBaseItemParameters(environment: environment),
-            using: environment.filters
-        )
-        parameters.limit = 1
-        parameters.sortBy = [.random]
-        parameters.userID = pageState.userSession.user.id
-
-        let request = Paths.getItems(parameters: parameters)
-        let response = try await pageState.userSession.client.send(request)
-
-        return response.value.items?.first
     }
 
     func retrieveSearchPage(
@@ -257,9 +203,6 @@ struct ItemLibrary: PagingLibrary, SearchablePagingLibrary, WithRandomElementLib
 
 private struct ItemLibraryBody<Content: View>: View {
 
-    @Default(.Customization.Library.enabledDrawerFilters)
-    private var enabledDrawerFilters
-
     @Router
     private var router
 
@@ -282,14 +225,6 @@ private struct ItemLibraryBody<Content: View>: View {
     var body: some View {
         content
             .letterPickerBar(filterViewModel: filterViewModel)
-            .onFirstAppear {
-                Task {
-                    await filterViewModel.getQueryFilters()
-                }
-            }
-            .onChange(of: filterViewModel.currentFilters) {
-                rememberSort(from: filterViewModel.currentFilters)
-            }
             .onReceive(
                 filterViewModel.$currentFilters
                     .dropFirst()
@@ -304,23 +239,7 @@ private struct ItemLibraryBody<Content: View>: View {
                     FocusedPosterCinematicBackgroundView()
                 }
             }
-            #else
-            .navigationBarFilterDrawer(
-                viewModel: filterViewModel,
-                types: enabledDrawerFilters
-            )
             #endif
     }
 
-    private func rememberSort(from filters: ItemFilterCollection) {
-        guard let id = viewModel.library.parent.id,
-              Defaults[.Customization.Library.rememberSort]
-        else { return }
-
-        let storedFilters = StoredValues[.User.libraryFilters(parentID: id)]
-            .mutating(\.sortBy, with: filters.sortBy)
-            .mutating(\.sortOrder, with: filters.sortOrder)
-
-        StoredValues[.User.libraryFilters(parentID: id)] = storedFilters
-    }
 }

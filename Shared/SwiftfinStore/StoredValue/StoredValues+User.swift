@@ -112,25 +112,6 @@ extension StoredValues.Keys {
             )
         }
 
-        static func libraryStyle(id: String?) -> Key<LibraryStyle> {
-            CurrentUserKey(
-                id,
-                field: "setting-libraryStyle",
-                default: .default
-            )
-        }
-
-        // TODO: for now, only used for `sortBy` and `sortOrder`. Need to come up with
-        //       rules for how stored filters work with libraries that should init
-        //       with non-default filters (atow ex: favorites)
-        static func libraryFilters(parentID: String?) -> Key<ItemFilterCollection> {
-            CurrentUserKey(
-                parentID,
-                field: "setting-libraryFilters",
-                default: ItemFilterCollection.default
-            )
-        }
-
         static func pinHint(id: String) -> Key<String> {
             UserKey(
                 ownerID: id,
