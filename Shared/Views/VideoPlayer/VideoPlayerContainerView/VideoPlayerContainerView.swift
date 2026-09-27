@@ -651,6 +651,12 @@ extension VideoPlayer {
             } else {
                 NSLayoutConstraint.activate(playerRegularConstraints)
             }
+
+            // EnhancedFin : donner sa taille à la vue du lecteur tout de suite. Ajoutée en (0, 0),
+            // son contenu SwiftUI (`VideoView`, qui lance VLC) n'apparaissait qu'au prochain
+            // changement d'état — le masquage de l'interface, 5 s plus tard, ou jamais si on
+            // touchait l'écran.
+            view.layoutIfNeeded()
         }
 
         private func setupOnLoadViews() {
