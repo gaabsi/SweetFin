@@ -23,6 +23,14 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     private(set) var mediaPlayerItemProvider: MediaPlayerItemProvider?
     @Published
     private(set) var randomBackdropItem: BaseItemDto?
+    /// EnhancedFin : vrai tant que `playable` n'a pas répondu pour une fiche sans
+    /// lecteur natif — le bouton Lire affiche alors une roue.
+    @Published
+    private(set) var isResolvingPlayable = false
+
+    /// EnhancedFin : la résolution `playable` en cours, pour l'annuler au prochain
+    /// chargement et pour que `Router.play` puisse l'attendre.
+    private var playableTask: Task<Void, Never>?
 
     @Published
     var isPresentingDeleteConfirmation = false
@@ -72,6 +80,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         localTrailers = newLocalTrailers ?? []
         mediaPlayerItemProvider = newMediaPlayerItemProvider
         randomBackdropItem = newRandomBackdropItem
+        startPlayableResolution(fullItem.enhancedFinMediaKey, userSession: userSession)
 
         return try await _makeGroups(
             item: fullItem,
@@ -136,6 +145,82 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         } catch {
             logger.warning("EnhancedFin media lookup failed: \(error.localizedDescription)")
             return nil
+        }
+    }
+
+    /// EnhancedFin : lance `playable` **sans l'attendre**, pour que la fiche s'affiche
+    /// tout de suite ; seul le bouton Lire patiente (roue), puis s'active ou se grise.
+    ///
+    /// Une résolution précédente est annulée : un rafraîchissement ne doit pas la
+    /// laisser écrire par-dessus la nouvelle.
+    ///
+    /// Parametres :
+    /// - mediaKey (String?) : clé EnhancedFin, `nil` pour un item sans équivalent
+    /// - userSession (UserSession) : session courante
+    func startPlayableResolution(_ mediaKey: String?, userSession: UserSession) {
+        playableTask?.cancel()
+        isResolvingPlayable = mediaPlayerItemProvider == nil && mediaKey != nil
+
+        playableTask = Task {
+            let itemID = await fetchPlayableItemID(mediaKey)
+            await usePlayableItem(itemID, userSession: userSession)
+
+            guard !Task.isCancelled else { return }
+            isResolvingPlayable = false
+        }
+    }
+
+    /// EnhancedFin : attend la résolution `playable` en cours.
+    ///
+    /// Pour `Router.play`, qui lance la lecture sans ouvrir la fiche et doit donc
+    /// attendre le lecteur que la fiche, elle, recevra plus tard.
+    func waitForPlayable() async {
+        await playableTask?.value
+    }
+
+    /// EnhancedFin : l'item que le serveur désigne comme lisible pour ce média.
+    ///
+    /// Demandé pour toute fiche, native comme de découverte : la même question
+    /// partout, le serveur seul décide. Une erreur vaut « rien à lire » — on grise
+    /// le bouton, on ne casse pas la fiche.
+    ///
+    /// Parametres :
+    /// - mediaKey (String?) : clé EnhancedFin, `nil` pour un item sans équivalent
+    ///
+    /// Output :
+    /// - itemID (String?) : identifiant de l'item à lancer, `nil` si rien n'est lisible
+    func fetchPlayableItemID(_ mediaKey: String?) async -> String? {
+        guard let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
+
+        do {
+            return try await client.playable(mediaKey).itemId
+        } catch {
+            logger.warning("EnhancedFin playable lookup failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// EnhancedFin : prépare la lecture de l'item désigné par le serveur, **seulement**
+    /// si Jellyfin n'a rien fourni pour cette fiche — le lecteur natif reste prioritaire.
+    ///
+    /// Passe par le même chemin qu'une fiche native (`resolveMediaPlayerItemProvider`),
+    /// donc une série se lance sur son épisode à suivre, comme d'habitude.
+    ///
+    /// Parametres :
+    /// - itemID (String?) : item à lancer, `nil` pour ne rien faire
+    /// - userSession (UserSession) : session courante
+    func usePlayableItem(_ itemID: String?, userSession: UserSession) async {
+        guard mediaPlayerItemProvider == nil, let itemID, !Task.isCancelled else { return }
+
+        do {
+            let playableItem = try await BaseItemDto(id: itemID).getFullItem(userSession: userSession)
+            let provider = try await resolveMediaPlayerItemProvider(for: playableItem, userSession: userSession)
+
+            // Un rechargement a pu passer entre-temps : ne pas écrire par-dessus.
+            guard !Task.isCancelled else { return }
+            mediaPlayerItemProvider = provider
+        } catch {
+            logger.warning("EnhancedFin playable item failed: \(error.localizedDescription)")
         }
     }
 

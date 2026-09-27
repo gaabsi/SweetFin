@@ -373,6 +373,15 @@ struct EnhancedFinRelease: Decodable, Hashable, Identifiable {
 
 // MARK: - Fiche média
 
+/// Réponse de `GET media/{mediaKey}/playable` : le média est-il lisible sur le
+/// serveur, et quel item Jellyfin lancer. `itemId` est absent quand rien n'est
+/// lisible — optionnel donc, sans quoi chaque réponse négative échouerait au décodage.
+struct EnhancedFinPlayable: Decodable, Hashable {
+
+    let playable: Bool
+    let itemId: String?
+}
+
 /// Réponse de `GET /media/{mediaKey}`.
 ///
 /// `genres` porte les **identifiants TMDB numériques**, `genreNames` les libellés,
