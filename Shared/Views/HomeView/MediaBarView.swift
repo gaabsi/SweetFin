@@ -7,6 +7,7 @@
 //
 
 import Defaults
+import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
@@ -24,7 +25,7 @@ import SwiftUI
 struct MediaBarView: View {
 
     /// Durée d'une diapo. 12 s : le temps de lire un titre sans s'impatienter.
-    private static let rotation: Duration = .seconds(12)
+    private static let rotation: Duration = .seconds(15)
 
     /// Proportion de l'affiche. Plus haute que l'en-tête d'une fiche (1.6) : ici
     /// l'image *est* le contenu, elle n'introduit pas une page.
@@ -129,6 +130,11 @@ struct MediaBarView: View {
         }
         .task(id: items.count) {
             await rotate()
+        }
+        // EnhancedFin : le média affiché, pour le fond de l'Accueil (GlassFin). Sur
+        // l'identifiant : un recentrage de la fenêtre circulaire garde le même média.
+        .onChange(of: item(at: position)?.id, initial: true) {
+            Container.shared.homeBackdrop().item = item(at: position)
         }
         .accessibilityLabel(HomeStrings.mediaBar)
     }

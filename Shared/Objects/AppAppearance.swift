@@ -26,10 +26,16 @@ enum AppAppearance: String, CaseIterable, Displayable, Storable {
     /// (`--darkerGradientPoint`).
     case elegantFin
 
+    /// **GlassFin** : ElegantFin à l'identique, sauf le fond de l'Accueil, qui reprend en
+    /// flou le backdrop affiché par la media bar et le suit en temps réel.
+    case glassFin
+
     var displayTitle: String {
         switch self {
         case .elegantFin:
             "ElegantFin"
+        case .glassFin:
+            "GlassFin"
         }
     }
 }

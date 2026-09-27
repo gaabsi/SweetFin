@@ -52,6 +52,23 @@ struct ThemeTokens {
     /// Forme des photos du casting.
     let personPosterShape: PersonPosterShape
 
+    /// Fond de l'Accueil : uni (``background``) ou le backdrop de la media bar, en flou.
+    var homeBackground: HomeBackground = .solid
+
+    /// Les mêmes tokens, avec un autre fond d'Accueil — pour dériver un thème d'un
+    /// autre sans recopier ses valeurs.
+    ///
+    /// Parametres :
+    /// - background (HomeBackground) : fond de l'Accueil voulu
+    ///
+    /// Output :
+    /// - tokens (ThemeTokens) : copie modifiée
+    func withHomeBackground(_ background: HomeBackground) -> ThemeTokens {
+        var copy = self
+        copy.homeBackground = background
+        return copy
+    }
+
     /// L'équivalent `TextAlignment` de ``posterLabelAlignment``, pour les titres qui
     /// passent à la ligne. Dérivé plutôt que déclaré : deux champs à tenir d'accord
     /// finiraient par diverger.
@@ -91,8 +108,20 @@ extension AppAppearance {
                 // (`#castCollapsible .cardScalable { border-radius: 50% }`).
                 personPosterShape: .circle
             )
+        case .glassFin:
+            // ElegantFin à l'identique : une seule différence, le fond de l'Accueil.
+            AppAppearance.elegantFin.tokens.withHomeBackground(.mediaBarBackdrop)
         }
     }
+}
+
+/// Fond de l'Accueil, voir ``ThemeTokens/homeBackground``.
+enum HomeBackground {
+
+    /// Le fond du thème, uni.
+    case solid
+    /// Le backdrop de la diapo affichée par la media bar, flouté et assombri.
+    case mediaBarBackdrop
 }
 
 /// Forme des photos du casting, voir ``ThemeTokens/personPosterShape``.
