@@ -101,6 +101,28 @@ final class EnhancedFinClient {
         )
     }
 
+    /// L'item à lancer pour un média, s'il est lisible sur le serveur.
+    ///
+    /// - Parameters:
+    ///   - season: saison de l'épisode visé ; `nil` pour l'œuvre entière.
+    ///   - episode: numéro de l'épisode visé, toujours avec `season` — le serveur
+    ///     refuse l'un sans l'autre.
+    func playable(
+        _ mediaKey: String,
+        season: Int? = nil,
+        episode: Int? = nil
+    ) async throws -> EnhancedFinPlayable {
+        var query: [(String, String?)] = []
+        if let season, let episode {
+            query.append(("season", String(season)))
+            query.append(("episode", String(episode)))
+        }
+
+        return try await send(
+            Request(path: "media/\(escaped(mediaKey))/playable", query: query.isEmpty ? nil : query)
+        )
+    }
+
     // MARK: - Personne
 
     /// Filmographie complète d'une personne, sur le serveur ou non.

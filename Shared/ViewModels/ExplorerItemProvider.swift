@@ -16,11 +16,13 @@ import JellyfinAPI
 ///
 /// Deux différences avec `ItemContentGroupProvider` :
 ///
-/// 1. **Aucun appel à `getFullItem`.** L'identifiant n'existe sur aucun serveur ;
-///    l'interroger renverrait une erreur et laisserait la vue en état d'échec.
-/// 2. **`mediaPlayerItemProvider` reste `nil`.** `PlayButton` porte
-///    `.disabled(provider.mediaPlayerItemProvider == nil)` — le bouton Lire se grise
-///    donc de lui-même, sans qu'on ait à le toucher.
+/// 1. **Aucun appel à `getFullItem` sur l'identifiant de la fiche.** Il est
+///    synthétique et n'existe sur aucun serveur ; l'interroger renverrait une erreur
+///    et laisserait la vue en état d'échec.
+/// 2. **`mediaPlayerItemProvider` ne vient pas de Jellyfin** : il n'est rempli que si
+///    EnhancedFin désigne un item lisible (`GET media/{key}/playable`). Sinon il reste
+///    `nil`, et `PlayButton` (`.disabled(provider.mediaPlayerItemProvider == nil)`) se
+///    grise de lui-même.
 final class ExplorerItemProvider: ItemContentGroupProvider {
 
     private let mediaKey: String
@@ -38,6 +40,12 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
     /// un `404` y est le cas normal pour un résultat TMDB jamais touché, et ne
     /// doit rien casser.
     override func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
+        // EnhancedFin : non attendu — la fiche s'affiche tout de suite, le bouton Lire
+        // montre une roue le temps que le serveur réponde.
+        if let userSession {
+            startPlayableResolution(mediaKey, userSession: userSession)
+        }
+
         // `enrich` : une fiche de découverte n'a ni logo, ni synopsis, ni casting
         // tant que le média n'est pas au référentiel, et c'est précisément là qu'on
         // en a besoin.

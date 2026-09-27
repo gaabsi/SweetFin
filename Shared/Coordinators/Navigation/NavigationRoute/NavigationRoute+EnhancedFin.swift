@@ -49,6 +49,9 @@ extension Router.Wrapper {
     func play(_ item: BaseItemDto) async {
         let provider = ItemContentGroupProvider(item: item)
         _ = try? await provider.makeGroups(environment: .init())
+        // `playable` n'est pas attendu par `makeGroups` (la fiche n'a pas à patienter),
+        // mais ici on lance la lecture : il faut sa réponse.
+        await provider.waitForPlayable()
 
         guard let playbackProvider = provider.mediaPlayerItemProvider else {
             // Rien de lisible (un média sans fichier) : la fiche vaut mieux qu'un tap

@@ -57,7 +57,13 @@ struct PlayButton: View {
             play()
         } label: {
             HStack {
-                Image(systemName: "play.fill")
+                // EnhancedFin : roue tant que le serveur n'a pas dit s'il y a quelque
+                // chose à lire (`playable`, résolu après l'affichage de la fiche).
+                if provider.mediaPlayerItemProvider == nil, provider.isResolvingPlayable {
+                    ProgressView()
+                } else {
+                    Image(systemName: "play.fill")
+                }
 
                 VStack(spacing: 2) {
                     Text(provider.mediaPlayerItemProvider?.item.playButtonLabel ?? L10n.play)
