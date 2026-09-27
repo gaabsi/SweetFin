@@ -32,7 +32,7 @@ extension BaseItemDto: Poster {
         let viewContext = environment.viewContext
 
         return .init(
-            useParent: viewContext.contains(.isThumb) && environment.posterConfiguration.useSeriesLandscapeBackdrop,
+            useParent: viewContext.contains(.isThumb),
             viewContext: viewContext
         )
     }

@@ -77,10 +77,8 @@ extension CustomizeSettingsView {
                 }
                 .posterCornerRadius(type)
 
-                if posterConfiguration.showLabels {
-                    previewItem.posterLabel
-                        .environment(\.posterDisplayType, type)
-                }
+                previewItem.posterLabel
+                    .environment(\.posterDisplayType, type)
             }
             .frame(width: (UIDevice.isTV ? 225 : 150) * (type == .landscape ? 1.77 : 1))
             .animation(.linear(duration: 0.1), value: posterConfiguration)
@@ -106,10 +104,6 @@ extension CustomizeSettingsView {
                     PlatformPicker(L10n.status, selection: $previewItemState)
                 }
 
-                Section(L10n.labels) {
-                    Toggle(L10n.showPosterLabels, isOn: $posterConfiguration.showLabels)
-                }
-
                 Section(L10n.indicators) {
 
                     Toggle(L10n.progress, isOn: $posterConfiguration.indicators.contains(.progress))
@@ -132,11 +126,6 @@ extension CustomizeSettingsView {
                     )
                 }
 
-                Section {
-                    Toggle(L10n.useSeriesThumb, isOn: $posterConfiguration.useSeriesLandscapeBackdrop)
-                } header: {
-                    Text(L10n.episode)
-                }
             } image: {
                 CenteredLazyVGrid(
                     data: [.portrait, .square, .landscape],

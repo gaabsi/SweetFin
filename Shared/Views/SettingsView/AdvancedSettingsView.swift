@@ -15,18 +15,10 @@ import SwiftUI
 /// EnhancedFin : l'écran « Avancé » du fork, à la place de `CustomizeSettingsView`.
 ///
 /// Remplace l'écran upstream plutôt que de le modifier : `CustomizeSettingsView` reste
-/// intact et sert tvOS. Ce qui n'y figure plus — filtres de recherche, bandes-annonces,
-/// boutons de fiche, « Manquant » — est décidé par le fork, pas par l'utilisateur.
+/// intact et sert tvOS. Ce qui n'y figure plus (sections de l'Accueil, style de fiche,
+/// « Manquant »…) est décidé par le fork, pas par l'utilisateur.
 struct AdvancedSettingsView: View {
 
-    @Default(.Customization.Home.showMediaBar)
-    private var showMediaBar
-    @Default(.Customization.Home.showLibraries)
-    private var showLibraries
-    @Default(.Customization.Home.showContinueWatching)
-    private var showContinueWatching
-    @Default(.Customization.Home.showRecentlyAdded)
-    private var showRecentlyAdded
     @Default(.Customization.Home.recentlyAddedLimit)
     private var recentlyAddedLimit
 
@@ -35,10 +27,6 @@ struct AdvancedSettingsView: View {
 
     var body: some View {
         Form(systemImage: "gear") {
-            ChevronButton(L10n.items) {
-                router.route(to: .itemSettings)
-            }
-
             ChevronButton(L10n.libraries) {
                 router.route(to: .librarySettings)
             }
@@ -52,23 +40,13 @@ struct AdvancedSettingsView: View {
             }
 
             Section(L10n.home) {
-                Toggle(HomeStrings.mediaBar, isOn: $showMediaBar)
-                Toggle(HomeStrings.myMedia, isOn: $showLibraries)
-                Toggle(HomeStrings.continueWatching, isOn: $showContinueWatching)
-                Toggle(HomeStrings.recentlyAdded, isOn: $showRecentlyAdded)
-
-                if showRecentlyAdded {
-                    Stepper(value: $recentlyAddedLimit, in: 5 ... 50, step: 5) {
-                        LabeledContent(HomeStrings.recentlyAddedLimit, value: recentlyAddedLimit.description)
-                    }
+                Stepper(value: $recentlyAddedLimit, in: 5 ... 50, step: 5) {
+                    LabeledContent(HomeStrings.recentlyAddedLimit, value: recentlyAddedLimit.description)
                 }
             }
         }
         .navigationTitle(L10n.advanced)
         // L'Accueil reste ouvert sous cette feuille : on lui dit de se reconstruire.
-        .onChange(of: [showMediaBar, showLibraries, showContinueWatching, showRecentlyAdded]) {
-            Notifications[.didRequestGlobalRefresh].post()
-        }
         .onChange(of: recentlyAddedLimit) {
             Notifications[.didRequestGlobalRefresh].post()
         }

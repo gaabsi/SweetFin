@@ -14,8 +14,6 @@ extension CustomizeSettingsView {
 
     struct HomeSection: View {
 
-        @Default(.Customization.Home.showRecentlyAdded)
-        private var showRecentlyAdded
         @Default(.Customization.Home.showRecentlyPlayed)
         private var showRecentlyPlayed
         @Default(.Customization.Home.maxNextUp)
@@ -26,7 +24,6 @@ extension CustomizeSettingsView {
         var body: some View {
             Section(L10n.home) {
 
-                Toggle(L10n.recentlyAdded, isOn: $showRecentlyAdded)
                 Toggle(L10n.recentlyPlayed, isOn: $showRecentlyPlayed)
                 Toggle(L10n.nextUpRewatch, isOn: $resumeNextUp)
 

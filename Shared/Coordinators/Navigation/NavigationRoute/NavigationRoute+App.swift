@@ -21,13 +21,4 @@ extension NavigationRoute {
     }
 
     #endif
-
-    static var appSettings: NavigationRoute {
-        NavigationRoute(
-            id: "app-settings",
-            style: .sheet
-        ) {
-            AppSettingsView()
-        }
-    }
 }

@@ -44,27 +44,19 @@ struct HomeContentGroupProvider: ContentGroupProvider {
 
         // La media bar : carrousel à balayer sur iOS, sélecteur cinématique (le fond
         // suit le focus) sur tvOS. Même tirage aléatoire des deux côtés.
-        if Defaults[.Customization.Home.showMediaBar] {
-            #if os(iOS)
-            MediaBarContentGroup()
-            #else
-            CinematicMediaBarContentGroup()
-            #endif
-        }
+        #if os(iOS)
+        MediaBarContentGroup()
+        #else
+        CinematicMediaBarContentGroup()
+        #endif
 
-        if Defaults[.Customization.Home.showLibraries] {
-            UserViewsContentGroup()
-        }
+        UserViewsContentGroup()
 
-        if Defaults[.Customization.Home.showContinueWatching] {
-            ContinueWatchingContentGroup()
-        }
+        ContinueWatchingContentGroup()
 
-        if Defaults[.Customization.Home.showRecentlyAdded] {
-            PosterGroup(
-                library: HomeRecentlyAddedLibrary(),
-                environment: .init(isHeaderButtonEnabled: false)
-            )
-        }
+        PosterGroup(
+            library: HomeRecentlyAddedLibrary(),
+            environment: .init(isHeaderButtonEnabled: false)
+        )
     }
 }

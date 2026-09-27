@@ -30,7 +30,7 @@ struct EpisodeLibrary: BaseItemKindLibrary {
         var parameters = Paths.GetEpisodesParameters()
         parameters.enableUserData = true
         parameters.fields = [.overview]
-        parameters.isMissing = Defaults[.Customization.shouldShowMissingEpisodes] ? nil : false
+        parameters.isMissing = false
         parameters.seasonID = seasonID
         parameters.userID = pageState.userSession.user.id
 

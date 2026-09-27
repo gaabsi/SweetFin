@@ -45,7 +45,7 @@ struct SeasonLibrary: BaseItemKindLibrary {
         }
 
         var parameters = Paths.GetSeasonsParameters()
-        parameters.isMissing = Defaults[.Customization.shouldShowMissingSeasons] ? nil : false
+        parameters.isMissing = false
         parameters.userID = pageState.userSession.user.id
 
         let request = Paths.getSeasons(seriesID: seriesID, parameters: parameters)

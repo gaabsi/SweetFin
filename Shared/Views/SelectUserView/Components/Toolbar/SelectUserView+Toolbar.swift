@@ -123,18 +123,16 @@ extension SelectUserView {
 
         @ViewBuilder
         private var regularContentView: some View {
-            Menu {
-                AdvancedMenuContent(
-                    hasUsers: allUsers.isNotEmpty,
-                    isEditing: $isEditing
-                )
+            // EnhancedFin : plus de réglages ici, seule reste l'édition des comptes.
+            Button {
+                isEditing = true
             } label: {
-                Label(L10n.advanced, systemImage: "gearshape.fill")
+                Label(L10n.editUsers, systemImage: "pencil")
                     .labelStyle(.iconOnly)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .disabled(allUsers.isEmpty)
             .foregroundStyle(.primary, .secondary)
-            .menuOrder(.fixed)
             .symbolRenderingMode(.monochrome)
             .frame(width: buttonHeight, height: buttonHeight)
             .buttonBorderShape(.circle)
