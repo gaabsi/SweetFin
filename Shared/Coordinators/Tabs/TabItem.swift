@@ -144,19 +144,6 @@ extension TabItem {
         }
     }
 
-    static var search: TabItem {
-        TabItem(
-            id: "search",
-            title: L10n.search,
-            systemImage: "magnifyingglass"
-        ) {
-            SearchView()
-                .if(UIDevice.isTV) { view in
-                    view.toolbar(.hidden, for: .navigationBar)
-                }
-        }
-    }
-
     static var settings: TabItem {
         TabItem(
             id: "settings",

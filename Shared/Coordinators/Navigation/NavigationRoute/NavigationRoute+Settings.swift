@@ -12,31 +12,6 @@ import SwiftUI
 
 extension NavigationRoute {
 
-    static func actionBarButtonSelector(selectedButtonsBinding: Binding<[VideoPlayerActionButton]>) -> NavigationRoute {
-        NavigationRoute(id: "actionBarButtonSelector") {
-            OrderedSectionSelectorView(selection: selectedButtonsBinding, sources: VideoPlayerActionButton.allCases)
-                .navigationTitle(L10n.barButtons.localizedCapitalized)
-        }
-    }
-
-    static func actionMenuButtonSelector(selectedButtonsBinding: Binding<[VideoPlayerActionButton]>) -> NavigationRoute {
-        NavigationRoute(id: "actionMenuButtonSelector") {
-            OrderedSectionSelectorView(selection: selectedButtonsBinding, sources: VideoPlayerActionButton.allCases)
-                .navigationTitle(L10n.menuButtons.localizedCapitalized)
-        }
-    }
-
-    static func supplementSelector(selectedSupplementsBinding: Binding<[VideoPlayerSupplement]>) -> NavigationRoute {
-        NavigationRoute(id: "supplementSelector") {
-            OrderedSectionSelectorView(
-                selection: selectedSupplementsBinding,
-                sources: VideoPlayerSupplement.allCases,
-                removable: VideoPlayerSupplement.allCases.subtracting(VideoPlayerSupplement.supportedCases)
-            )
-            .navigationTitle(L10n.supplements.localizedCapitalized)
-        }
-    }
-
     #if os(iOS)
     static var adminDashboard: NavigationRoute {
         NavigationRoute(
@@ -46,24 +21,6 @@ extension NavigationRoute {
         }
     }
     #endif
-
-    static var createDeviceProfile: NavigationRoute {
-        NavigationRoute(
-            id: "createDeviceProfile",
-            style: .sheet
-        ) {
-            CustomDeviceProfilesView.EditDeviceProfileView(profile: nil)
-                .navigationTitle(L10n.customProfile.localizedCapitalized)
-        }
-    }
-
-    static var customDeviceProfilesSettings: NavigationRoute {
-        NavigationRoute(
-            id: "customDeviceProfilesSettings"
-        ) {
-            CustomDeviceProfilesView()
-        }
-    }
 
     static var customizeSettingsView: NavigationRoute {
         NavigationRoute(
@@ -82,37 +39,6 @@ extension NavigationRoute {
         }
     }
     #endif
-
-    static func editDeviceProfile(profile: Binding<CustomDeviceProfile>) -> NavigationRoute {
-        NavigationRoute(
-            id: "editDeviceProfile",
-            style: .sheet
-        ) {
-            CustomDeviceProfilesView.EditDeviceProfileView(profile: profile)
-                .navigationTitle(L10n.customProfile.localizedCapitalized)
-        }
-    }
-
-    static func editDeviceProfileAudio(selection: Binding<[AudioCodec]>) -> NavigationRoute {
-        NavigationRoute(id: "editDeviceProfileAudio") {
-            OrderedSectionSelectorView(systemImage: "waveform", selection: selection, sources: AudioCodec.allCases)
-                .navigationTitle(L10n.audio)
-        }
-    }
-
-    static func editDeviceProfileContainer(selection: Binding<[MediaContainer]>) -> NavigationRoute {
-        NavigationRoute(id: "editDeviceProfileContainer") {
-            OrderedSectionSelectorView(systemImage: "archivebox", selection: selection, sources: MediaContainer.allCases)
-                .navigationTitle(L10n.containers)
-        }
-    }
-
-    static func editDeviceProfileVideo(selection: Binding<[VideoCodec]>) -> NavigationRoute {
-        NavigationRoute(id: "editDeviceProfileVideo") {
-            OrderedSectionSelectorView(systemImage: "play.rectangle", selection: selection, sources: VideoCodec.allCases)
-                .navigationTitle(L10n.video)
-        }
-    }
 
     static func editLocalServer(server: ServerState, isEditing: Bool = false) -> NavigationRoute {
         NavigationRoute(id: "editServer") {
@@ -153,12 +79,6 @@ extension NavigationRoute {
             id: "experimentalSettings"
         ) {
             ExperimentalSettingsView()
-        }
-    }
-
-    static func fontPicker(selection: Binding<String>) -> NavigationRoute {
-        NavigationRoute(id: "fontPicker") {
-            FontPickerView(selection: selection)
         }
     }
 
@@ -227,14 +147,6 @@ extension NavigationRoute {
         }
     }
 
-    static var playbackQualitySettings: NavigationRoute {
-        NavigationRoute(
-            id: "playbackQualitySettings"
-        ) {
-            PlaybackQualitySettingsView()
-        }
-    }
-
     #if os(iOS)
     static func resetUserPassword(userID: String) -> NavigationRoute {
         NavigationRoute(
@@ -255,11 +167,4 @@ extension NavigationRoute {
         }
     }
 
-    static var videoPlayerSettings: NavigationRoute {
-        NavigationRoute(
-            id: "videoPlayerSettings"
-        ) {
-            VideoPlayerSettingsView()
-        }
-    }
 }

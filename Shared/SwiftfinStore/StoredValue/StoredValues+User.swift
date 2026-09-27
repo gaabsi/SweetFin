@@ -139,13 +139,6 @@ extension StoredValues.Keys {
             )
         }
 
-        static var customDeviceProfiles: Key<[CustomDeviceProfile]> {
-            CurrentUserKey(
-                field: "customDeviceProfiles",
-                default: []
-            )
-        }
-
         static var previewImageScrubbing: Key<PreviewImageScrubbingOption> {
             CurrentUserKey(
                 field: "previewImageScrubbing",
@@ -153,25 +146,5 @@ extension StoredValues.Keys {
             )
         }
 
-        static var forceDVTranscode: Key<Bool> {
-            CurrentUserKey(
-                field: "forceDVTranscode",
-                default: false
-            )
-        }
-
-        static var forceHDRTranscode: Key<Bool> {
-            CurrentUserKey(
-                field: "forceHDRTranscode",
-                default: false
-            )
-        }
-
-        static var forceSubtitleBurnIn: Key<Bool> {
-            CurrentUserKey(
-                field: "forceSubtitleBurnIn",
-                default: false
-            )
-        }
     }
 }

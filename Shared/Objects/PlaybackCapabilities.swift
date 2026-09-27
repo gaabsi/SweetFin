@@ -19,12 +19,12 @@ enum PlaybackCapabilities {
 
     /// Should Swiftfin handle Dolby Vision content (false) or should it be tone mapped by the server (true)?
     static var dvEnabled: Bool {
-        !StoredValues[.User.forceDVTranscode]
+        true
     }
 
     /// Should Swiftfin handle HDR content (false) or should it be tone mapped by the server (true)?
     static var hdrEnabled: Bool {
-        !StoredValues[.User.forceHDRTranscode]
+        true
     }
 
     static var gpuName: String {

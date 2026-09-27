@@ -183,10 +183,7 @@ class VLCMediaPlayerProxy: VideoMediaPlayerProxy,
         do {
             let media = try Media(url: item.url)
 
-            let startSeconds = max(
-                .zero,
-                (item.baseItem.startSeconds ?? .zero) - Duration.seconds(Defaults[.VideoPlayer.resumeOffset])
-            )
+            let startSeconds = max(.zero, item.baseItem.startSeconds ?? .zero)
 
             pendingStartTime = !item.baseItem.isLiveStream && startSeconds > .zero ? startSeconds : nil
 
@@ -220,8 +217,8 @@ extension VLCMediaPlayerProxy {
         @ObservedObject
         var proxy: VLCMediaPlayerProxy
 
-        @Default(.VideoPlayer.Subtitle.configuration)
-        private var subtitleConfiguration
+        // EnhancedFin : style des sous-titres imposé.
+        private let subtitleConfiguration = SubtitleConfiguration.default
 
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState
@@ -318,9 +315,6 @@ extension VLCMediaPlayerProxy {
                     }
                     .onChange(of: manager.rate) {
                         proxy.setRate(manager.rate)
-                    }
-                    .onChange(of: subtitleConfiguration) {
-                        proxy.setSubtitleConfiguration(subtitleConfiguration)
                     }
             }
         }

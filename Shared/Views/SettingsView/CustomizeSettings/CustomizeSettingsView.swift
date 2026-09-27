@@ -17,9 +17,6 @@ struct CustomizeSettingsView: View {
     typealias PlatformPicker = Picker
     #endif
 
-    @Default(.Customization.Search.enabledDrawerFilters)
-    private var searchEnabledDrawerFilters
-
     #if os(tvOS)
     @Default(.Customization.tabBarPlacement)
     private var tabBarPlacement
@@ -37,15 +34,6 @@ struct CustomizeSettingsView: View {
             }
             #endif
 
-            Section {
-                ChevronButton(L10n.search) {
-                    router.route(to: .itemFilterDrawerSelector(selection: $searchEnabledDrawerFilters))
-                }
-
-            } header: {
-                Text(L10n.filters)
-            }
-
             ChevronButton(L10n.libraries) {
                 router.route(to: .librarySettings)
             }
@@ -55,10 +43,8 @@ struct CustomizeSettingsView: View {
             }
 
             ChevronButton(L10n.videoPlayer) {
-                router.route(to: .videoPlayerSettings)
+                router.route(to: .playerSettings)
             }
-
-            HomeSection()
         }
         .navigationTitle(L10n.advanced)
     }

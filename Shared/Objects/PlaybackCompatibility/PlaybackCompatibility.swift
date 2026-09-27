@@ -14,7 +14,6 @@ enum PlaybackCompatibility: String, CaseIterable, Defaults.Serializable, Display
     case auto
     case mostCompatible
     case directPlay
-    case custom
 
     var displayTitle: String {
         switch self {
@@ -24,8 +23,6 @@ enum PlaybackCompatibility: String, CaseIterable, Defaults.Serializable, Display
             L10n.compatible
         case .directPlay:
             L10n.directPlay
-        case .custom:
-            L10n.custom
         }
     }
 }

@@ -106,14 +106,11 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
 
     private func nextUpItems(_ pageState: LibraryPageState) async -> [BaseItemDto] {
         var parameters = Paths.GetNextUpParameters()
-        parameters.enableRewatching = Defaults[.Customization.Home.resumeNextUp]
+        parameters.enableRewatching = false
         parameters.enableUserData = true
         parameters.limit = Self.itemLimit
 
-        let maxNextUp = Defaults[.Customization.Home.maxNextUp]
-        if maxNextUp > 0 {
-            parameters.nextUpDateCutoff = Date.now.addingTimeInterval(-maxNextUp)
-        }
+        parameters.nextUpDateCutoff = Date.now.addingTimeInterval(-EnhancedFinPlayerPolicy.maxNextUp)
 
         let request = Paths.getNextUp(parameters: parameters)
 
