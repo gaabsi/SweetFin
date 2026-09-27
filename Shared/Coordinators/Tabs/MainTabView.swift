@@ -153,15 +153,46 @@ struct MainTabView: View {
                 FocusedPosterCinematicBackgroundView()
             }
             #else
-            // EnhancedFin : au retour du réseau, recharger les onglets restés en erreur.
-            // Pas de bascule automatique vers les téléchargements (retirée, jugée inutile).
+            // EnhancedFin : au lancement et au retour du réseau, envoyer la progression
+            // notée hors connexion ; au retour du réseau, recharger aussi les onglets
+            // restés en erreur. Pas de bascule automatique vers les téléchargements
+            // (retirée, jugée inutile).
+            // ⚠️ Tâche détachée, pas `.task` : SwiftUI annulait l'envoi quand la vue se
+            // reconstruisait au lancement (« annulé » dans les logs), et rien ne le relançait
+            // avant le prochain changement de réseau.
+            .onAppear {
+                Task {
+                    if await syncOfflineProgress() {
+                        Notifications[.didRequestGlobalRefresh].post()
+                    }
+                }
+            }
             .onChange(of: offlineMonitor.isOffline) { wasOffline, isOffline in
-                if wasOffline, !isOffline {
+                guard wasOffline, !isOffline else { return }
+                Task {
+                    await syncOfflineProgress()
                     Notifications[.didRequestGlobalRefresh].post()
                 }
             }
             #endif
     }
+
+    #if os(iOS)
+    /// EnhancedFin : envoie à Jellyfin les positions des téléchargements lus sans réseau,
+    /// **puis** recopie en local celles qu'il connaît (dans cet ordre, pour ne pas écraser
+    /// ce qu'on vient d'envoyer).
+    ///
+    /// Output :
+    /// - didSync (Bool) : vrai si au moins une position a été envoyée
+    @discardableResult
+    private func syncOfflineProgress() async -> Bool {
+        guard let session = userSessionManager.currentSession else { return false }
+        let manager = Container.shared.downloadManager()
+        let didSync = await manager.syncOfflineProgress(userSession: session)
+        await manager.refreshStoredProgress(userSession: session)
+        return didSync
+    }
+    #endif
 }
 
 #if os(iOS)

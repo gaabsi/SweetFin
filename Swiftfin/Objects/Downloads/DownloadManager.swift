@@ -41,6 +41,7 @@ final class DownloadManager: NSObject, ObservableObject {
     private static let metadataFileName = "item.json"
     private static let posterFileName = "poster.jpg"
     private static let subtitlesFolderName = "subtitles"
+    private static let progressFileName = "progress.json"
 
     /// État de chaque téléchargement connu, par clé `"<compte>/<item>"`.
     @Published
@@ -127,34 +128,52 @@ final class DownloadManager: NSObject, ObservableObject {
     /// - provider (MediaPlayerItemProvider) : à passer à la route `.videoPlayer`
     func playbackProvider(for download: DownloadedItem, userID: String) -> MediaPlayerItemProvider {
         let folder = folder(Self.key(userID, download.id))
+        let save: (Duration) -> Void = { [weak self] seconds in
+            self?.saveOfflineProgress(seconds, itemID: download.id, userID: userID)
+        }
 
         return MediaPlayerItemProvider(item: download.item, mediaSource: download.mediaSource) { _, _ in
-            await Self.localPlayerItem(for: download, in: folder)
+            await Self.localPlayerItem(for: download, in: folder, save: save)
         }
     }
 
-    /// Le 2ᵉ builder de `MediaPlayerItem`, à côté de celui en ligne : URL `file://` et
-    /// sous-titres externes repointés vers `subtitles/`. Le manager et les proxys du
-    /// lecteur ne voient pas la différence.
+    /// Le 2ᵉ builder de `MediaPlayerItem`, à côté de celui en ligne : URL `file://`,
+    /// sous-titres externes repointés vers `subtitles/`, reprise à la dernière position
+    /// notée hors connexion, et un observateur qui note la suivante. Le manager et les
+    /// proxys du lecteur ne voient pas la différence.
     ///
     /// Parametres :
     /// - download (DownloadedItem) : téléchargement terminé
     /// - folder (URL) : dossier de l'item
+    /// - save ((Duration) -> Void) : écrit la position atteinte sans réseau
     ///
     /// Output :
     /// - item (MediaPlayerItem) : item prêt pour VLC
     @MainActor
-    private static func localPlayerItem(for download: DownloadedItem, in folder: URL) -> MediaPlayerItem {
+    private static func localPlayerItem(
+        for download: DownloadedItem,
+        in folder: URL,
+        save: @escaping (Duration) -> Void
+    ) -> MediaPlayerItem {
+        var baseItem = download.item
+        if let progress = readProgress(folder.appending(path: progressFileName)) {
+            var userData = baseItem.userData ?? UserItemDataDto(key: download.id)
+            userData.playbackPositionTicks = progress.positionTicks
+            baseItem.userData = userData
+        }
+
         var mediaSource = download.mediaSource
         mediaSource.mediaStreams = mediaSource.mediaStreams?.map { localizingSubtitle($0, in: folder) }
 
-        return MediaPlayerItem(
-            baseItem: download.item,
+        let item = MediaPlayerItem(
+            baseItem: baseItem,
             mediaSource: mediaSource,
             playSessionID: UUID().uuidString,
             url: folder.appending(path: download.fileName),
             deviceProfile: DeviceProfile.build(for: .vlc, compatibilityMode: .auto)
         )
+        item.observers.append(OfflineProgressObserver(save: save))
+        return item
     }
 
     /// Un sous-titre externe téléchargé devient un « sidecar » qui pointe sur son fichier
@@ -178,6 +197,81 @@ final class DownloadManager: NSObject, ObservableObject {
         stream.deliveryMethod = .external
         stream.deliveryURL = file.absoluteString
         return stream
+    }
+
+    // MARK: - Progression hors connexion
+
+    /// Note la position atteinte sans réseau ; écrase la précédente.
+    ///
+    /// Parametres :
+    /// - seconds (Duration) : position de lecture
+    /// - itemID (String) : item Jellyfin
+    /// - userID (String) : compte propriétaire du téléchargement
+    func saveOfflineProgress(_ seconds: Duration, itemID: String, userID: String) {
+        let progress = DownloadProgress(positionTicks: seconds.ticks, date: .now)
+        let file = folder(Self.key(userID, itemID)).appending(path: Self.progressFileName)
+        try? JSONEncoder().encode(progress).write(to: file)
+    }
+
+    /// Envoie à Jellyfin les positions notées hors connexion, puis les oublie. Le local
+    /// gagne toujours. Au-delà de 90 %, l'item est marqué vu. Un envoi qui échoue garde son
+    /// fichier pour la prochaine fois.
+    ///
+    /// Parametres :
+    /// - userSession (UserSession) : compte connecté
+    ///
+    /// Output :
+    /// - didSync (Bool) : vrai si au moins une position a été envoyée
+    func syncOfflineProgress(userSession: UserSession) async -> Bool {
+        let userID = userSession.user.id
+        var didSync = false
+
+        for download in downloads(of: userID) {
+            let file = folder(Self.key(userID, download.id)).appending(path: Self.progressFileName)
+            guard let progress = Self.readProgress(file) else { continue }
+
+            let runtime = download.item.runTimeTicks ?? 0
+            let isPlayed = runtime > 0 && Double(progress.positionTicks) >= Double(runtime) * 0.9
+            let body = UpdateUserItemDataDto(
+                isPlayed: isPlayed,
+                lastPlayedDate: progress.date,
+                playbackPositionTicks: isPlayed ? 0 : progress.positionTicks
+            )
+
+            do {
+                _ = try await userSession.client.send(Paths.updateItemUserData(itemID: download.id, userID: userID, body))
+                try? FileManager.default.removeItem(at: file)
+                didSync = true
+            } catch {
+                logger.warning("Offline progress not synced for \(download.id): \(error.localizedDescription)")
+            }
+        }
+
+        return didSync
+    }
+
+    /// Recopie dans `item.json` la position que Jellyfin connaît pour chaque
+    /// téléchargement : hors connexion, on reprendra là où on s'était arrêté en ligne, et
+    /// non au jour du téléchargement. Un item qui attend encore l'envoi de sa position
+    /// locale est laissé tel quel — elle est plus récente.
+    ///
+    /// Parametres :
+    /// - userSession (UserSession) : compte connecté
+    func refreshStoredProgress(userSession: UserSession) async {
+        let userID = userSession.user.id
+
+        for download in downloads(of: userID) {
+            let folder = folder(Self.key(userID, download.id))
+            guard Self.readProgress(folder.appending(path: Self.progressFileName)) == nil,
+                  let userData = try? await userSession.client
+                  .send(Paths.getItemUserData(itemID: download.id, userID: userID)).value
+            else { continue }
+
+            var item = download.item
+            item.userData = userData
+            let refreshed = DownloadedItem(item: item, mediaSource: download.mediaSource, fileName: download.fileName)
+            try? JSONEncoder().encode(refreshed).write(to: folder.appending(path: Self.metadataFileName))
+        }
     }
 
     // MARK: - Actions
@@ -330,6 +424,11 @@ final class DownloadManager: NSObject, ObservableObject {
     private static func fileName(for source: MediaSourceInfo) -> String {
         let fileExtension = source.path.map { URL(fileURLWithPath: $0).pathExtension } ?? ""
         return fileExtension.isEmpty ? "media" : "media.\(fileExtension)"
+    }
+
+    private static func readProgress(_ file: URL) -> DownloadProgress? {
+        guard let data = try? Data(contentsOf: file) else { return nil }
+        return try? JSONDecoder().decode(DownloadProgress.self, from: data)
     }
 
     private static func read(_ folder: URL) -> DownloadedItem? {
