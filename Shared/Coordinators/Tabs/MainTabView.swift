@@ -48,6 +48,8 @@ struct MainTabView: View {
             // flottante disparaît de la barre.
             TabItem.media
             TabItem.calendar
+            // EnhancedFin : iPhone seulement — une TV ne part pas en voyage.
+            TabItem.downloads
         }
         #else
         // EnhancedFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
@@ -96,11 +98,20 @@ struct MainTabView: View {
                     .environmentObject(tabCoordinator)
                     .environment(\.tabItemSelected, tab.publisher)
                 } label: {
+                    #if os(iOS)
+                    // EnhancedFin : icônes seules sur iPhone — la barre reste compacte avec
+                    // « Téléchargements », trop long. Le titre reste annoncé par VoiceOver.
+                    // tvOS garde ses libellés (barre latérale lue à distance).
+                    Image(systemName: tab.item.systemImage)
+                        .symbolRenderingMode(.monochrome)
+                        .accessibilityLabel(tab.item.displayTitle)
+                    #else
                     Label(
                         tab.item.displayTitle,
                         systemImage: tab.item.systemImage
                     )
                     .symbolRenderingMode(.monochrome)
+                    #endif
                 }
             }
         }
