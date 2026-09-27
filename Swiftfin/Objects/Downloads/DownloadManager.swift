@@ -112,6 +112,74 @@ final class DownloadManager: NSObject, ObservableObject {
         return FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) ? url : nil
     }
 
+    // MARK: - Lecture locale
+
+    /// Ce qu'il faut au lecteur pour lire un téléchargement terminé, sans réseau.
+    ///
+    /// Chaque demande du lecteur reconstruit l'item à partir des fichiers : rien n'est
+    /// partagé d'une lecture à l'autre.
+    ///
+    /// Parametres :
+    /// - download (DownloadedItem) : téléchargement terminé
+    /// - userID (String) : compte propriétaire du téléchargement
+    ///
+    /// Output :
+    /// - provider (MediaPlayerItemProvider) : à passer à la route `.videoPlayer`
+    func playbackProvider(for download: DownloadedItem, userID: String) -> MediaPlayerItemProvider {
+        let folder = folder(Self.key(userID, download.id))
+
+        return MediaPlayerItemProvider(item: download.item, mediaSource: download.mediaSource) { _, _ in
+            await Self.localPlayerItem(for: download, in: folder)
+        }
+    }
+
+    /// Le 2ᵉ builder de `MediaPlayerItem`, à côté de celui en ligne : URL `file://` et
+    /// sous-titres externes repointés vers `subtitles/`. Le manager et les proxys du
+    /// lecteur ne voient pas la différence.
+    ///
+    /// Parametres :
+    /// - download (DownloadedItem) : téléchargement terminé
+    /// - folder (URL) : dossier de l'item
+    ///
+    /// Output :
+    /// - item (MediaPlayerItem) : item prêt pour VLC
+    @MainActor
+    private static func localPlayerItem(for download: DownloadedItem, in folder: URL) -> MediaPlayerItem {
+        var mediaSource = download.mediaSource
+        mediaSource.mediaStreams = mediaSource.mediaStreams?.map { localizingSubtitle($0, in: folder) }
+
+        return MediaPlayerItem(
+            baseItem: download.item,
+            mediaSource: mediaSource,
+            playSessionID: UUID().uuidString,
+            url: folder.appending(path: download.fileName),
+            deviceProfile: DeviceProfile.build(for: .vlc, compatibilityMode: .auto)
+        )
+    }
+
+    /// Un sous-titre externe téléchargé devient un « sidecar » qui pointe sur son fichier
+    /// local ; les autres pistes (intégrées au fichier) restent telles quelles.
+    ///
+    /// Parametres :
+    /// - stream (MediaStream) : piste de la source
+    /// - folder (URL) : dossier de l'item
+    ///
+    /// Output :
+    /// - stream (MediaStream) : la piste, repointée si son fichier existe
+    private static func localizingSubtitle(_ stream: MediaStream, in folder: URL) -> MediaStream {
+        guard stream.type == .subtitle, stream.isExternal == true,
+              let index = stream.index, let codec = stream.codec
+        else { return stream }
+
+        let file = folder.appending(path: subtitlesFolderName).appending(path: "\(index).\(codec)")
+        guard FileManager.default.fileExists(atPath: file.path(percentEncoded: false)) else { return stream }
+
+        var stream = stream
+        stream.deliveryMethod = .external
+        stream.deliveryURL = file.absoluteString
+        return stream
+    }
+
     // MARK: - Actions
 
     /// Lance le téléchargement du fichier original d'un item.
