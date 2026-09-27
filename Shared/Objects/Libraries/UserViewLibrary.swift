@@ -11,7 +11,6 @@ import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
-private let userViewLibraryListImageWidth: CGFloat = 110
 
 struct UserViewLibrary: PagingLibrary {
 
@@ -140,19 +139,14 @@ enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement
         libraryStyle: LibraryStyle,
         action: (() -> Void)?
     ) -> some View {
-        switch libraryStyle.displayType {
-        case .grid:
-            UserViewLibraryGridElement(element: self)
-        case .list:
-            UserViewLibraryListElement(element: self)
-        }
+        UserViewLibraryGridElement(element: self)
     }
 }
 
 private struct UserViewLibraryGridElement: View {
 
-    @Default(.Customization.Library.randomImage)
-    private var useRandomImage
+    // EnhancedFin : image aléatoire imposée.
+    private let useRandomImage = true
 
     @Namespace
     private var namespace
@@ -203,9 +197,6 @@ private struct UserViewLibraryGridElement: View {
                 .matchedTransitionSource(id: "item", in: namespace)
         }
         .onFirstAppear(perform: setImageSources)
-        .onChange(of: useRandomImage) {
-            setImageSources()
-        }
         .buttonStyle(.card)
     }
 
@@ -229,70 +220,6 @@ private struct UserViewLibraryGridElement: View {
             titleLabel
                 .foregroundStyle(.white)
         }
-    }
-
-    private func setImageSources() {
-        Task { @MainActor in
-            imageSources = await element.libraryImageSources(useRandomImage: useRandomImage)
-        }
-    }
-}
-
-private struct UserViewLibraryListElement: View {
-
-    @Default(.Customization.Library.randomImage)
-    private var useRandomImage
-
-    @Namespace
-    private var namespace
-
-    @Router
-    private var router
-
-    @State
-    private var imageSources: [ImageSource] = []
-
-    let element: UserViewLibraryElement
-
-    var body: some View {
-        ListRow(insets: .init(vertical: 8, horizontal: EdgeInsets.edgePadding)) {
-            imageView
-        } content: {
-            Text(element.displayTitle)
-                .font(.callout)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        } action: {
-            element.libraryDidSelectElement(router: router, in: namespace)
-        }
-        .matchedTransitionSource(id: "item", in: namespace)
-        .onFirstAppear(perform: setImageSources)
-        .onChange(of: useRandomImage) {
-            setImageSources()
-        }
-    }
-
-    private var imageView: some View {
-        ZStack {
-            Color.secondarySystemFill
-                .opacity(0.75)
-
-            ImageView(imageSources)
-                .placeholder { imageSource in
-                    DefaultPlaceholderView(blurHash: imageSource.blurHash)
-                }
-                .failure {
-                    Image(systemName: element.systemImage)
-                        .foregroundStyle(.secondary)
-                }
-                .id(imageSources.hashValue)
-        }
-        .posterStyle(.landscape)
-        .subtleShadow()
-        .frame(width: userViewLibraryListImageWidth)
     }
 
     private func setImageSources() {

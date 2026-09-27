@@ -116,43 +116,10 @@ extension Defaults.Keys {
                 UserKey("libraryCinematicBackground", default: true)
             }
 
-            static var enabledDrawerFilters: Key<[ItemFilterType]> {
-                UserKey(
-                    "libraryEnabledDrawerFilters",
-                    default: ItemFilterType.allCases
-                )
-            }
-
-            static var letterPickerOrientation: Key<LetterPickerOrientation> {
-                UserKey("letterPickerOrientation", default: .disabled)
-            }
-
-            static var style: Key<LibraryStyle> {
-                UserKey(
-                    "libraryStyle",
-                    default: .init(
-                        displayType: .grid,
-                        posterDisplayType: .portrait,
-                        listColumnCount: 1
-                    )
-                )
-            }
-
-            static var randomImage: Key<Bool> {
-                UserKey("libraryRandomImage", default: true)
-            }
-
             static var showFavorites: Key<Bool> {
                 UserKey("libraryShowFavorites", default: true)
             }
 
-            static var rememberLayout: Key<Bool> {
-                UserKey("libraryRememberLayout", default: false)
-            }
-
-            static var rememberSort: Key<Bool> {
-                UserKey("libraryRememberSort", default: false)
-            }
         }
 
         enum Home {

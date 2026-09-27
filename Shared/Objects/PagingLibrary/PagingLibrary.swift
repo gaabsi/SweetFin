@@ -39,8 +39,6 @@ protocol PagingLibrary<Element> {
 
     func libraryStyleOptions(environment: Environment) -> LibraryStyleOptions
 
-    func makeMenuContent(environment: Binding<Environment>) -> AnyView
-
     func onItemUserDataChanged(
         viewModel: PagingLibraryViewModel<Self>,
         userData: UserItemDataDto
@@ -86,23 +84,10 @@ extension PagingLibrary {
         .default
     }
 
-    func makeMenuContent(environment: Binding<Environment>) -> AnyView {
-        EmptyView()
-            .eraseToAnyView()
-    }
-
     func onItemUserDataChanged(
         viewModel: PagingLibraryViewModel<Self>,
         userData: UserItemDataDto
     ) {}
-}
-
-protocol WithRandomElementLibrary<Element, Environment>: PagingLibrary {
-
-    func retrieveRandomElement(
-        environment: Environment,
-        pageState: LibraryPageState
-    ) async throws -> Element?
 }
 
 protocol SearchablePagingLibrary<Element, Environment>: PagingLibrary {

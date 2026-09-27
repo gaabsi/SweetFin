@@ -25,7 +25,6 @@ class PagingLibraryViewModel<Library: PagingLibrary>: ViewModel, @MainActor Iden
     enum Action {
         case refresh
         case getNextPage
-        case getRandomItem
         case getNextSearchPage
         case search(query: String)
 
@@ -38,8 +37,6 @@ class PagingLibraryViewModel<Library: PagingLibrary>: ViewModel, @MainActor Iden
                     .whenBackground(.refreshing)
             case .getNextPage:
                 .none
-            case .getRandomItem:
-                .background(.gettingRandomItem)
             case .getNextSearchPage:
                 .background(.gettingNextSearchPage)
             case .search:
@@ -54,13 +51,8 @@ class PagingLibraryViewModel<Library: PagingLibrary>: ViewModel, @MainActor Iden
     enum BackgroundState {
         case refreshing
         case gettingNextPage
-        case gettingRandomItem
         case gettingNextSearchPage
         case searching
-    }
-
-    enum Event {
-        case gotRandomItem(Element)
     }
 
     enum State {
@@ -325,22 +317,6 @@ class PagingLibraryViewModel<Library: PagingLibrary>: ViewModel, @MainActor Iden
 
         hasNextSearchPage = !(nextPageElements.count < pageSize)
         searchElements.append(contentsOf: nextPageElements)
-    }
-
-    @Function(\Action.Cases.getRandomItem)
-    private func _getRandomItem() async throws {
-        let randomElement: Element? = if let randomLibrary = library as? any WithRandomElementLibrary<Element, Environment> {
-            try await randomLibrary.retrieveRandomElement(
-                environment: environment,
-                pageState: pageState(offset: 0, pageSize: 1)
-            )
-        } else {
-            elements.randomElement()
-        }
-
-        guard !Task.isCancelled, let randomElement else { return }
-
-        events.send(.gotRandomItem(randomElement))
     }
 
     private func pageState(offset: Int, pageSize: Int) throws -> LibraryPageState {

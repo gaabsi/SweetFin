@@ -6,25 +6,20 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import SwiftUI
 
+/// EnhancedFin : sélecteur de lettres imposé, toujours affiché sur le bord droit.
 struct LetterPickerBarModifier: ViewModifier {
-
-    @Default(.Customization.Library.letterPickerOrientation)
-    private var letterPickerOrientation
 
     let viewModel: FilterViewModel?
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if let edge = letterPickerOrientation.edge,
-           let viewModel
-        {
+        if let viewModel {
             content
                 .focusSection()
-                .ignoresSafeArea(.all, edges: edge == .leading ? .trailing : .leading)
-                .safeAreaInset(edge: edge, alignment: .center, spacing: 0) {
+                .ignoresSafeArea(.all, edges: .leading)
+                .safeAreaInset(edge: .trailing, alignment: .center, spacing: 0) {
                     LetterPickerBar(viewModel: viewModel)
                 }
                 .overlayPreferenceValue(LetterPickerActiveLetterKey.self) { letter in
