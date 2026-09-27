@@ -63,7 +63,11 @@ extension MediaPlayerItem {
             throw ErrorMessage(L10n.unknownError)
         }
 
-        let maxBitrate = try await MediaPlayerManager.getMaxBitrate(for: requestedBitrate)
+        // EnhancedFin : en lecture directe (VLC, MPV), pas de test de débit — il retarde
+        // chaque démarrage et un débit mesuré trop bas ferait refuser le brut au serveur.
+        let maxBitrate = try await MediaPlayerManager.getMaxBitrate(
+            for: videoPlayerType == .native ? requestedBitrate : .max
+        )
 
         let deviceProfile = DeviceProfile.build(
             for: videoPlayerType,
