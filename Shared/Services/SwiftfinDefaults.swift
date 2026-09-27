@@ -80,19 +80,11 @@ extension Defaults.Keys {
     /// /// Only use for `set`, use `appearance` for `get`.
     static let appAppearance: Key<AppAppearance> = AppKey("appAppearance", default: .elegantFin)
 
-    static let backgroundSignOutInterval: Key<TimeInterval> = AppKey("backgroundSignOutInterval", default: 3600)
     static let backgroundTimeStamp: Key<Date> = AppKey("backgroundTimeStamp", default: Date.now)
     static let lastSignedInUserID: Key<UserSessionState> = AppKey("lastSignedInUserID", default: .signedOut)
     static let lastServerInformationRefreshDate: Key<Date> = AppKey("lastServerInformationRefreshDate", default: .distantPast)
 
-    static let selectUserDisplayType: Key<LibraryDisplayType> = AppKey("selectUserDisplayType", default: .grid)
     static let selectUserServerSelection: Key<SelectUserServerSelection> = AppKey("selectUserServerSelection", default: .all)
-    static let selectUserSortOrder: Key<SelectUserSortOrder> = AppKey("selectUserSortOrder", default: .name)
-    static let selectUserAllServersSplashscreen: Key<SelectUserServerSelection> = AppKey("selectUserAllServersSplashscreen", default: .all)
-    static let selectUserUseSplashscreen: Key<Bool> = AppKey("selectUserUseSplashscreen", default: true)
-
-    static let signOutOnBackground: Key<Bool> = AppKey("signOutOnBackground", default: true)
-    static let signOutOnClose: Key<Bool> = AppKey("signOutOnClose", default: false)
 }
 
 // MARK: User
@@ -106,18 +98,6 @@ extension Defaults.Keys {
     }
 
     enum Customization {
-
-        static var itemViewType: Key<ItemViewType> {
-            UserKey("mediaItemViewType", default: .enhanced)
-        }
-
-        static var shouldShowMissingSeasons: Key<Bool> {
-            UserKey("shouldShowMissingSeasons", default: true)
-        }
-
-        static var shouldShowMissingEpisodes: Key<Bool> {
-            UserKey("shouldShowMissingEpisodes", default: true)
-        }
 
         static var tabBarPlacement: Key<TabBarPlacement> {
             UserKey("tabBarPlacement", default: .sidebar)
@@ -176,10 +156,6 @@ extension Defaults.Keys {
         }
 
         enum Home {
-            static var showRecentlyAdded: Key<Bool> {
-                UserKey("showRecentlyAdded", default: true)
-            }
-
             static var resumeNextUp: Key<Bool> {
                 UserKey("homeResumeNextUp", default: false)
             }
@@ -193,20 +169,6 @@ extension Defaults.Keys {
 
             static var showRecentlyPlayed: Key<Bool> {
                 UserKey("showRecentlyPlayed", default: false)
-            }
-
-            // EnhancedFin : les sections de l'Accueil du fork (`HomeContentGroupProvider`),
-            // réglées dans `AdvancedSettingsView`.
-            static var showMediaBar: Key<Bool> {
-                UserKey("homeShowMediaBar", default: true)
-            }
-
-            static var showLibraries: Key<Bool> {
-                UserKey("homeShowLibraries", default: true)
-            }
-
-            static var showContinueWatching: Key<Bool> {
-                UserKey("homeShowContinueWatching", default: true)
             }
 
             /// Nombre de tuiles d'« Ajoutés récemment » (`HomeRecentlyAddedLibrary`).

@@ -80,11 +80,9 @@ struct PosterButton<Item: Poster>: View {
         VStack(alignment: appearance.tokens.posterLabelAlignment) {
             posterImage(overlay: overlay)
 
-            if posterConfiguration.showLabels {
-                item.posterLabel
-                    .frame(maxWidth: .infinity)
-                    .allowsHitTesting(false)
-            }
+            item.posterLabel
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(false)
         }
     }
 
@@ -96,10 +94,8 @@ struct PosterButton<Item: Poster>: View {
             #if os(tvOS)
             posterImage(overlay: item.posterOverlay(for: displayType))
 
-            if posterConfiguration.showLabels {
-                item.posterLabel
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            item.posterLabel
+                .frame(maxWidth: .infinity, alignment: .leading)
             #else
             buttonLabel(overlay: item.posterOverlay(for: displayType))
                 .trackingSize($posterSize)

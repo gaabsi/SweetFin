@@ -172,14 +172,6 @@ extension NavigationRoute {
     }
     #endif
 
-    static var itemSettings: NavigationRoute {
-        NavigationRoute(
-            id: "itemSettings"
-        ) {
-            CustomizeSettingsView.ItemSection()
-        }
-    }
-
     static var librarySettings: NavigationRoute {
         NavigationRoute(
             id: "librarySettings"

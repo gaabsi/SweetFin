@@ -79,10 +79,6 @@ final class UserSessionManager: ObservableObject {
         guard state == .initial else { return }
 
         do {
-            if Defaults[.signOutOnClose] {
-                Defaults[.lastSignedInUserID] = .signedOut
-            }
-
             try await updateCurrentSession(with: resolveStoredSession())
         } catch {
             logger.error(
@@ -199,11 +195,11 @@ final class UserSessionManager: ObservableObject {
         }
 
         guard currentSession != nil else { return }
-        guard Defaults[.signOutOnBackground] else { return }
         guard !hasActivePlayback else { return }
 
         let backgroundedInterval = Date.now.timeIntervalSince(Defaults[.backgroundTimeStamp])
-        if backgroundedInterval > Defaults[.backgroundSignOutInterval] {
+        // EnhancedFin : délai imposé (1 h), plus de réglage.
+        if backgroundedInterval > 3600 {
             await signOut(reason: .backgroundTimeout)
         }
     }

@@ -20,9 +20,6 @@ struct ItemView: View {
         static let play = "itemView-play"
     }
 
-    @Default(.Customization.itemViewType)
-    private var itemViewType
-
     @Router
     private var router
 
@@ -58,23 +55,18 @@ struct ItemView: View {
     }
 
     private var isEnhanced: Bool {
-        switch itemViewType {
-        case .enhanced:
-            guard provider.item.backdropImageTags?.isNotEmpty == true else {
-                return false
-            }
-
-            if isCompact {
-                return provider.item.type == .movie
-                    || provider.item.type == .series
-                    || provider.item.type == .program
-                    || provider.item.type == .liveTvProgram
-            }
-
-            return provider.item.type != .person && provider.item.type != .season
-        case .simple:
+        guard provider.item.backdropImageTags?.isNotEmpty == true else {
             return false
         }
+
+        if isCompact {
+            return provider.item.type == .movie
+                || provider.item.type == .series
+                || provider.item.type == .program
+                || provider.item.type == .liveTvProgram
+        }
+
+        return provider.item.type != .person && provider.item.type != .season
     }
 
     private var contentGroups: [any ContentGroup] {

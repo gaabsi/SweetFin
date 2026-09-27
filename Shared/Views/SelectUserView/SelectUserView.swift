@@ -18,16 +18,8 @@ struct SelectUserView: View {
 
     @Default(.accentColor)
     private var accentColor
-    @Default(.selectUserUseSplashscreen)
-    private var selectUserUseSplashscreen
-    @Default(.selectUserAllServersSplashscreen)
-    private var selectUserAllServersSplashscreen
     @Default(.selectUserServerSelection)
     private var serverSelection
-    @Default(.selectUserDisplayType)
-    private var userListDisplayType
-    @Default(.selectUserSortOrder)
-    private var userSortOrder
 
     @Environment(\.localUserAuthenticationAction)
     private var authenticationAction
@@ -67,15 +59,16 @@ struct SelectUserView: View {
     }
 
     private var splashScreenImageSources: [ImageSource] {
-        switch (serverSelection, selectUserAllServersSplashscreen) {
-        case (.all, .all):
+        // EnhancedFin : fond illustré imposé, celui de tous les serveurs ou du serveur filtré.
+        switch serverSelection {
+        case .all:
             viewModel
                 .servers
                 .keys
                 .shuffled()
                 .map(\.splashScreenImageSource)
 
-        case let (.server(id), _), let (.all, .server(id)):
+        case let .server(id):
             viewModel
                 .servers
                 .keys
@@ -102,18 +95,7 @@ struct SelectUserView: View {
             }
         }()
 
-        return {
-            switch userSortOrder {
-            case .name:
-                items.sorted(using: \.user.username)
-            case .lastSeen:
-                items.sorted { lhs, rhs in
-                    let lhsDate = lhs.user.data.lastActivityDate ?? .distantPast
-                    let rhsDate = rhs.user.data.lastActivityDate ?? .distantPast
-                    return lhsDate < rhsDate
-                }
-            }
-        }()
+        return items.sorted(using: \.user.username)
     }
 
     private func addUser(server: ServerState) {
@@ -149,7 +131,7 @@ struct SelectUserView: View {
 
     @ViewBuilder
     private var splashScreenBackground: some View {
-        if selectUserUseSplashscreen, splashScreenImageSources.isNotEmpty {
+        if splashScreenImageSources.isNotEmpty {
             AlternateLayoutView {
                 Color.clear
             } content: {
@@ -190,47 +172,20 @@ struct SelectUserView: View {
                         }
                     }
                 } else {
-                    switch userListDisplayType {
-                    case .list:
-                        ListView(
-                            userItems: userItems,
-                            isEditing: $isEditing,
-                            selectedUsers: $selectedUsers,
-                            serverSelection: serverSelection,
-                            action: { select(user: $0) },
-                            onDelete: { delete(user: $0) }
-                        )
-                    case .grid:
-                        GridView(
-                            userItems: userItems,
-                            isEditing: $isEditing,
-                            selectedUsers: $selectedUsers,
-                            serverSelection: serverSelection,
-                            action: { select(user: $0) },
-                            onDelete: { delete(user: $0) }
-                        )
-                    }
+                    GridView(
+                        userItems: userItems,
+                        isEditing: $isEditing,
+                        selectedUsers: $selectedUsers,
+                        serverSelection: serverSelection,
+                        action: { select(user: $0) },
+                        onDelete: { delete(user: $0) }
+                    )
                 }
             }
-            .animation(.linear(duration: 0.1), value: userListDisplayType)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .focusSection()
             .mask {
                 VStack(spacing: 0) {
-                    #if os(tvOS)
-                    if userListDisplayType == .list {
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0),
-                                .init(color: .white, location: 1),
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .frame(height: 30)
-                    }
-                    #endif
-
                     Color.white
 
                     LinearGradient(
@@ -326,15 +281,11 @@ struct SelectUserView: View {
                         }
                         .controlSize(.small)
                     } else {
-                        Menu(
-                            L10n.advanced,
-                            systemImage: "gearshape.fill"
-                        ) {
-                            AdvancedMenuContent(
-                                hasUsers: userItems.isNotEmpty,
-                                isEditing: $isEditing
-                            )
+                        // EnhancedFin : plus de réglages ici, seule reste l'édition des comptes.
+                        Button(L10n.editUsers, systemImage: "pencil") {
+                            isEditing = true
                         }
+                        .disabled(userItems.isEmpty)
                         .backport
                         .buttonStyle(.glass)
                         .controlSize(.small)
@@ -373,10 +324,8 @@ struct SelectUserView: View {
                 if newValue.count == 1, let firstServer = newValue.first {
                     let newSelection = SelectUserServerSelection.server(id: firstServer.id)
                     serverSelection = newSelection
-                    selectUserAllServersSplashscreen = newSelection
                 } else {
                     serverSelection = .all
-                    selectUserAllServersSplashscreen = .all
                 }
             }
         }

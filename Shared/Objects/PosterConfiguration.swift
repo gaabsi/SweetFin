@@ -11,14 +11,10 @@ import SwiftUI
 struct PosterConfiguration: Hashable, Storable, WithDefaultValue {
 
     var indicators: PosterIndicator
-    var showLabels: Bool
     var unplayedStyle: UnplayedIndicatorType
-    var useSeriesLandscapeBackdrop: Bool
 
     static let `default`: PosterConfiguration = .init(
         indicators: .all,
-        showLabels: true,
-        unplayedStyle: .indicator,
-        useSeriesLandscapeBackdrop: true
+        unplayedStyle: .indicator
     )
 }

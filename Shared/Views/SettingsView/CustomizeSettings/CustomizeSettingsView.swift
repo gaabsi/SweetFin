@@ -11,6 +11,12 @@ import SwiftUI
 
 struct CustomizeSettingsView: View {
 
+    #if os(tvOS)
+    typealias PlatformPicker = ListRowMenu
+    #else
+    typealias PlatformPicker = Picker
+    #endif
+
     @Default(.Customization.Search.enabledDrawerFilters)
     private var searchEnabledDrawerFilters
 
@@ -38,10 +44,6 @@ struct CustomizeSettingsView: View {
 
             } header: {
                 Text(L10n.filters)
-            }
-
-            ChevronButton(L10n.items) {
-                router.route(to: .itemSettings)
             }
 
             ChevronButton(L10n.libraries) {
