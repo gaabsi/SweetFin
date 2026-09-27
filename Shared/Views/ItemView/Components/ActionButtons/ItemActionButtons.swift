@@ -61,25 +61,9 @@ struct ItemActionButtons: View {
     let menuButtons: [ItemActionButton]
     let focusedButton: FocusState<String?>.Binding
 
-    private static func hasTrailers(
-        for provider: ItemContentGroupProvider,
-        enabledTrailers: TrailerSelection
-    ) -> Bool {
-        if enabledTrailers.contains(.local), provider.localTrailers.isNotEmpty {
-            return true
-        }
-
-        if enabledTrailers.contains(.external), provider.item.remoteTrailers?.isNotEmpty == true {
-            return true
-        }
-
-        return false
-    }
-
     private static func isAvailable(
         _ button: ItemActionButton,
-        for provider: ItemContentGroupProvider,
-        enabledTrailers: TrailerSelection
+        for provider: ItemContentGroupProvider
     ) -> Bool {
         switch button {
         case .played:
@@ -91,8 +75,6 @@ struct ItemActionButtons: View {
             // EnhancedFin : pas de favoris dans le fork, quel que soit le réglage
             // enregistré du compte.
             false
-        case .trailers:
-            hasTrailers(for: provider, enabledTrailers: enabledTrailers)
         case .playback:
             provider.item.presentPlayButton && provider.mediaPlayerItemProvider?.mediaSource != nil
         case .refresh:
@@ -122,22 +104,18 @@ struct ItemActionButtons: View {
 
     private static func availableButtons(
         _ buttons: [ItemActionButton],
-        for provider: ItemContentGroupProvider,
-        enabledTrailers: TrailerSelection
+        for provider: ItemContentGroupProvider
     ) -> [ItemActionButton] {
-        buttons.filter {
-            isAvailable($0, for: provider, enabledTrailers: enabledTrailers)
-        }
+        buttons.filter { isAvailable($0, for: provider) }
     }
 
     static func resolvedButtons(
         bar: [ItemActionButton],
         menu: [ItemActionButton],
-        for provider: ItemContentGroupProvider,
-        enabledTrailers: TrailerSelection
+        for provider: ItemContentGroupProvider
     ) -> (visible: [ItemActionButton], overflow: [ItemActionButton], menu: [ItemActionButton]) {
-        let bar = availableButtons(bar, for: provider, enabledTrailers: enabledTrailers)
-        let menu = availableButtons(menu, for: provider, enabledTrailers: enabledTrailers)
+        let bar = availableButtons(bar, for: provider)
+        let menu = availableButtons(menu, for: provider)
 
         let hasBarMenu = UIDevice.isTV && (menu.isNotEmpty || bar.count > maximumButtons)
         let visible = Array(bar.prefix(hasBarMenu ? maximumButtons - 1 : maximumButtons))
@@ -158,8 +136,6 @@ struct ItemActionButtons: View {
                 Played()
             case .favorited:
                 Favorited()
-            case .trailers:
-                Trailers()
             case .playback:
                 Playback()
             case .refresh:
@@ -226,18 +202,14 @@ extension ItemActionButtons {
 
     struct Configuration: DynamicProperty {
 
-        @StoredValue(.User.enabledTrailers)
-        private var enabledTrailers: TrailerSelection
-
         func resolvedButtons(
             for provider: ItemContentGroupProvider
         ) -> (visible: [ItemActionButton], overflow: [ItemActionButton], menu: [ItemActionButton]) {
-            // EnhancedFin : listes imposées, les listes enregistrées par compte sont ignorées.
+            // EnhancedFin : listes imposées, pas de réglage par compte.
             ItemActionButtons.resolvedButtons(
                 bar: ItemActionButton.barButtons,
                 menu: ItemActionButton.menuButtons,
-                for: provider,
-                enabledTrailers: enabledTrailers
+                for: provider
             )
         }
     }

@@ -18,8 +18,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     @Published
     private(set) var item: BaseItemDto
     @Published
-    private(set) var localTrailers: [BaseItemDto] = []
-    @Published
     private(set) var mediaPlayerItemProvider: MediaPlayerItemProvider?
     @Published
     private(set) var randomBackdropItem: BaseItemDto?
@@ -72,12 +70,10 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             for: fullItem,
             userSession: userSession
         )
-        let newLocalTrailers = try? await localTrailers(for: fullItem)
         let newRandomBackdropItem = try? await randomBackdropItem(for: fullItem)
 
         enhancedFinMedia = await newEnhancedFinMedia
         item = fullItem
-        localTrailers = newLocalTrailers ?? []
         mediaPlayerItemProvider = newMediaPlayerItemProvider
         randomBackdropItem = newRandomBackdropItem
         startPlayableResolution(fullItem.enhancedFinMediaKey, userSession: userSession)
@@ -409,15 +405,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
         }
 
-        if isOnServer, Defaults[.Customization.shouldShowRecommendations] {
-            PosterGroup(
-                id: "similar-items",
-                library: SimilarItemsLibrary(itemID: itemID, itemType: item.type),
-                posterDisplayType: .landscape,
-                posterSize: .small
-            )
-        }
-
         // Fork : « À propos » ne s'affiche nulle part. Sa carte de description
         // répétait le synopsis déjà en en-tête, et les informations de fichier
         // (codecs, pistes) seront exposées ailleurs — pas sur la fiche.
@@ -560,15 +547,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         let response = try await send(request)
 
         return response.value.items?.first
-    }
-
-    private func localTrailers(for item: BaseItemDto) async throws -> [BaseItemDto] {
-        guard let itemID = item.id else { return [] }
-
-        let request = try Paths.getLocalTrailers(itemID: itemID, userID: authenticatedUser.id)
-        let response = try await send(request)
-
-        return response.value
     }
 
     private func randomBackdropItem(for item: BaseItemDto) async throws -> BaseItemDto? {

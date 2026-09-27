@@ -11,14 +11,6 @@ import SwiftUI
 
 extension NavigationRoute {
 
-    static var aboutApp: NavigationRoute {
-        NavigationRoute(
-            id: "about-app"
-        ) {
-            AboutAppView()
-        }
-    }
-
     #if os(iOS)
     static var appPermissions: NavigationRoute {
         NavigationRoute(
@@ -28,16 +20,6 @@ extension NavigationRoute {
         }
     }
 
-    #endif
-
-    #if os(iOS)
-    static func appIconSelector(viewModel: SettingsViewModel) -> NavigationRoute {
-        NavigationRoute(
-            id: "app-icon-selector"
-        ) {
-            AppIconSelectorView(viewModel: viewModel)
-        }
-    }
     #endif
 
     static var appSettings: NavigationRoute {

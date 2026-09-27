@@ -22,11 +22,6 @@ extension CustomizeSettingsView {
         @Default(.Customization.itemViewType)
         private var itemViewType
 
-        @StoredValue(.User.enabledTrailers)
-        private var enabledTrailers
-
-        @Default(.Customization.shouldShowRecommendations)
-        private var shouldShowRecommendations
         @Default(.Customization.shouldShowMissingSeasons)
         private var shouldShowMissingSeasons
         @Default(.Customization.shouldShowMissingEpisodes)
@@ -38,12 +33,6 @@ extension CustomizeSettingsView {
                     PlatformPicker(L10n.style, selection: $itemViewType)
                 } header: {
                     Text(L10n.itemView.localizedCapitalized)
-                }
-
-                Section {
-                    PlatformPicker(L10n.enabledTrailers, selection: $enabledTrailers)
-
-                    Toggle(L10n.showRecommendations, isOn: $shouldShowRecommendations)
                 }
 
                 // EnhancedFin : plus de section « Boutons » — ceux de la fiche sont imposés

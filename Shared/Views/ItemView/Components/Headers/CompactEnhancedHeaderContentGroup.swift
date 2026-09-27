@@ -26,9 +26,6 @@ extension ItemView {
             @ObservedObject
             var provider: ItemContentGroupProvider
 
-            @StoredValue(.User.itemViewAttributes)
-            private var attributes
-
             private let headerAspectRatio = 1.6
 
             // EnhancedFin : cet en-tête sert aussi sur iPad (`ItemView.isCompact`), où
@@ -84,15 +81,6 @@ extension ItemView {
                             .frame(maxWidth: 300)
 
                         ItemView.Description(item: provider.item)
-
-                        ItemView.AttributesHStack(
-                            attributes: attributes,
-                            item: provider.item,
-                            selectedMediaSource: provider.mediaPlayerItemProvider?.mediaSource,
-                            alignment: .leading
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .foregroundStyle(.secondary)
                     }
                     .edgePadding(.bottom)
                     .background(

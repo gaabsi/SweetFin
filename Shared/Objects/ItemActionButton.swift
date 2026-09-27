@@ -12,7 +12,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
 
     case played
     case favorited
-    case trailers
     case playback
     case subtitles
     case refresh
@@ -36,8 +35,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             L10n.played
         case .favorited:
             L10n.favorited
-        case .trailers:
-            L10n.trailers
         case .playback:
             L10n.playback
         case .refresh:
@@ -73,8 +70,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             "checkmark"
         case .favorited:
             "heart.fill"
-        case .trailers:
-            "movieclapper"
         case .playback:
             "list.and.film"
         case .refresh:

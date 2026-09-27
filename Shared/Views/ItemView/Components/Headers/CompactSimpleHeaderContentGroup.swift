@@ -25,9 +25,6 @@ extension ItemView {
             @ObservedObject
             var provider: ItemContentGroupProvider
 
-            @StoredValue(.User.itemViewAttributes)
-            private var attributes
-
             private var headerImageDisplayType: PosterDisplayType {
                 provider.item.preferredPosterDisplayType == .portrait ? .landscape : provider.item.preferredPosterDisplayType
             }
@@ -93,15 +90,6 @@ extension ItemView {
                     Divider()
 
                     ItemView.Description(item: provider.item)
-
-                    ItemView.AttributesHStack(
-                        attributes: attributes,
-                        item: provider.item,
-                        selectedMediaSource: provider.mediaPlayerItemProvider?.mediaSource,
-                        alignment: .leading
-                    )
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundStyle(.secondary)
                 }
                 .focusSection()
                 .edgePadding()
