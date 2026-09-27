@@ -51,3 +51,11 @@ enum DownloadError: LocalizedError {
         }
     }
 }
+
+/// EnhancedFin : position atteinte **sans réseau**, en attente d'envoi à Jellyfin
+/// (`progress.json`). Supprimée dès qu'elle est envoyée.
+struct DownloadProgress: Codable {
+
+    let positionTicks: Int
+    let date: Date
+}

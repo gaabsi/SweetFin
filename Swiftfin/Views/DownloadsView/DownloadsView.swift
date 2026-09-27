@@ -53,6 +53,15 @@ struct DownloadsView: View {
             }
             .navigationTitle(DownloadStrings.downloads)
             .hidesNavigationTitle()
+            // En ligne, reprendre la position connue de Jellyfin : couvre « regardé en
+            // streaming, puis plus de réseau sans relancer l'app ». Tâche détachée : la
+            // vue ne doit pas pouvoir l'annuler.
+            .onAppear {
+                guard !offlineMonitor.isOffline, let userSession else { return }
+                Task {
+                    await manager.refreshStoredProgress(userSession: userSession)
+                }
+            }
     }
 
     /// Rappelle que, sans réseau, seuls les téléchargements sont disponibles.
