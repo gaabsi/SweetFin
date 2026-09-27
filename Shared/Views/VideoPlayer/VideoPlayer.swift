@@ -41,12 +41,7 @@ struct VideoPlayer: View {
     private var containerState: VideoPlayerContainerState = .init()
 
     init() {
-        switch Defaults[.VideoPlayer.videoPlayerType] {
-        case .mpv:
-            self._proxy = .init(wrappedValue: MPVMediaPlayerProxy())
-        case .native, .vlc:
-            self._proxy = .init(wrappedValue: VLCMediaPlayerProxy())
-        }
+        self._proxy = .init(wrappedValue: VLCMediaPlayerProxy())
     }
 
     var body: some View {

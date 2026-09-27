@@ -60,8 +60,6 @@ class MediaPlayerItem: ViewModel, MediaPlayerObserver {
     let subtitleStreams: [MediaStream]
     let videoStreams: [MediaStream]
 
-    let requestedBitrate: PlaybackBitrate
-
     // MARK: init
 
     init(
@@ -69,7 +67,6 @@ class MediaPlayerItem: ViewModel, MediaPlayerObserver {
         mediaSource: MediaSourceInfo,
         playSessionID: String,
         url: URL,
-        requestedBitrate: PlaybackBitrate = .max,
         deviceProfile: DeviceProfile,
         initialAudioStreamIndex: Int? = nil,
         initialSubtitleStreamIndex: Int? = nil,
@@ -79,7 +76,6 @@ class MediaPlayerItem: ViewModel, MediaPlayerObserver {
         self.baseItem = baseItem
         self.mediaSource = mediaSource
         self.playSessionID = playSessionID
-        self.requestedBitrate = requestedBitrate
         self.deviceProfile = deviceProfile
         self.previewImageProvider = previewImageProvider
         self.thumbnailProvider = thumbnailProvider
@@ -93,9 +89,6 @@ class MediaPlayerItem: ViewModel, MediaPlayerObserver {
         self.subtitleStreams = mediaStreams?.filter {
             $0.type == .subtitle
                 && $0.deliveryMethod != .drop
-                && !(Defaults[.VideoPlayer.Playback.compatibilityMode] == .directPlay
-                    && $0.isExternal == true
-                    && $0.isTextSubtitleStream != true)
         } ?? []
         self.videoStreams = mediaStreams?.filter { $0.type == .video } ?? []
 

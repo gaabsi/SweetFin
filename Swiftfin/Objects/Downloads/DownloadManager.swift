@@ -170,7 +170,7 @@ final class DownloadManager: NSObject, ObservableObject {
             mediaSource: mediaSource,
             playSessionID: UUID().uuidString,
             url: folder.appending(path: download.fileName),
-            deviceProfile: DeviceProfile.build(for: .vlc, compatibilityMode: .auto)
+            deviceProfile: DeviceProfile.build()
         )
         item.observers.append(OfflineProgressObserver(save: save))
         return item

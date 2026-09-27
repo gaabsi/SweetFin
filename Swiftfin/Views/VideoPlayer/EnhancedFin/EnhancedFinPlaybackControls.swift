@@ -328,10 +328,9 @@ private struct SettingsMenu: View {
     @ObservedObject
     var playbackItem: MediaPlayerItem
 
-    /// La définition de la vidéo telle que Jellyfin la décrit (« 1080p H264 SDR »), ou à
-    /// défaut le débit demandé.
+    /// La définition de la vidéo telle que Jellyfin la décrit (« 1080p H264 SDR »).
     private var quality: String {
-        playbackItem.videoStreams.first?.displayTitle ?? playbackItem.requestedBitrate.displayTitle
+        playbackItem.videoStreams.first?.displayTitle ?? L10n.unknown
     }
 
     private var audioTitle: String {

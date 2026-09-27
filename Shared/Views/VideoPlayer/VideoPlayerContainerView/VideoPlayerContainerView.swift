@@ -191,14 +191,6 @@ extension VideoPlayer {
                         )
                     )
                     .environment(
-                        \.pinchAction,
-                        .init(
-                            action: {
-                                containerState.containerView?.handlePinchGesture(scale: $0, velocity: $1, state: $2)
-                            }
-                        )
-                    )
-                    .environment(
                         \.tapGestureAction,
                         .init(
                             action: {

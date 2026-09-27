@@ -21,8 +21,6 @@ extension VideoPlayer.PlaybackControls {
 
     struct PlaybackProgress: View {
 
-        @Default(.VideoPlayer.Overlay.chapterSlider)
-        private var chapterSlider
 
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState
@@ -148,15 +146,6 @@ extension VideoPlayer.PlaybackControls {
                 .gesturePadding(30)
                 .onEditingChanged { newValue in
                     isScrubbing = newValue
-                }
-                .if(chapterSlider) { view in
-                    view.ifLet(manager.item.fullChapterInfo) { view, chapters in
-                        if chapters.isEmpty {
-                            view
-                        } else {
-                            view.inverseMask { ChapterTrackMask(chapters: chapters, runtime: manager.item.runtime ?? .zero) }
-                        }
-                    }
                 }
                 .frame(maxWidth: sliderSize != .zero ? insetSliderWidth : .infinity)
                 .scaleEffect(x: isScrubbing ? xScale : 1, y: 1, anchor: .center)

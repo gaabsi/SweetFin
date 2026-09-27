@@ -133,11 +133,6 @@ final class UserSessionManager: ObservableObject {
     }
 
     @MainActor
-    func scheduleServerConnectionResolution() {
-        currentSession?.serverConnectionManager.scheduleConnectionResolution()
-    }
-
-    @MainActor
     func handleOpenURL(
         _ url: URL,
         authenticationAction: LocalUserAuthenticationAction

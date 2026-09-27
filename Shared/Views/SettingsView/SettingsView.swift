@@ -159,12 +159,6 @@ struct SettingsView: View {
     private var _diagnosticsSection: some View {
         Section {
 
-            if ExperimentalSettingsView.isEnabled {
-                ChevronButton(L10n.experimental) {
-                    router.route(to: .experimentalSettings)
-                }
-            }
-
             ChevronButton(L10n.logs) {
                 router.route(to: .log)
             }

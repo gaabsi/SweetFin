@@ -139,12 +139,5 @@ extension StoredValues.Keys {
             )
         }
 
-        static var previewImageScrubbing: Key<PreviewImageScrubbingOption> {
-            CurrentUserKey(
-                field: "previewImageScrubbing",
-                default: .trickplay(fallbackToChapters: false)
-            )
-        }
-
     }
 }

@@ -442,7 +442,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         case mediaSource(MediaSourceInfo?)
         case audioStreamIndex(Int?)
         case subtitleStreamIndex(Int?)
-        case bitrate(PlaybackBitrate)
     }
 
     func select(_ selection: PlaybackSelection) {
@@ -451,7 +450,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         var mediaSource = provider.mediaSource
         var audioStreamIndex = provider.audioStreamIndex
         var subtitleStreamIndex = provider.subtitleStreamIndex
-        var requestedBitrate = provider.requestedBitrate
 
         switch selection {
         case let .mediaSource(source):
@@ -462,16 +460,13 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             audioStreamIndex = index
         case let .subtitleStreamIndex(index):
             subtitleStreamIndex = index
-        case let .bitrate(bitrate):
-            requestedBitrate = bitrate
         }
 
         mediaPlayerItemProvider = provider.item.getPlaybackItemProvider(
             userSession: userSession,
             mediaSource: mediaSource,
             audioStreamIndex: audioStreamIndex,
-            subtitleStreamIndex: subtitleStreamIndex,
-            requestedBitrate: requestedBitrate
+            subtitleStreamIndex: subtitleStreamIndex
         )
     }
 

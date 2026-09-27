@@ -21,8 +21,6 @@ extension VideoPlayer.PlaybackControls {
 
     struct PlaybackProgress: View {
 
-        @Default(.VideoPlayer.Overlay.chapterSlider)
-        private var chapterSlider
 
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState
@@ -152,13 +150,6 @@ extension VideoPlayer.PlaybackControls {
                 }
             }
             .sliderContainerStyle(.capsule(showsProgressWhenUnfocused: false))
-            .if(chapterSlider) { view in
-                if let chapters = manager.item.fullChapterInfo, chapters.isNotEmpty {
-                    view.inverseMask { ChapterTrackMask(chapters: chapters, runtime: manager.item.runtime ?? .zero) }
-                } else {
-                    view
-                }
-            }
             .frame(height: sliderHeight)
             .trackingSize($sliderSize)
             .foregroundStyle(manager.state == .loadingItem ? .gray : .primary)

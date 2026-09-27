@@ -6,64 +6,72 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import JellyfinAPI
 
 extension DeviceProfile {
 
-    static func build(
-        for videoPlayer: VideoPlayerType,
-        compatibilityMode: PlaybackCompatibility,
-        maxBitrate: Int? = nil,
-        maxResolution: PlaybackResolution = Defaults[.VideoPlayer.Playback.appMaximumResolution]
-    ) -> DeviceProfile {
-
-        var deviceProfile: DeviceProfile = .init()
-
-        // EnhancedFin : VLC et MPV lisent tout côté client → lecture directe dans 100 % des
-        // cas, le Pi ne transcode jamais. Ni conditions par codec, ni profil de transcodage,
-        // ni sous-titres incrustés : les réglages de compatibilité (masqués) sont ignorés.
-        if videoPlayer != .native {
-            deviceProfile.directPlayProfiles = PlaybackCompatibility.Video.forcedDirectPlayProfile
-            deviceProfile.subtitleProfiles = videoPlayer.subtitleProfiles
-            return deviceProfile
-        }
-
-        // MARK: - Video Player Specific Logic
-
-        deviceProfile.codecProfiles = videoPlayer.codecProfiles
-
-        deviceProfile.subtitleProfiles = videoPlayer.subtitleProfiles
-
-        if let resolutionCodecProfile = maxResolution.codecProfile {
-            deviceProfile.codecProfiles?.append(resolutionCodecProfile)
-        }
-
-        // MARK: - DirectPlay & Transcoding Profiles
-
-        switch compatibilityMode {
-        case .auto:
-            deviceProfile.directPlayProfiles = videoPlayer.directPlayProfiles
-            deviceProfile.transcodingProfiles = videoPlayer.transcodingProfiles
-
-        case .mostCompatible:
-            deviceProfile.directPlayProfiles = PlaybackCompatibility.Video.compatibilityDirectPlayProfile
-            deviceProfile.transcodingProfiles = PlaybackCompatibility.Video.compatibilityTranscodingProfile
-
-        case .directPlay:
-            deviceProfile.directPlayProfiles = PlaybackCompatibility.Video.forcedDirectPlayProfile
-
-        }
-
-        // MARK: - Assign the Bitrate if provided
-
-        if let maxBitrate {
-            deviceProfile.maxStaticBitrate = maxBitrate
-            deviceProfile.maxStreamingBitrate = maxBitrate
-            deviceProfile.musicStreamingTranscodingBitrate = maxBitrate
-        }
-
+    /// EnhancedFin : VLC lit tout côté client → lecture directe dans 100 % des cas, le
+    /// Pi ne transcode jamais. Ni conditions par codec, ni profil de transcodage, ni
+    /// sous-titres incrustés.
+    ///
+    /// Output :
+    /// - deviceProfile (DeviceProfile) : le profil envoyé à `PlaybackInfo`
+    static func build() -> DeviceProfile {
+        var deviceProfile = DeviceProfile()
+        deviceProfile.directPlayProfiles = [DirectPlayProfile(type: .video)]
+        deviceProfile.subtitleProfiles = vlcSubtitleProfiles
         return deviceProfile
+    }
+
+    @ArrayBuilder<SubtitleProfile>
+    private static var vlcSubtitleProfiles: [SubtitleProfile] {
+        SubtitleProfile.build(method: .embed) {
+            SubtitleFormat.ass
+            SubtitleFormat.cc_dec
+            SubtitleFormat.dvbsub
+            SubtitleFormat.dvdsub
+            SubtitleFormat.libzvbi_teletextdec
+            SubtitleFormat.mov_text
+            SubtitleFormat.mpl2
+            SubtitleFormat.pgssub
+            SubtitleFormat.pjs
+            SubtitleFormat.realtext
+            SubtitleFormat.sami
+            SubtitleFormat.ssa
+            SubtitleFormat.subrip
+            SubtitleFormat.subviewer
+            SubtitleFormat.subviewer1
+            SubtitleFormat.text
+            SubtitleFormat.ttml
+            SubtitleFormat.vplayer
+            SubtitleFormat.vtt
+            SubtitleFormat.xsub
+        }
+
+        /// - Note: Unmatched text subtitles (ex: VTT) are converted to the first option (subrip)
+        SubtitleProfile.build(method: .external) {
+            SubtitleFormat.subrip
+            SubtitleFormat.ass
+            SubtitleFormat.libzvbi_teletextdec
+            SubtitleFormat.mpl2
+            SubtitleFormat.pjs
+            SubtitleFormat.realtext
+            SubtitleFormat.sami
+            SubtitleFormat.ssa
+            SubtitleFormat.subviewer
+            SubtitleFormat.subviewer1
+            SubtitleFormat.text
+            SubtitleFormat.ttml
+            SubtitleFormat.vplayer
+        }
+
+        SubtitleProfile.build(method: .encode) {
+            SubtitleFormat.dvbsub
+            SubtitleFormat.dvdsub
+            SubtitleFormat.pgssub
+            SubtitleFormat.vtt
+            SubtitleFormat.xsub
+        }
     }
 
     // MARK: - Playback Capability Queries

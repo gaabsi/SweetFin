@@ -18,7 +18,6 @@ struct MediaPlayerItemProvider {
     let mediaSource: MediaSourceInfo?
     let audioStreamIndex: Int?
     let subtitleStreamIndex: Int?
-    let requestedBitrate: PlaybackBitrate
     private var modifyItem: (@Sendable (inout BaseItemDto) -> Void)?
     private let resolver: MediaPlayerItemProviderResolver
 
@@ -27,14 +26,12 @@ struct MediaPlayerItemProvider {
         mediaSource: MediaSourceInfo? = nil,
         audioStreamIndex: Int? = nil,
         subtitleStreamIndex: Int? = nil,
-        requestedBitrate: PlaybackBitrate = Defaults[.VideoPlayer.Playback.appMaximumBitrate],
         resolver: @escaping MediaPlayerItemProviderResolver
     ) {
         self.item = item
         self.mediaSource = mediaSource
         self.audioStreamIndex = audioStreamIndex
         self.subtitleStreamIndex = subtitleStreamIndex
-        self.requestedBitrate = requestedBitrate
         self.modifyItem = nil
         self.resolver = resolver
     }
