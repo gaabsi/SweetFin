@@ -41,7 +41,8 @@ struct MainTabView: View {
             // fusionnée, ajouts récents. `DefaultContentGroupProvider` reste intact
             // et sert toujours tvOS ; le remplacer ici plutôt que le modifier garde
             // le rebase indolore.
-            TabItem.contentGroup(provider: HomeContentGroupProvider())
+            // EnhancedFin : `.home` = cet Accueil + le fond que son thème demande (GlassFin).
+            TabItem.home
             // EnhancedFin : `TabItem.search` retiré — l'Explorer porte la recherche,
             // et cherche plus large (référentiel + TMDB + bibliothèque, là où la
             // recherche native ne voit que la bibliothèque). Deux onglets à la loupe
