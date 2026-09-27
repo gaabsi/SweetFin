@@ -74,24 +74,6 @@ extension NavigationRoute {
         }
     }
 
-    static var experimentalSettings: NavigationRoute {
-        NavigationRoute(
-            id: "experimentalSettings"
-        ) {
-            ExperimentalSettingsView()
-        }
-    }
-
-    #if os(iOS)
-    static var gestureSettings: NavigationRoute {
-        NavigationRoute(
-            id: "gestureSettings"
-        ) {
-            GestureSettingsView()
-        }
-    }
-    #endif
-
     static var librarySettings: NavigationRoute {
         NavigationRoute(
             id: "librarySettings"

@@ -88,9 +88,6 @@ final class RootCoordinator: ObservableObject {
     private func setUserDefaultsObservation() {
         appearanceCancellable?.cancel()
 
-        // EnhancedFin : les réglages que le fork impose au lecteur, avant toute lecture.
-        EnhancedFinPlayerPolicy.enforce()
-
         appearanceCancellable = Task {
             mirrorAppearanceForNextLaunch(Defaults[.userAppearance])
             applyAppearance(Defaults[.userAppearance])

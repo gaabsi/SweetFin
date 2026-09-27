@@ -17,16 +17,6 @@ enum PlaybackCapabilities {
         AVPlayer.eligibleForHDRPlayback
     }
 
-    /// Should Swiftfin handle Dolby Vision content (false) or should it be tone mapped by the server (true)?
-    static var dvEnabled: Bool {
-        true
-    }
-
-    /// Should Swiftfin handle HDR content (false) or should it be tone mapped by the server (true)?
-    static var hdrEnabled: Bool {
-        true
-    }
-
     static var gpuName: String {
         MTLCreateSystemDefaultDevice()?.name ?? L10n.unknown
     }
@@ -67,19 +57,19 @@ enum PlaybackCapabilities {
     /// Requires HEVC hardware decode AND HDR-capable display.
     /// Note: HDR10 is a transfer function, not a codec—the underlying codec is HEVC.
     static var supportsHDR10: Bool {
-        supportsHEVC && hdrEnabled
+        supportsHEVC
     }
 
     /// Returns true if the device can play HLG content.
     /// Requires HEVC hardware decode AND HDR-capable display.
     /// Note: HLG is a transfer function, not a codec—the underlying codec is HEVC.
     static var supportsHLG: Bool {
-        supportsHEVC && hdrEnabled
+        supportsHEVC
     }
 
     /// Returns true if the device supports hardware-accelerated Dolby Vision HEVC decoding.
     /// This correctly distinguishes A10 (no DV) from A10X (DV support).
     static var supportsDolbyVision: Bool {
-        VTIsHardwareDecodeSupported(kCMVideoCodecType_DolbyVisionHEVC) && dvEnabled
+        VTIsHardwareDecodeSupported(kCMVideoCodecType_DolbyVisionHEVC)
     }
 }

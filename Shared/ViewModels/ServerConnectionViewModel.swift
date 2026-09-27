@@ -21,33 +21,12 @@ final class ServerConnectionViewModel: ViewModel {
     @Published
     private(set) var activeConnection: ServerConnection?
     @Published
-    private(set) var isEvaluatingAutoSwitchConnection: Bool = false
-
-    @Injected(\.userSessionManager)
-    private var userSessionManager: UserSessionManager
-
-    @Published
-    var isAutoSwitchEnabled: Bool {
-        didSet {
-            guard oldValue != isAutoSwitchEnabled else { return }
-            guard Defaults[.Experimental.serverConnectionAutoSwitch] else { return }
-
-            server.isAutoSwitchEnabled = isAutoSwitchEnabled
-
-            if isAutoSwitchEnabled {
-                userSessionManager.scheduleServerConnectionResolution()
-            }
-        }
-    }
-
-    @Published
     private(set) var testStates: [String: ServerConnection.TestState] = [:]
 
     init(server: ServerState) {
         self.server = server
         self.connections = server.ensureServerConnections()
         self.activeConnection = server.activeServerConnection
-        self.isAutoSwitchEnabled = server.isAutoSwitchEnabled
         super.init()
 
         Notifications[.didChangeServerConnection]
@@ -143,29 +122,6 @@ final class ServerConnectionViewModel: ViewModel {
         }
     }
 
-    func evaluateAutoSwitchConnection() async {
-        guard Defaults[.Experimental.serverConnectionAutoSwitch] else { return }
-        guard isAutoSwitchEnabled else { return }
-        guard !isEvaluatingAutoSwitchConnection else { return }
-
-        isEvaluatingAutoSwitchConnection = true
-        defer { isEvaluatingAutoSwitchConnection = false }
-
-        guard !userSessionManager.hasActivePlayback else { return }
-
-        if userSession?.server.id == server.id {
-            await userSession?.serverConnectionManager.resolveActiveConnection()
-        } else {
-            _ = await ServerConnectionManager.evaluate(
-                server: server,
-                accessToken: userSession?.user.accessToken,
-                context: NetworkConnectionContext.current()
-            )
-        }
-
-        reloadConnections()
-    }
-
     func saveConnection(_ connection: ServerConnection) async -> ServerConnection.TestState {
         let state = await testConnection(connection)
         guard case .success = state else { return state }
@@ -184,6 +140,5 @@ final class ServerConnectionViewModel: ViewModel {
     private func reloadConnections() {
         connections = server.serverConnections
         activeConnection = server.activeServerConnection
-        isAutoSwitchEnabled = server.isAutoSwitchEnabled
     }
 }

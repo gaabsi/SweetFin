@@ -165,14 +165,6 @@ extension Defaults.Keys {
 
     enum VideoPlayer {
 
-        static var appMaximumBitrate: Key<PlaybackBitrate> {
-            UserKey("appMaximumBitrate", default: .max)
-        }
-
-        static var appMaximumBitrateTest: Key<PlaybackBitrateTestSize> {
-            UserKey("appMaximumBitrateTest", default: .regular)
-        }
-
         static var jumpBackwardInterval: Key<MediaJumpInterval> {
             UserKey("jumpBackwardLength", default: .fifteen)
         }
@@ -181,109 +173,12 @@ extension Defaults.Keys {
             UserKey("jumpForwardLength", default: .fifteen)
         }
 
-        static var supplements: Key<[VideoPlayerSupplement]> {
-            UserKey(
-                "videoPlayerSupplements",
-                default: VideoPlayerSupplement.supportedCases
-            )
-        }
-
-        static var videoPlayerType: Key<VideoPlayerType> {
-            UserKey("videoPlayerType", default: .vlc)
-        }
-
-        enum Gesture {
-
-            static var horizontalPanAction: Key<PanGestureAction> {
-                UserKey("videoPlayerHorizontalPanGesture", default: .none)
-            }
-
-            static var horizontalSwipeAction: Key<SwipeGestureAction> {
-                UserKey("videoPlayerhorizontalSwipeAction", default: .none)
-            }
-
-            static var longPressAction: Key<LongPressGestureAction> {
-                UserKey("videoPlayerLongPressGesture", default: .gestureLock)
-            }
-
-            static var longPressSpeedMultiplier: Key<PlaybackSpeed> {
-                UserKey(
-                    "videoPlayerLongPressSpeedMultiplier",
-                    default: .two
-                )
-            }
-
-            static var multiTapGesture: Key<MultiTapGestureAction> {
-                UserKey("videoPlayerMultiTapGesture", default: .none)
-            }
-
-            static var doubleTouchGesture: Key<DoubleTouchGestureAction> {
-                UserKey("videoPlayerDoubleTouchGesture", default: .none)
-            }
-
-            static var pinchGesture: Key<PinchGestureAction> {
-                UserKey("videoPlayerSwipeGesture", default: .aspectFill)
-            }
-
-            static var verticalPanLeftAction: Key<PanGestureAction> {
-                UserKey("videoPlayerverticalPanLeftAction", default: .none)
-            }
-
-            static var verticalPanRightAction: Key<PanGestureAction> {
-                UserKey("videoPlayerverticalPanRightAction", default: .none)
-            }
-        }
-
-        enum Overlay {
-
-            static var chapterSlider: Key<Bool> {
-                UserKey("chapterSlider", default: true)
-            }
-
-        }
-
         enum Playback {
-            static var appMaximumResolution: Key<PlaybackResolution> {
-                UserKey("appMaximumResolution", default: .max)
-            }
-
-            static var appMaximumBitrate: Key<PlaybackBitrate> {
-                UserKey("appMaximumBitrate", default: .auto)
-            }
-
-            static var appMaximumBitrateTest: Key<PlaybackBitrateTestSize> {
-                UserKey("appMaximumBitrateTest", default: .regular)
-            }
-
-            static var compatibilityMode: Key<PlaybackCompatibility> {
-                UserKey("compatibilityMode", default: .auto)
-            }
-
             static var playbackRate: Key<Float> {
                 UserKey("playbackRate", default: Float(1.0))
             }
         }
-
     }
-
-    // Experimental settings
-    enum Experimental {
-
-        static var mpvPlayer: Key<Bool> {
-            UserKey("experimentalMPVPlayer", default: false)
-        }
-
-        static var serverConnectionAutoSwitch: Key<Bool> {
-            UserKey("experimentalServerConnectionAutoSwitch", default: false)
-        }
-
-        static var videoPlayerEPG: Key<Bool> {
-            UserKey("experimentalVideoPlayerEPG", default: false)
-        }
-    }
-
-    // tvos specific
-
 }
 
 // MARK: Debug

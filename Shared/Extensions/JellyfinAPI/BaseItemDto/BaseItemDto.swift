@@ -235,8 +235,7 @@ extension BaseItemDto {
         userSession: UserSession?,
         mediaSource: MediaSourceInfo? = nil,
         audioStreamIndex: Int? = nil,
-        subtitleStreamIndex: Int? = nil,
-        requestedBitrate: PlaybackBitrate = Defaults[.VideoPlayer.Playback.appMaximumBitrate]
+        subtitleStreamIndex: Int? = nil
     ) -> MediaPlayerItemProvider? {
         switch type {
         case .program:
@@ -262,15 +261,13 @@ extension BaseItemDto {
                 item: self,
                 mediaSource: selectedMediaSource,
                 audioStreamIndex: audioStreamIndex,
-                subtitleStreamIndex: subtitleStreamIndex,
-                requestedBitrate: requestedBitrate
+                subtitleStreamIndex: subtitleStreamIndex
             ) { item, modifyItem in
                 try await MediaPlayerItem.build(
                     for: item,
                     mediaSource: selectedMediaSource,
                     audioStreamIndex: audioStreamIndex,
                     subtitleStreamIndex: subtitleStreamIndex,
-                    requestedBitrate: requestedBitrate,
                     modifyItem: modifyItem
                 )
             }

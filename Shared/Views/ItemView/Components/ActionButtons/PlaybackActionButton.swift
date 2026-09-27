@@ -17,8 +17,6 @@ extension ItemActionButtons {
         @EnvironmentObject
         private var provider: ItemContentGroupProvider
 
-        @Default(.VideoPlayer.Playback.appMaximumBitrate)
-        private var appMaximumBitrate
 
         @ViewContextContains(.isInMenu)
         private var isInMenu
@@ -34,10 +32,6 @@ extension ItemActionButtons {
 
         private var subtitleStreams: [MediaStream] {
             provider.mediaPlayerItemProvider?.mediaSource?.subtitleStreams ?? []
-        }
-
-        private var supportedBitrates: [PlaybackBitrate] {
-            provider.mediaPlayerItemProvider?.mediaSource?.supportedBitrates ?? []
         }
 
         private var audioStreamSelection: Binding<Int?> {
@@ -83,25 +77,6 @@ extension ItemActionButtons {
         }
 
         @ViewBuilder
-        private var qualityPicker: some View {
-            Picker(
-                selection: Binding(
-                    get: { provider.mediaPlayerItemProvider?.requestedBitrate ?? appMaximumBitrate },
-                    set: { provider.select(.bitrate($0)) }
-                )
-            ) {
-                ForEach(supportedBitrates, id: \.rawValue) { bitrate in
-                    Text(bitrate.displayTitle)
-                        .tag(bitrate)
-                }
-            } label: {
-                Text(L10n.playbackQuality)
-                Text(provider.mediaPlayerItemProvider?.requestedBitrate.displayTitle)
-            }
-            .pickerStyle(.menu)
-        }
-
-        @ViewBuilder
         private func trackPicker(
             _ title: String,
             streams: [MediaStream],
@@ -127,11 +102,10 @@ extension ItemActionButtons {
                 ItemActionButton.playback.displayTitle,
                 systemImage: ItemActionButton.playback.systemImage
             ) {
-                Section(L10n.source) {
-                    if mediaSources.count > 1 {
+                if mediaSources.count > 1 {
+                    Section(L10n.source) {
                         versionPicker
                     }
-                    qualityPicker
                 }
 
                 if audioStreams.isNotEmpty || subtitleStreams.isNotEmpty {

@@ -23,88 +23,47 @@ extension VideoPlayer.PlaybackControls.Toolbar.ActionButtons {
         private func makeProvider(for mediaSource: MediaSourceInfo, playbackItem: MediaPlayerItem) -> MediaPlayerItemProvider {
             var adjustedBaseItem = playbackItem.baseItem
             adjustedBaseItem.userData?.playbackPositionTicks = manager.seconds.ticks
-            let requestedBitrate = playbackItem.requestedBitrate
 
             return MediaPlayerItemProvider(item: adjustedBaseItem, mediaSource: mediaSource) { baseItem, modifyItem in
                 try await MediaPlayerItem.build(
                     for: baseItem,
                     mediaSource: mediaSource,
-                    requestedBitrate: requestedBitrate,
                     modifyItem: modifyItem
                 )
             }
         }
 
+        // EnhancedFin : plus de choix de qualité (lecture directe), seulement la version.
         var body: some View {
-            if let playbackItem = manager.playbackItem {
-                let bitrates = playbackItem.mediaSource.supportedBitrates
-                let versions = playbackItem.baseItem.mediaSources ?? []
-                let hasVersionSection = versions.count > 1
-                let hasBitrateSection = bitrates.isNotEmpty
-                let hasMultipleSections = hasVersionSection && hasBitrateSection
-                let menuTitle: String = {
-                    if hasMultipleSections {
-                        VideoPlayerActionButton.playbackSettings.displayTitle
-                    } else if hasVersionSection {
-                        L10n.version
-                    } else {
-                        L10n.playbackQuality
-                    }
-                }()
-
+            if let playbackItem = manager.playbackItem,
+               let versions = playbackItem.baseItem.mediaSources,
+               versions.count > 1
+            {
                 Menu {
-                    if hasVersionSection {
-                        Picker(
-                            selection: Binding(
-                                get: { playbackItem.mediaSource.id },
-                                set: { newID in
-                                    guard let newID,
-                                          newID != playbackItem.mediaSource.id,
-                                          let newSource = versions.first(where: { $0.id == newID })
-                                    else { return }
+                    Picker(
+                        selection: Binding(
+                            get: { playbackItem.mediaSource.id },
+                            set: { newID in
+                                guard let newID,
+                                      newID != playbackItem.mediaSource.id,
+                                      let newSource = versions.first(where: { $0.id == newID })
+                                else { return }
 
-                                    manager.playNewItem(provider: makeProvider(for: newSource, playbackItem: playbackItem))
-                                }
-                            )
-                        ) {
-                            ForEach(versions, id: \.hashValue) { version in
-                                Text(version.displayTitle)
-                                    .tag(version.id)
+                                manager.playNewItem(provider: makeProvider(for: newSource, playbackItem: playbackItem))
                             }
-                        } label: {
-                            Text(L10n.version)
-                            Text(playbackItem.mediaSource.displayTitle)
+                        )
+                    ) {
+                        ForEach(versions, id: \.hashValue) { version in
+                            Text(version.displayTitle)
+                                .tag(version.id)
                         }
-                        .if(hasMultipleSections) { picker in
-                            picker.pickerStyle(.menu)
-                        }
-                    }
-
-                    if hasBitrateSection {
-                        Picker(
-                            selection: Binding(
-                                get: { playbackItem.requestedBitrate },
-                                set: { newBitrate in
-                                    guard newBitrate != playbackItem.requestedBitrate else { return }
-                                    manager.setBitrate(bitrate: newBitrate)
-                                }
-                            )
-                        ) {
-                            ForEach(bitrates, id: \.rawValue) { bitrate in
-                                Text(bitrate.displayTitle)
-                                    .tag(bitrate)
-                            }
-                        } label: {
-                            Text(L10n.playbackQuality)
-                            Text(playbackItem.requestedBitrate.displayTitle)
-                        }
-                        .if(hasMultipleSections) { picker in
-                            picker.pickerStyle(.menu)
-                        }
+                    } label: {
+                        Text(L10n.version)
+                        Text(playbackItem.mediaSource.displayTitle)
                     }
                 } label: {
                     Label(
-                        menuTitle,
+                        L10n.version,
                         systemImage: VideoPlayerActionButton.playbackSettings.systemImage
                     )
                 }

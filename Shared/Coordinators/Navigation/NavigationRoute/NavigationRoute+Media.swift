@@ -93,15 +93,8 @@ struct VideoPlayerViewShim: View {
     let manager: MediaPlayerManager
 
     var body: some View {
-        Group {
-            switch Defaults[.VideoPlayer.videoPlayerType] {
-            case .native:
-                NativeVideoPlayer()
-            case .vlc, .mpv:
-                VideoPlayer()
-            }
-        }
-        .colorScheme(.dark) // use over `preferredColorScheme(.dark)` to not have destination change
+        VideoPlayer()
+            .colorScheme(.dark) // use over `preferredColorScheme(.dark)` to not have destination change
         .environment(\.safeAreaInsets, safeAreaInsets)
         .supportedOrientations(.allButUpsideDown)
         .ignoresSafeArea()

@@ -24,11 +24,12 @@ extension VideoPlayer.PlaybackControls {
             isSpeedBoosting = true
             containerState.originalPlaybackRate = manager.rate
 
-            let multiplier = Defaults[.VideoPlayer.Gesture.longPressSpeedMultiplier]
-            manager.setRate(rate: multiplier.rawValue)
+            // EnhancedFin : accélération imposée à 2×.
+            let multiplier: Float = 2
+            manager.setRate(rate: multiplier)
 
             toaster.present(
-                Text(multiplier.displayTitle),
+                Text(multiplier, format: .playbackRate),
                 systemName: "forward.fill"
             )
         }

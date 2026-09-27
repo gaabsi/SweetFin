@@ -108,15 +108,6 @@ extension ServerState {
         return serverConnections.contains { $0.url == normalizedURL }
     }
 
-    var isAutoSwitchEnabled: Bool {
-        get {
-            StoredValues[.Server.isAutoSwitchEnabled(id: id)]
-        }
-        nonmutating set {
-            StoredValues[.Server.isAutoSwitchEnabled(id: id)] = newValue
-        }
-    }
-
     var isVersionCompatible: Bool {
         let publicInfo = StoredValues[.Server.publicInfo(id: self.id)]
 

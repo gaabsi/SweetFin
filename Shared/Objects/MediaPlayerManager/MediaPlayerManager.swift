@@ -55,7 +55,6 @@ final class MediaPlayerManager: ViewModel {
         case ended
         case error
         case playNewItem(provider: MediaPlayerItemProvider)
-        case setBitrate(bitrate: PlaybackBitrate)
         case setPlaybackRequestStatus(status: PlaybackRequestStatus)
         case setRate(rate: Float)
         case setTrack(type: MediaStreamType, from: Int?, to: Int? = nil)
@@ -140,31 +139,9 @@ final class MediaPlayerManager: ViewModel {
     var supplements: [any MediaPlayerSupplement] = []
 
     // TODO: replace with graph dependency package
+    // EnhancedFin : un seul panneau, les épisodes (absent pour un film).
     private func setSupplements() {
-        var newSupplements = Defaults[.VideoPlayer.supplements].compactMap { kind -> (any MediaPlayerSupplement)? in
-            switch kind {
-            case .info:
-                return MediaInfoSupplement(item: item)
-            case .chapters:
-                guard let chapters = item.fullChapterInfo, chapters.isNotEmpty else { return nil }
-                return MediaChaptersSupplement(chapters: chapters)
-            case .queue:
-                return queue
-            case .people:
-                guard let people = item.mergedPeople?.filter({ $0.type?.isSupported == true }),
-                      people.isNotEmpty else { return nil }
-                return MediaPeopleSupplement(people: people)
-            case .playbackInformation:
-                guard let itemID = item.id else { return nil }
-                return PlaybackInformationSupplement(itemID: itemID)
-            }
-        }
-
-        if item.isLiveStream, Defaults[.Experimental.videoPlayerEPG] {
-            newSupplements.append(EPGSupplement())
-        }
-
-        self.supplements = newSupplements
+        supplements = [queue].compactMap { $0 }
     }
 
     /// The current seconds media playback is set to.
@@ -173,10 +150,6 @@ final class MediaPlayerManager: ViewModel {
     var seconds: Duration {
         get { secondsBox.value }
         set { secondsBox.value = newValue }
-    }
-
-    var playbackBitrate: PlaybackBitrate {
-        playbackItem?.requestedBitrate ?? Defaults[.VideoPlayer.Playback.appMaximumBitrate]
     }
 
     /// Holds a weak reference to the current media player proxy.
@@ -288,16 +261,6 @@ final class MediaPlayerManager: ViewModel {
         playbackItem = try await provider()
     }
 
-    @Function(\Action.Cases.setBitrate)
-    private func _setBitrate(_ requestedBitrate: PlaybackBitrate) async throws {
-        guard let currentItem = playbackItem else { return }
-
-        try await updateMediaPlayerItem(
-            currentItem: currentItem,
-            requestedBitrate: requestedBitrate
-        )
-    }
-
     @Function(\Action.Cases.setPlaybackRequestStatus)
     private func set(_ status: PlaybackRequestStatus) {
         if self.playbackRequestStatus != status {
@@ -398,8 +361,7 @@ final class MediaPlayerManager: ViewModel {
     private func updateMediaPlayerItem(
         currentItem: MediaPlayerItem,
         audioStreamIndex: Int? = nil,
-        subtitleStreamIndex: Int? = nil,
-        requestedBitrate: PlaybackBitrate? = nil
+        subtitleStreamIndex: Int? = nil
     ) async throws {
 
         // Capture the current playback position before stopping
@@ -421,7 +383,6 @@ final class MediaPlayerManager: ViewModel {
             mediaSource: currentItem.mediaSource,
             audioStreamIndex: audioStreamIndex ?? currentItem.selectedAudioStreamIndex,
             subtitleStreamIndex: subtitleStreamIndex ?? currentItem.selectedSubtitleStreamIndex,
-            requestedBitrate: requestedBitrate ?? currentItem.requestedBitrate,
             modifyItem: { item in
                 if item.userData == nil {
                     item.userData = UserItemDataDto(key: "")
@@ -443,27 +404,4 @@ final class MediaPlayerManager: ViewModel {
         self.seconds = currentSeconds
     }
 
-    nonisolated static func getMaxBitrate(
-        for requestedBitrate: PlaybackBitrate,
-        testSize: PlaybackBitrateTestSize = Defaults[.VideoPlayer.appMaximumBitrateTest]
-    ) async throws -> Int {
-
-        guard requestedBitrate == .auto else { return requestedBitrate.rawValue }
-
-        guard let userSession = Container.shared.currentUserSession() else {
-            throw UserSessionError.missingCurrentSession
-        }
-
-        let testStartTime = Date()
-        let _ = try await userSession.client.send(Paths.getBitrateTestBytes(size: testSize.rawValue))
-        let testDuration = Date().timeIntervalSince(testStartTime)
-        let testSizeBits = Double(testSize.rawValue * 8)
-        let testBitrate = testSizeBits / testDuration
-
-        return clamp(
-            Int(testBitrate),
-            min: PlaybackBitrate.kbps420.rawValue,
-            max: Int(Int32.max)
-        )
-    }
 }

@@ -32,14 +32,10 @@ final class UserSession {
         accessToken: user.accessToken
     )
 
-    @MainActor
-    lazy var serverConnectionManager = ServerConnectionManager()
-
     lazy var serverSocketManager = ServerSocketManager()
 
     @MainActor
     private lazy var services: [any UserSessionService] = [
-        serverConnectionManager,
         serverSocketManager,
     ]
 

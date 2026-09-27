@@ -11,9 +11,6 @@ import SwiftUI
 
 struct ServerConnectionView: View {
 
-    @Default(.Experimental.serverConnectionAutoSwitch)
-    private var isAutoSwitchFeatureEnabled
-
     @ObservedObject
     var viewModel: ServerConnectionViewModel
 
@@ -68,34 +65,6 @@ struct ServerConnectionView: View {
 
     var body: some View {
         Form(systemImage: "network") {
-            if isAutoSwitchFeatureEnabled {
-                Section {
-                    Toggle(L10n.autoSwitch, isOn: $viewModel.isAutoSwitchEnabled)
-
-                    if viewModel.isAutoSwitchEnabled {
-                        Button {
-                            Task {
-                                await viewModel.evaluateAutoSwitchConnection()
-                            }
-                        } label: {
-                            HStack {
-                                Text(L10n.evaluate)
-
-                                Spacer()
-
-                                if viewModel.isEvaluatingAutoSwitchConnection {
-                                    ProgressView()
-                                }
-                            }
-                        }
-                        .disabled(viewModel.isEvaluatingAutoSwitchConnection)
-                    }
-                } footer: {
-                    Text(L10n.autoSwitchDescription)
-                }
-                .disabled(isEditing)
-            }
-
             Section(L10n.connections) {
                 ForEach(viewModel.connections) { connection in
                     serverConnectionRow(connection)
@@ -116,7 +85,6 @@ struct ServerConnectionView: View {
         .environment(\.editMode, $editMode)
         .animation(.linear(duration: 0.1), value: isEditing)
         .animation(.linear(duration: 0.1), value: viewModel.connections)
-        .animation(.linear(duration: 0.1), value: viewModel.isAutoSwitchEnabled)
         .navigationTitle(L10n.connections)
         .topBarTrailing {
             if viewModel.connections.count > 1 {

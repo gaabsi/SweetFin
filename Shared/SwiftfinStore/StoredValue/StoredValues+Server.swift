@@ -80,12 +80,5 @@ extension StoredValues.Keys {
             )
         }
 
-        static func isAutoSwitchEnabled(id: String) -> Key<Bool> {
-            ServerKey(
-                ownerID: id,
-                field: "isAutoSwitchEnabled",
-                default: false
-            )
-        }
     }
 }

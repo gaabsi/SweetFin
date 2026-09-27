@@ -123,7 +123,6 @@ final class ServerSocketManager {
                     .playState,
                     .playTrailers,
                     .setAudioStreamIndex,
-                    .setMaxStreamingBitrate,
                     .setSubtitleStreamIndex,
                 ],
                 playableMediaTypes: [.video]

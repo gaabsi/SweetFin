@@ -119,9 +119,6 @@ extension UserSessionManager {
         case .setAudioStreamIndex:
             guard let index = generalCommand.arguments?["Index"], let index = Int(index) else { return }
             mediaPlayerManager?.playbackItem?.selectedAudioStreamIndex = index
-        case .setMaxStreamingBitrate:
-            guard let bitrate = generalCommand.arguments?["Bitrate"], let bitrate = Int(bitrate) else { return }
-            mediaPlayerManager?.setBitrate(bitrate: PlaybackBitrate(for: bitrate))
         case .setSubtitleStreamIndex:
             guard let index = generalCommand.arguments?["Index"], let index = Int(index) else { return }
             mediaPlayerManager?.playbackItem?.selectedSubtitleStreamIndex = index

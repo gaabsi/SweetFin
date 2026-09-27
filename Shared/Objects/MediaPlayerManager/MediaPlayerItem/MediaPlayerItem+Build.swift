@@ -23,9 +23,6 @@ extension MediaPlayerItem {
         mediaSource _initialMediaSource: MediaSourceInfo? = nil,
         audioStreamIndex: Int? = nil,
         subtitleStreamIndex: Int? = nil,
-        videoPlayerType: VideoPlayerType = Defaults[.VideoPlayer.videoPlayerType],
-        requestedBitrate: PlaybackBitrate = Defaults[.VideoPlayer.Playback.appMaximumBitrate],
-        compatibilityMode: PlaybackCompatibility = Defaults[.VideoPlayer.Playback.compatibilityMode],
         modifyItem: ((inout BaseItemDto) -> Void)? = nil
     ) async throws -> MediaPlayerItem {
 
@@ -63,17 +60,10 @@ extension MediaPlayerItem {
             throw ErrorMessage(L10n.unknownError)
         }
 
-        // EnhancedFin : en lecture directe (VLC, MPV), pas de test de débit — il retarde
-        // chaque démarrage et un débit mesuré trop bas ferait refuser le brut au serveur.
-        let maxBitrate = try await MediaPlayerManager.getMaxBitrate(
-            for: videoPlayerType == .native ? requestedBitrate : .max
-        )
-
-        let deviceProfile = DeviceProfile.build(
-            for: videoPlayerType,
-            compatibilityMode: compatibilityMode,
-            maxBitrate: maxBitrate
-        )
+        // EnhancedFin : lecture directe, jamais de test de débit — il retarderait chaque
+        // démarrage, et un débit mesuré trop bas ferait refuser le brut au serveur.
+        let maxBitrate = 360_000_000
+        let deviceProfile = DeviceProfile.build()
 
         var playbackInfo = PlaybackInfoDto()
         playbackInfo.isAutoOpenLiveStream = true
@@ -141,35 +131,18 @@ extension MediaPlayerItem {
             logger: logger
         )
 
+        // EnhancedFin : aperçus trickplay seulement, sans secours par les chapitres.
         let previewImageProvider: (any PreviewImageProvider)? = {
-            let previewImageScrubbingSetting = StoredValues[.User.previewImageScrubbing]
-            lazy var chapterPreviewImageProvider: ChapterPreviewImageProvider? = {
-                if let chapters = item.fullChapterInfo, chapters.isNotEmpty {
-                    return ChapterPreviewImageProvider(chapters: chapters)
-                }
-                return nil
-            }()
+            guard let mediaSourceID = mediaSource.id,
+                  let trickplayInfo = item.trickplay?[mediaSourceID]?.first
+            else { return nil }
 
-            if case let PreviewImageScrubbingOption.trickplay(fallbackToChapters: fallbackToChapters) = previewImageScrubbingSetting {
-                if let mediaSourceID = mediaSource.id,
-                   let trickplayInfo = item.trickplay?[mediaSourceID]?.first
-                {
-                    return TrickplayPreviewImageProvider(
-                        info: trickplayInfo.value,
-                        itemID: itemID,
-                        mediaSourceID: mediaSourceID,
-                        runtime: item.runtime ?? .zero
-                    )
-                }
-
-                if fallbackToChapters {
-                    return chapterPreviewImageProvider
-                }
-            } else if previewImageScrubbingSetting == .chapters {
-                return chapterPreviewImageProvider
-            }
-
-            return nil
+            return TrickplayPreviewImageProvider(
+                info: trickplayInfo.value,
+                itemID: itemID,
+                mediaSourceID: mediaSourceID,
+                runtime: item.runtime ?? .zero
+            )
         }()
 
         return .init(
@@ -177,7 +150,6 @@ extension MediaPlayerItem {
             mediaSource: mediaSource,
             playSessionID: playSessionID,
             url: playbackURL,
-            requestedBitrate: requestedBitrate,
             deviceProfile: deviceProfile,
             initialAudioStreamIndex: audioStreamIndex,
             initialSubtitleStreamIndex: subtitleStreamIndex,

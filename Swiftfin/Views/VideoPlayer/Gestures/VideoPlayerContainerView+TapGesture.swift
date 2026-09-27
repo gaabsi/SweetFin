@@ -54,12 +54,6 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
             )
         }
 
-        if count == 2 {
-            handleDoubleTouchGesture(
-                location: location,
-                unitPoint: unitPoint
-            )
-        }
     }
 
     private func handleSingleTapGesture(
@@ -76,13 +70,11 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
             containerState.isPresentingOverlay.toggle()
         }
 
-        let action = Defaults[.VideoPlayer.Gesture.multiTapGesture]
+        // EnhancedFin : deux taps du même côté = recul / avance, seul geste imposé.
         let jumpProgressObserver = containerState.jumpProgressObserver
         let width = location.x / unitPoint.x
 
-        switch action {
-        case .none: ()
-        case .jump:
+        do {
             guard containerState.manager?.item.isLiveStream == false else { return }
 
             if let lastTapLocation = containerState.lastTapLocation {
@@ -162,99 +154,20 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         return (p1Side == p2Side, p1Side)
     }
 
-    private func handleDoubleTouchGesture(
-        location: CGPoint,
-        unitPoint: UnitPoint
-    ) {
-        let action = Defaults[.VideoPlayer.Gesture.doubleTouchGesture]
-
-        switch action {
-        case .none: ()
-        case .aspectFill:
-            guard checkGestureLock() else { return }
-            containerState.isAspectFilled.toggle()
-        case .gestureLock:
-            if containerState.isGestureLocked {
-                containerState.isGestureLocked = false
-
-                containerState.toastProxy.present(
-                    L10n.gesturesUnlocked,
-                    systemName: VideoPlayerActionButton.gestureLock.secondarySystemImage
-                )
-            } else {
-                containerState.isGestureLocked = true
-
-                containerState.toastProxy.present(
-                    L10n.gesturesLocked,
-                    systemName: VideoPlayerActionButton.gestureLock.systemImage
-                )
-            }
-        case .pausePlay:
-            guard checkGestureLock() else { return }
-            containerState.manager?.togglePlayPause()
-        }
-    }
-
+    /// EnhancedFin : l'appui long ne sert plus qu'à déverrouiller les gestes (verrou posé
+    /// par le bouton de la barre).
     func handleLongPressGesture(
         location: CGPoint,
         unitPoint: UnitPoint,
         state: UILongPressGestureRecognizer.State
     ) {
-        guard !containerState.isGestureLocked else {
-            guard state == .began else { return }
+        guard containerState.isGestureLocked, state == .began else { return }
 
-            containerState.isGestureLocked = false
+        containerState.isGestureLocked = false
 
-            containerState.toastProxy.present(
-                L10n.gesturesUnlocked,
-                systemName: VideoPlayerActionButton.gestureLock.secondarySystemImage
-            )
-            return
-        }
-
-        let action = Defaults[.VideoPlayer.Gesture.longPressAction]
-
-        switch action {
-        case .none: ()
-        case .gestureLock:
-            guard state == .began else { return }
-
-            containerState.isGestureLocked = true
-
-            containerState.toastProxy.present(
-                L10n.gesturesLocked,
-                systemName: VideoPlayerActionButton.gestureLock.systemImage
-            )
-        case .playbackSpeed:
-            guard containerState.manager?.item.isLiveStream == false else { return }
-
-            switch state {
-            case .began:
-                containerState.originalPlaybackRate = containerState.manager?.rate
-
-                let multiplier = Defaults[.VideoPlayer.Gesture.longPressSpeedMultiplier]
-
-                containerState.manager?.setRate(rate: multiplier.rawValue)
-
-                containerState.toastProxy.present(
-                    Text(multiplier.displayTitle),
-                    systemName: "forward.fill"
-                )
-
-            case .ended, .cancelled:
-                guard let originalRate = containerState.originalPlaybackRate else { return }
-                containerState.manager?.setRate(rate: originalRate)
-
-                containerState.originalPlaybackRate = nil
-
-                containerState.toastProxy.present(
-                    Text(originalRate, format: .playbackRate),
-                    systemName: "forward.fill"
-                )
-
-            default:
-                break
-            }
-        }
+        containerState.toastProxy.present(
+            L10n.gesturesUnlocked,
+            systemName: VideoPlayerActionButton.gestureLock.secondarySystemImage
+        )
     }
 }
