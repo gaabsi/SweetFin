@@ -38,13 +38,42 @@ struct DownloadsView: View {
     @Injected(\.currentUserSession)
     private var userSession
 
+    @InjectedObject(\.offlineMonitor)
+    private var offlineMonitor
+
     @Router
     private var router
 
     var body: some View {
         content
+            .safeAreaInset(edge: .top) {
+                if offlineMonitor.isOffline {
+                    offlineBanner
+                }
+            }
             .navigationTitle(DownloadStrings.downloads)
             .hidesNavigationTitle()
+    }
+
+    /// Rappelle que, sans réseau, seuls les téléchargements sont disponibles.
+    private var offlineBanner: some View {
+        Label(DownloadStrings.offlineBanner, systemImage: "wifi.slash")
+            .font(.footnote)
+            .fontWeight(.medium)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.white.opacity(0.04))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(.white.opacity(0.1), lineWidth: 1)
+            }
+            .edgePadding(.horizontal)
+            .padding(.top, 8)
     }
 
     @ViewBuilder

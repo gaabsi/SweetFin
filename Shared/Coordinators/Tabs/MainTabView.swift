@@ -22,6 +22,11 @@ struct MainTabView: View {
     @InjectedObject(\.userSessionManager)
     private var userSessionManager
 
+    #if os(iOS)
+    @InjectedObject(\.offlineMonitor)
+    private var offlineMonitor
+    #endif
+
     @StateObject
     private var tabCoordinator: TabCoordinator
 
@@ -146,6 +151,14 @@ struct MainTabView: View {
             #if os(tvOS)
             .background(alignment: .top) {
                 FocusedPosterCinematicBackgroundView()
+            }
+            #else
+            // EnhancedFin : au retour du réseau, recharger les onglets restés en erreur.
+            // Pas de bascule automatique vers les téléchargements (retirée, jugée inutile).
+            .onChange(of: offlineMonitor.isOffline) { wasOffline, isOffline in
+                if wasOffline, !isOffline {
+                    Notifications[.didRequestGlobalRefresh].post()
+                }
             }
             #endif
     }
