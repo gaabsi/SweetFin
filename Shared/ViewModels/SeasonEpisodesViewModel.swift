@@ -66,8 +66,23 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     private(set) var isLoadingEpisodes = false
     @Published
     private(set) var error: Error?
+    /// EnhancedFin : épisodes lisibles de la saison ouverte, numéro → item à lancer
+    /// (`playable` par saison). Le natif reste prioritaire : voir `playableItemID(for:)`.
+    @Published
+    private(set) var playableItemIDs: [Int: String] = [:]
 
     let backend: Backend
+
+    /// EnhancedFin : la résolution `playable` en cours, annulée au changement de saison.
+    private var playableTask: Task<Void, Never>?
+
+    /// Clé EnhancedFin de la série, quel que soit le backend.
+    private var mediaKey: String? {
+        switch backend {
+        case let .jellyfin(_, mediaKey): mediaKey
+        case let .enhancedFin(mediaKey): mediaKey
+        }
+    }
 
     init(backend: Backend) {
         self.backend = backend
@@ -101,6 +116,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
         selectedSeason = number
         isLoadingEpisodes = true
+        startPlayableResolution(season: number)
         // Une saison abandonnée ne coupe pas l'indicateur de celle qui charge.
         defer {
             if selectedSeason == number { isLoadingEpisodes = false }
@@ -119,6 +135,65 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
             guard selectedSeason == number else { return }
             episodes = []
             self.error = error
+        }
+    }
+
+    // MARK: - Lecture
+
+    /// EnhancedFin : demande au serveur les épisodes lisibles de la saison, **sans
+    /// l'attendre** — la feuille s'affiche tout de suite. Même question pour toute
+    /// série, dans la médiathèque ou non : le serveur seul décide.
+    ///
+    /// Parametres :
+    /// - number (Int) : numéro de saison
+    private func startPlayableResolution(season number: Int) {
+        playableTask?.cancel()
+        playableItemIDs = [:]
+
+        guard let mediaKey, let client = userSession?.enhancedFinClient else { return }
+
+        playableTask = Task {
+            let response = try? await client.playableEpisodes(mediaKey, season: number)
+
+            // Une saison ouverte entre-temps a la priorité : pas d'écrasement tardif.
+            guard !Task.isCancelled, selectedSeason == number, let response else { return }
+            playableItemIDs = Dictionary(
+                response.episodes.map { ($0.episode, $0.itemId) },
+                uniquingKeysWith: { first, _ in first }
+            )
+        }
+    }
+
+    /// L'item à lancer pour un épisode : celui de Jellyfin s'il est déjà là (le natif
+    /// reste prioritaire, comme pour les films), sinon celui que le serveur désigne.
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode de la saison ouverte
+    ///
+    /// Output :
+    /// - itemID (String?) : `nil` si l'épisode n'est pas lisible
+    func playableItemID(for episode: EpisodeRow) -> String? {
+        episode.jellyfinID ?? episode.number.flatMap { playableItemIDs[$0] }
+    }
+
+    /// Prépare la lecture d'un épisode, par le même chemin qu'une fiche : fiche
+    /// complète de l'item, puis son lecteur.
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode à lire
+    ///
+    /// Output :
+    /// - provider (MediaPlayerItemProvider?) : `nil` si l'épisode n'est pas lisible ou
+    ///   si la fiche n'a pas pu être chargée
+    func playbackProvider(for episode: EpisodeRow) async -> MediaPlayerItemProvider? {
+        guard let itemID = playableItemID(for: episode), let userSession else { return nil }
+
+        do {
+            let item = try await BaseItemDto(id: itemID).getFullItem(userSession: userSession)
+            return item.getPlaybackItemProvider(userSession: userSession)
+        } catch {
+            logger.warning("Episode playback failed: \(error.localizedDescription)")
+            return nil
         }
     }
 

@@ -7,6 +7,8 @@
 //
 
 import Defaults
+import FactoryKit
+import JellyfinAPI
 import SwiftUI
 
 /// EnhancedFin : le rail des saisons d'une série, et la feuille de ses épisodes.
@@ -92,9 +94,7 @@ private struct SeasonsRail: View {
                 .edgePadding(.horizontal)
                 .accessibilityAddTraits(.isHeader)
         }
-        .sheet(isPresented: $isPresentingEpisodes) {
-            SeasonEpisodesSheet(viewModel: viewModel)
-        }
+        .seasonEpisodesSheet(isPresented: $isPresentingEpisodes, viewModel: viewModel)
     }
 }
 
@@ -139,9 +139,7 @@ private struct CompletionCard: View {
                 .accessibilityLabel(L10n.seasons)
         }
         .buttonStyle(.plain)
-        .sheet(isPresented: $isPresenting) {
-            SeasonEpisodesSheet(viewModel: viewModel)
-        }
+        .seasonEpisodesSheet(isPresented: $isPresenting, viewModel: viewModel)
     }
 
     /// Charge les saisons TMDB, puis ouvre la première absente du serveur — à défaut
@@ -187,6 +185,52 @@ private struct SeasonCard: View {
 
 // MARK: - Feuille des épisodes
 
+/// EnhancedFin : la feuille des épisodes, et la lecture qui en part.
+///
+/// Le lecteur ne s'ouvre qu'**une fois la feuille fermée** : SwiftUI refuse deux
+/// présentations à la fois, et le lecteur est présenté par le coordinateur, sous la
+/// feuille. Un seul endroit pour les deux qui ouvrent la feuille (rail, carte « + »).
+private struct SeasonEpisodesSheetModifier: ViewModifier {
+
+    @Binding
+    var isPresented: Bool
+
+    let viewModel: SeasonEpisodesViewModel
+
+    @Router
+    private var router
+
+    @State
+    private var pendingPlayback: MediaPlayerItemProvider?
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $isPresented, onDismiss: playPending) {
+                SeasonEpisodesSheet(viewModel: viewModel) { provider in
+                    pendingPlayback = provider
+                    isPresented = false
+                }
+            }
+    }
+
+    private func playPending() {
+        guard let provider = pendingPlayback else { return }
+        pendingPlayback = nil
+
+        let queue: (any MediaPlayerQueue)? = provider.item.type == .episode
+            ? EpisodeMediaPlayerQueue(episode: provider.item)
+            : nil
+        router.route(to: .videoPlayer(provider: provider, queue: queue))
+    }
+}
+
+private extension View {
+
+    func seasonEpisodesSheet(isPresented: Binding<Bool>, viewModel: SeasonEpisodesViewModel) -> some View {
+        modifier(SeasonEpisodesSheetModifier(isPresented: isPresented, viewModel: viewModel))
+    }
+}
+
 private struct SeasonEpisodesSheet: View {
 
     @Default(.appearance)
@@ -198,10 +242,39 @@ private struct SeasonEpisodesSheet: View {
     @ObservedObject
     var viewModel: SeasonEpisodesViewModel
 
+    /// EnhancedFin : un épisode à lire est prêt ; celui qui présente la feuille la ferme
+    /// puis ouvre le lecteur.
+    let onPlay: (MediaPlayerItemProvider) -> Void
+
     @State
     private var isSelecting = false
     @State
     private var selection: Set<String> = []
+
+    #if os(iOS)
+    @ObservedObject
+    private var downloadManager = Container.shared.downloadManager()
+    #endif
+
+    /// EnhancedFin : l'item à télécharger pour un épisode (iPhone, épisode du serveur,
+    /// compte autorisé à télécharger) ; `nil` sinon.
+    private func downloadableID(_ episode: EpisodeRow) -> String? {
+        #if os(iOS)
+        guard Container.shared.currentUserSession()?.user.data.policy?.enableContentDownloading == true else { return nil }
+        return episode.jellyfinID
+        #else
+        return nil
+        #endif
+    }
+
+    private func isDownloaded(_ episode: EpisodeRow) -> Bool {
+        #if os(iOS)
+        guard let itemID = episode.jellyfinID, let userID = Container.shared.currentUserSession()?.user.id else { return false }
+        return downloadManager.state(of: itemID, userID: userID) == .done
+        #else
+        return false
+        #endif
+    }
 
     private var seasonIndex: Int? {
         viewModel.seasons.firstIndex { $0.number == viewModel.selectedSeason }
@@ -238,7 +311,10 @@ private struct SeasonEpisodesSheet: View {
                                 episode: episode,
                                 isSelecting: isSelecting,
                                 isSelected: selection.contains(episode.id),
-                                toggleSelection: { toggleSelection(episode) }
+                                toggleSelection: { toggleSelection(episode) },
+                                play: { play(episode) },
+                                downloadableID: downloadableID(episode),
+                                isDownloaded: isDownloaded(episode)
                             )
 
                             Divider()
@@ -330,6 +406,17 @@ private struct SeasonEpisodesSheet: View {
         }
     }
 
+    /// Lit un épisode s'il est lisible ; sinon le tap ne fait rien.
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode touché
+    private func play(_ episode: EpisodeRow) {
+        Task {
+            guard let provider = await viewModel.playbackProvider(for: episode) else { return }
+            onPlay(provider)
+        }
+    }
+
     private func exitSelection() {
         isSelecting = false
         selection = []
@@ -342,6 +429,10 @@ private struct EpisodeRowView: View {
     let isSelecting: Bool
     let isSelected: Bool
     let toggleSelection: () -> Void
+    let play: () -> Void
+    /// EnhancedFin : item à proposer au téléchargement (appui long), `nil` = pas de menu.
+    let downloadableID: String?
+    let isDownloaded: Bool
 
     /// « 24m », « 1h05 » : plus court que le format système (« 24 min »), la
     /// pastille tient dans le coin de la vignette.
@@ -391,10 +482,18 @@ private struct EpisodeRowView: View {
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
-        // Hors mode sélection, un tap ne fait rien : la lecture viendra avec source externe.
+        // Hors mode sélection, un tap lance l'épisode s'il est lisible (sinon rien).
         .onTapGesture {
-            if isSelecting { toggleSelection() }
+            if isSelecting { toggleSelection() } else { play() }
         }
+        #if os(iOS)
+        // EnhancedFin : appui long → télécharger, comme sur les affiches.
+        .contextMenu {
+            if let downloadableID, !isSelecting {
+                DownloadButton(item: BaseItemDto(id: downloadableID, type: .episode))
+            }
+        }
+        #endif
     }
 
     /// Vu : vignette atténuée et coche dans son coin. Sur la vignette et non en bout
@@ -412,6 +511,19 @@ private struct EpisodeRowView: View {
                         .accessibilityLabel(L10n.played)
                 }
             }
+            #if os(iOS)
+            // EnhancedFin : disponible hors connexion.
+            .overlay(alignment: .bottomLeading) {
+                if isDownloaded, !isSelecting {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.body)
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, .tint)
+                        .padding(4)
+                        .accessibilityLabel(DownloadStrings.downloaded)
+                }
+            }
+            #endif
             .overlay(alignment: .bottomTrailing) {
                 if let runtimeLabel {
                     Text(runtimeLabel)

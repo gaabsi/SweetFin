@@ -341,6 +341,14 @@ private struct BaseItemDtoPosterContextMenu: View {
             }
         }
 
+        // EnhancedFin : télécharger pour le hors-connexion (iPhone) — film ou épisode du
+        // serveur ; pas une série représentée par un épisode, ni une reprise externe.
+        #if os(iOS)
+        if !isSynthetic, !representsSeries, [.movie, .episode].contains(item.type), item.canBeDownloaded {
+            DownloadButton(item: item)
+        }
+        #endif
+
         if isInContinueWatching, hasMediaKey {
             Button(HomeStrings.hide, systemImage: "eye.slash") {
                 Task {
