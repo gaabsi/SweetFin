@@ -111,6 +111,12 @@ struct ItemActionButtons: View {
             // Films compris : le plugin enregistre la date de sortie d'un film au
             // calendrier, comme une série y enregistre ses épisodes.
             provider.item.enhancedFinMediaKey != nil
+        #if os(iOS)
+        case .download:
+            // V1 : un fichier = un film ou un épisode. Un item synthétique n'a pas de
+            // `canDownload`, donc pas de bouton.
+            provider.item.canBeDownloaded && [.movie, .episode].contains(provider.item.type)
+        #endif
         }
     }
 
@@ -168,6 +174,10 @@ struct ItemActionButtons: View {
             #endif
             case .enhancedFinRating, .enhancedFinWatchlist, .enhancedFinFollow:
                 EnhancedFinButton(button: button)
+            #if os(iOS)
+            case .download:
+                Download()
+            #endif
             }
         }
         .symbolRenderingMode(.monochrome)
@@ -219,17 +229,13 @@ extension ItemActionButtons {
         @StoredValue(.User.enabledTrailers)
         private var enabledTrailers: TrailerSelection
 
-        @Default(.Customization.itemBarActionButtons)
-        private var barActionButtons
-        @Default(.Customization.itemMenuActionButtons)
-        private var menuActionButtons
-
         func resolvedButtons(
             for provider: ItemContentGroupProvider
         ) -> (visible: [ItemActionButton], overflow: [ItemActionButton], menu: [ItemActionButton]) {
+            // EnhancedFin : listes imposées, les listes enregistrées par compte sont ignorées.
             ItemActionButtons.resolvedButtons(
-                bar: barActionButtons,
-                menu: menuActionButtons,
+                bar: ItemActionButton.barButtons,
+                menu: ItemActionButton.menuButtons,
                 for: provider,
                 enabledTrailers: enabledTrailers
             )

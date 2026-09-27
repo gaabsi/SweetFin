@@ -26,6 +26,9 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
     case enhancedFinRating
     case enhancedFinWatchlist
     case enhancedFinFollow
+    #if os(iOS)
+    case download
+    #endif
 
     var displayTitle: String {
         switch self {
@@ -53,6 +56,10 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             ExplorerStrings.watchlistButton
         case .enhancedFinFollow:
             ExplorerStrings.follow
+        #if os(iOS)
+        case .download:
+            DownloadStrings.download
+        #endif
         }
     }
 
@@ -86,6 +93,10 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             "bookmark.fill"
         case .enhancedFinFollow:
             "bell.fill"
+        #if os(iOS)
+        case .download:
+            "arrow.down.circle.fill"
+        #endif
         }
     }
 
@@ -99,6 +110,10 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             "bookmark"
         case .enhancedFinFollow:
             "bell"
+        #if os(iOS)
+        case .download:
+            "arrow.down.circle"
+        #endif
         default:
             systemImage
         }
@@ -116,32 +131,31 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             .teal
         case .enhancedFinFollow:
             .indigo
+        #if os(iOS)
+        case .download:
+            .green
+        #endif
         default:
             nil
         }
     }
 
-    // Fork : la note et la watchlist prennent la place des favoris et de la
-    // lecture dans la barre — ce sont les gestes du quotidien ici. Les autres
-    // restent accessibles par le menu, et l'ordre est modifiable dans les réglages.
-    static let defaultBarActionButtons: [ItemActionButton] = [
+    // EnhancedFin : les boutons de la fiche sont **imposés**, pas réglables (lus par
+    // `ItemActionButtons.Configuration`). Barre : les trois gestes du quotidien.
+    static let barButtons: [ItemActionButton] = [
         .enhancedFinRating,
         .enhancedFinWatchlist,
         .enhancedFinFollow,
     ]
 
-    // « Marquer comme vu » dans le menu : un geste ponctuel, qui n'a pas sa place
-    // à côté des trois gestes du quotidien.
-    static let defaultMenuActionButtons: [ItemActionButton] = [
-        .played,
-        .favorited,
-        .trailers,
-        .playback,
-        .refresh,
-        .subtitles,
-        .delete
-    ]
+    // EnhancedFin : menu « ⋯ » court — modifier, marquer comme vu, télécharger (le
+    // téléchargement n'existe que sur iPhone). Favoris, bandes-annonces, versions,
+    // actualiser, sous-titres et supprimer n'y sont plus.
+    static let menuButtons: [ItemActionButton] = {
         #if os(iOS)
-            .prepending(.editMetadata)
+        [.editMetadata, .played, .download]
+        #else
+        [.played]
         #endif
+    }()
 }

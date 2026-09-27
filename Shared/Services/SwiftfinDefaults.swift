@@ -114,14 +114,14 @@ extension Defaults.Keys {
         static var itemBarActionButtons: Key<[ItemActionButton]> {
             UserKey(
                 "itemBarActionButtons",
-                default: ItemActionButton.defaultBarActionButtons
+                default: ItemActionButton.barButtons
             )
         }
 
         static var itemMenuActionButtons: Key<[ItemActionButton]> {
             UserKey(
                 "itemMenuActionButtons",
-                default: ItemActionButton.defaultMenuActionButtons
+                default: ItemActionButton.menuButtons
             )
         }
 
