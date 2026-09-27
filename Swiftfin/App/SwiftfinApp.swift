@@ -13,6 +13,10 @@ import UIKit
 @main
 struct SwiftfinApp: App {
 
+    // EnhancedFin : relance par iOS pour les téléchargements terminés app fermée.
+    @UIApplicationDelegateAdaptor(DownloadAppDelegate.self)
+    private var downloadAppDelegate
+
     init() {
         Self.configure()
 
