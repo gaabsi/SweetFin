@@ -12,12 +12,6 @@ import SwiftUI
 struct CustomizeSettingsView: View {
 
     #if os(tvOS)
-    typealias PlatformPicker = ListRowMenu
-    #else
-    typealias PlatformPicker = Picker
-    #endif
-
-    #if os(tvOS)
     @Default(.Customization.tabBarPlacement)
     private var tabBarPlacement
     #endif
@@ -33,10 +27,6 @@ struct CustomizeSettingsView: View {
                 ListRowMenu(L10n.layout, selection: $tabBarPlacement)
             }
             #endif
-
-            ChevronButton(L10n.posters) {
-                router.route(to: .posterSettings)
-            }
 
             ChevronButton(L10n.videoPlayer) {
                 router.route(to: .playerSettings)

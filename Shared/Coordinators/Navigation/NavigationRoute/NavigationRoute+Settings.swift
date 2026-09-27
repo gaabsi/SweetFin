@@ -74,22 +74,6 @@ extension NavigationRoute {
         }
     }
 
-    static var posterSettings: NavigationRoute {
-        NavigationRoute(
-            id: "posterSettings"
-        ) {
-            CustomizeSettingsView.PosterSection()
-        }
-    }
-
-    static var indicatorSettings: NavigationRoute {
-        NavigationRoute(
-            id: "indicatorSettings"
-        ) {
-            IndicatorSettingsView()
-        }
-    }
-
     static func localUserSettings(user: UserDto) -> NavigationRoute {
         NavigationRoute(id: "localUserSettings") {
             LocalUserSettingsView(user: user)

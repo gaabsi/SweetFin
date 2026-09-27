@@ -11,9 +11,6 @@ import SwiftUI
 extension EnvironmentValues {
 
     @Entry
-    var posterConfiguration: PosterConfiguration = .default
-
-    @Entry
     var audioOffset: Binding<Duration> = .constant(.zero)
 
     @Entry
