@@ -59,20 +59,8 @@ struct AppSettingsView: View {
     var body: some View {
         Form(image: .jellyfinBlobBlue) {
 
-            Section(L10n.swiftfin) {
-                ChevronButton(L10n.aboutApp) {
-                    router.route(to: .aboutApp)
-                }
-            }
-
             #if os(iOS)
             Section(L10n.customize) {
-
-                ChevronButton(L10n.appIcon) {
-                    // TODO: Create NavigationRoute.appIconSelector
-                    router.route(to: .appIconSelector(viewModel: viewModel))
-                }
-
                 if !selectUserUseSplashscreen {
                     Picker(
                         L10n.appearance,
@@ -126,19 +114,6 @@ struct AppSettingsView: View {
             } footer: {
                 Text(L10n.signoutBackgroundFooter)
             }
-
-            // EnhancedFin : hors connexion, pas de notion d'admin, et les journaux sont
-            // communs à tout l'appareil. Réservés aux builds de debug ; une fois connecté,
-            // un admin les retrouve dans ses réglages (`SettingsView`).
-            #if DEBUG
-            ChevronButton(L10n.logs) {
-                router.route(to: .log)
-            }
-
-            ChevronButton("Debug") {
-                router.route(to: .debugSettings)
-            }
-            #endif
         }
         .animation(.linear, value: selectUserUseSplashscreen)
         .animation(.linear, value: signOutOnBackground)

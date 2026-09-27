@@ -146,20 +146,6 @@ extension StoredValues.Keys {
             )
         }
 
-        static var enabledTrailers: Key<TrailerSelection> {
-            CurrentUserKey(
-                field: "enabledTrailers",
-                default: .all
-            )
-        }
-
-        static var itemViewAttributes: Key<[ItemViewAttribute]> {
-            CurrentUserKey(
-                field: "itemViewAttributes",
-                default: ItemViewAttribute.allCases
-            )
-        }
-
         static var previewImageScrubbing: Key<PreviewImageScrubbingOption> {
             CurrentUserKey(
                 field: "previewImageScrubbing",

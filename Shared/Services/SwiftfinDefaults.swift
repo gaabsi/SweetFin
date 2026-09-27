@@ -111,52 +111,12 @@ extension Defaults.Keys {
             UserKey("mediaItemViewType", default: .enhanced)
         }
 
-        static var itemBarActionButtons: Key<[ItemActionButton]> {
-            UserKey(
-                "itemBarActionButtons",
-                default: ItemActionButton.barButtons
-            )
-        }
-
-        static var itemMenuActionButtons: Key<[ItemActionButton]> {
-            UserKey(
-                "itemMenuActionButtons",
-                default: ItemActionButton.menuButtons
-            )
-        }
-
-        static var nextUpPosterType: Key<PosterDisplayType> {
-            UserKey("nextUpPosterType", default: .portrait)
-        }
-
-        static var recentlyAddedPosterType: Key<PosterDisplayType> {
-            UserKey("recentlyAddedPosterType", default: .portrait)
-        }
-
-        static var latestInLibraryPosterType: Key<PosterDisplayType> {
-            UserKey("latestInLibraryPosterType", default: .portrait)
-        }
-
-        static var shouldShowRecommendations: Key<Bool> {
-            // Fork : les recommandations sont masquées par défaut.
-            UserKey("shouldShowRecommendations", default: false)
-        }
-
         static var shouldShowMissingSeasons: Key<Bool> {
             UserKey("shouldShowMissingSeasons", default: true)
         }
 
         static var shouldShowMissingEpisodes: Key<Bool> {
             UserKey("shouldShowMissingEpisodes", default: true)
-        }
-
-        static var similarPosterType: Key<PosterDisplayType> {
-            UserKey("similarPosterType", default: .portrait)
-        }
-
-        // TODO: have search poster type by types of items if applicable
-        static var searchPosterType: Key<PosterDisplayType> {
-            UserKey("searchPosterType", default: .portrait)
         }
 
         static var tabBarPlacement: Key<TabBarPlacement> {
@@ -274,10 +234,6 @@ extension Defaults.Keys {
 
         static var appMaximumBitrateTest: Key<PlaybackBitrateTestSize> {
             UserKey("appMaximumBitrateTest", default: .regular)
-        }
-
-        static var autoPlayEnabled: Key<Bool> {
-            UserKey("autoPlayEnabled", default: true)
         }
 
         static var barActionButtons: Key<[VideoPlayerActionButton]> {
@@ -420,12 +376,6 @@ extension Defaults.Keys {
 
         static var mpvPlayer: Key<Bool> {
             UserKey("experimentalMPVPlayer", default: false)
-        }
-
-        // TODO: don't use L10n key as key, just used to not
-        // lose translations
-        static var downloads: Key<Bool> {
-            UserKey(L10n.download, default: false)
         }
 
         static var serverConnectionAutoSwitch: Key<Bool> {

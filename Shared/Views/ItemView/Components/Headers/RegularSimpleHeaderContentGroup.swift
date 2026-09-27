@@ -25,9 +25,6 @@ extension ItemView {
             @ObservedObject
             var provider: ItemContentGroupProvider
 
-            @StoredValue(.User.itemViewAttributes)
-            private var attributes
-
             private var posterDisplayType: PosterDisplayType {
                 provider.item.type == .person ? .portrait : .landscape
             }
@@ -87,14 +84,6 @@ extension ItemView {
                             buttons
                                 .padding(.vertical)
                         }
-
-                        ItemView.AttributesHStack(
-                            attributes: attributes,
-                            item: provider.item,
-                            selectedMediaSource: provider.mediaPlayerItemProvider?.mediaSource,
-                            alignment: .leading
-                        )
-                        .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

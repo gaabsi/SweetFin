@@ -26,20 +26,6 @@ extension NavigationRoute {
         }
     }
 
-    static func itemActionBarButtonSelector(selectedButtonsBinding: Binding<[ItemActionButton]>) -> NavigationRoute {
-        NavigationRoute(id: "itemActionBarButtonSelector") {
-            OrderedSectionSelectorView(selection: selectedButtonsBinding, sources: ItemActionButton.allCases)
-                .navigationTitle(L10n.barButtons.localizedCapitalized)
-        }
-    }
-
-    static func itemActionMenuButtonSelector(selectedButtonsBinding: Binding<[ItemActionButton]>) -> NavigationRoute {
-        NavigationRoute(id: "itemActionMenuButtonSelector") {
-            OrderedSectionSelectorView(selection: selectedButtonsBinding, sources: ItemActionButton.allCases)
-                .navigationTitle(L10n.menuButtons.localizedCapitalized)
-        }
-    }
-
     static func supplementSelector(selectedSupplementsBinding: Binding<[VideoPlayerSupplement]>) -> NavigationRoute {
         NavigationRoute(id: "supplementSelector") {
             OrderedSectionSelectorView(
@@ -222,13 +208,6 @@ extension NavigationRoute {
         NavigationRoute(id: "itemFilterDrawerSelector") {
             OrderedSectionSelectorView(systemImage: "line.3.horizontal.decrease", selection: selection, sources: ItemFilterType.allCases)
                 .navigationTitle(L10n.filters)
-        }
-    }
-
-    static func itemViewAttributes(selection: Binding<[ItemViewAttribute]>) -> NavigationRoute {
-        NavigationRoute(id: "itemViewAttributes") {
-            OrderedSectionSelectorView(systemImage: "tag", selection: selection, sources: ItemViewAttribute.allCases)
-                .navigationTitle(L10n.mediaAttributes.localizedCapitalized)
         }
     }
 

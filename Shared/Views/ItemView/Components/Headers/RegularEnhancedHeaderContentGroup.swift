@@ -25,9 +25,6 @@ extension ItemView {
             @ObservedObject
             var provider: ItemContentGroupProvider
 
-            @StoredValue(.User.itemViewAttributes)
-            private var attributes
-
             private let headerAspectRatio = 2.0
 
             #if !os(tvOS)
@@ -98,17 +95,8 @@ extension ItemView {
                     VStack(alignment: .leading, spacing: 10) {
                         ItemView.Description(item: provider.item)
 
-                        HStack(alignment: .top) {
-                            ItemView.AttributesHStack(
-                                attributes: attributes,
-                                item: provider.item,
-                                selectedMediaSource: provider.mediaPlayerItemProvider?.mediaSource,
-                                alignment: .leading
-                            )
-
-                            MetadataHStack(item: provider.item)
-                        }
-                        .foregroundStyle(.secondary)
+                        MetadataHStack(item: provider.item)
+                            .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity)
                 }
