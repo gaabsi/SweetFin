@@ -90,16 +90,6 @@ extension NavigationRoute {
         }
     }
 
-    static var localUserSecurity: NavigationRoute {
-        NavigationRoute(
-            id: "localUserSecurity"
-        ) {
-            WithLocalUserAuthentication {
-                LocalUserSecurityView()
-            }
-        }
-    }
-
     static func localUserSettings(user: UserDto) -> NavigationRoute {
         NavigationRoute(id: "localUserSettings") {
             LocalUserSettingsView(user: user)

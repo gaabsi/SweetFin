@@ -416,17 +416,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         // laissés intacts pour que le rebase sur l'upstream reste indolore.
     }
 
-    func toggleIsFavorite() async {
-        let beforeIsFavorite = item.userData?.isFavorite ?? false
-
-        item.userData?.isFavorite = !beforeIsFavorite
-        do {
-            try await setIsFavorite(!beforeIsFavorite)
-        } catch {
-            item.userData?.isFavorite = beforeIsFavorite
-        }
-    }
-
     func toggleIsPlayed() async {
         let beforeIsPlayed = item.userData?.isPlayed ?? false
 
@@ -592,26 +581,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
         } else {
             try Paths.markUnplayedItem(
-                itemID: itemID,
-                userID: authenticatedUser.id
-            )
-        }
-
-        let response = try await send(request)
-        Notifications[.itemUserDataDidChange].post(response.value)
-        Notifications[.itemShouldRefreshMetadata].post(itemID)
-    }
-
-    private func setIsFavorite(_ isFavorite: Bool) async throws {
-        guard let itemID = item.id else { return }
-
-        let request: Request<UserItemDataDto> = if isFavorite {
-            try Paths.markFavoriteItem(
-                itemID: itemID,
-                userID: authenticatedUser.id
-            )
-        } else {
-            try Paths.unmarkFavoriteItem(
                 itemID: itemID,
                 userID: authenticatedUser.id
             )

@@ -43,7 +43,6 @@ extension CustomizeSettingsView {
             seriesName: L10n.preview,
             type: .episode,
             userData: .init(
-                isFavorite: true,
                 isPlayed: true,
                 key: "",
                 playbackPositionTicks: Duration.seconds(600).ticks,

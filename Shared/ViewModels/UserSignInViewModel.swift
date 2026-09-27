@@ -27,16 +27,7 @@ import SwiftUI
 @Stateful
 final class UserSignInViewModel: ObservableObject {
 
-    typealias AccessPolicyPair = (policy: LocalUserAccessPolicy, evaluated: any EvaluatedLocalUserAccessPolicy)
     typealias UserStateDataPair = (state: (state: UserState, accessToken: String), data: UserDto)
-
-    struct EvaluatedPolicyMap {
-        let action: (any EvaluatedLocalUserAccessPolicy) -> any EvaluatedLocalUserAccessPolicy
-
-        func callAsFunction(evaluatedPolicy: any EvaluatedLocalUserAccessPolicy) -> any EvaluatedLocalUserAccessPolicy {
-            action(evaluatedPolicy)
-        }
-    }
 
     @CasePathable
     enum Action {
@@ -46,17 +37,8 @@ final class UserSignInViewModel: ObservableObject {
         case signIn(username: String, password: String)
         case signInQuickConnect(secret: String)
 
-        case save(
-            user: UserStateDataPair,
-            authenticationAction: (action: LocalUserAuthenticationAction, accessPolicy: LocalUserAccessPolicy, reason: String?),
-            evaluatedPolicyMap: EvaluatedPolicyMap
-        )
-        case saveExisting(
-            user: UserStateDataPair,
-            replaceForAccessToken: Bool,
-            authenticationAction: (action: LocalUserAuthenticationAction, accessPolicy: LocalUserAccessPolicy, reason: String?),
-            evaluatedPolicyMap: EvaluatedPolicyMap
-        )
+        case save(user: UserStateDataPair)
+        case saveExisting(user: UserStateDataPair, replaceForAccessToken: Bool)
 
         var transition: Transition {
             switch self {
@@ -185,21 +167,7 @@ final class UserSignInViewModel: ObservableObject {
     }
 
     @Function(\Action.Cases.save)
-    private func _save(
-        _ user: UserStateDataPair,
-        _ authenticationAction: (action: LocalUserAuthenticationAction, accessPolicy: LocalUserAccessPolicy, reason: String?),
-        _ evaluatedPolicyMap: EvaluatedPolicyMap
-    ) async throws {
-
-        let accessPolicy = authenticationAction.accessPolicy
-
-        let evaluatedPolicy = try await evaluatedPolicyMap(
-            evaluatedPolicy: authenticationAction.action(
-                policy: accessPolicy,
-                reason: authenticationAction.reason
-            )
-        )
-
+    private func _save(_ user: UserStateDataPair) {
         let userState = user.state.state
 
         let savedUserState = userState
@@ -224,17 +192,8 @@ final class UserSignInViewModel: ObservableObject {
             StoredValues[.Server.servers] = servers
         }
 
-        savedUserState.accessPolicy = accessPolicy
         savedUserState.accessToken = user.state.accessToken
         savedUserState.data = user.data
-
-        if let evaluatedPinPolicy = evaluatedPolicy as? PinEvaluatedUserAccessPolicy {
-            if let pinHint = evaluatedPinPolicy.pinHint {
-                savedUserState.pinHint = pinHint
-            }
-
-            savedUserState.pin = evaluatedPinPolicy.pin
-        }
 
         events.send(.saved(savedUserState))
     }
@@ -242,26 +201,8 @@ final class UserSignInViewModel: ObservableObject {
     @Function(\Action.Cases.saveExisting)
     private func _saveExisting(
         _ user: UserStateDataPair,
-        _ replaceForAccessToken: Bool,
-        _ authenticationAction: (action: LocalUserAuthenticationAction, accessPolicy: LocalUserAccessPolicy, reason: String?),
-        _ evaluatedPolicyMap: EvaluatedPolicyMap
-    ) async throws {
-
-        let accessPolicy = authenticationAction.accessPolicy
-
-        let evaluatedPolicy = try await evaluatedPolicyMap(
-            evaluatedPolicy: authenticationAction.action(
-                policy: accessPolicy,
-                reason: authenticationAction.reason
-            )
-        )
-
-        if let evaluatedPinPolicy = evaluatedPolicy as? PinEvaluatedUserAccessPolicy {
-            guard user.state.state.pin == evaluatedPinPolicy.pin else {
-                throw ErrorMessage(L10n.incorrectPinForUser(user.state.state.username))
-            }
-        }
-
+        _ replaceForAccessToken: Bool
+    ) {
         if replaceForAccessToken {
             user.state.state.accessToken = user.state.accessToken
         }

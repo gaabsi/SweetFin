@@ -32,8 +32,6 @@ extension ItemTrait: Displayable {
             L10n.unplayed
         case .isPlayed:
             L10n.played
-        case .isFavorite:
-            L10n.favorites
         case .likes:
             L10n.likedItems
         default:
@@ -42,14 +40,3 @@ extension ItemTrait: Displayable {
     }
 }
 
-extension ItemTrait: SupportedCaseIterable {
-
-    static var supportedCases: [ItemTrait] {
-        [
-            .isUnplayed,
-            .isPlayed,
-            // EnhancedFin : pas de favoris dans le fork (`.isFavorite` retiré).
-            .likes,
-        ]
-    }
-}

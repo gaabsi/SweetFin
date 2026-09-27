@@ -66,15 +66,9 @@ private struct UserViewsRail: View {
         #endif
     }
 
-    /// Les bibliothèques réelles du serveur, et rien d'autre.
-    ///
-    /// ⚠️ `UserViewLibrary` ajoute une entrée **« Favoris »** qui n'est pas une
-    /// bibliothèque mais un filtre (`Customization.Library.showFavorites`, vrai par
-    /// défaut). Elle avait sa place dans l'ancien onglet Médias ; dans une section
-    /// intitulée « Mes médias », elle se fait passer pour une bibliothèque du serveur.
-    /// On la retire ici plutôt que dans `UserViewLibrary`, qui est un fichier upstream.
+    /// Les bibliothèques réelles du serveur.
     private var libraries: [UserViewLibraryElement] {
-        viewModel.elements.elements.filter { $0 != .favorites }
+        viewModel.elements.elements
     }
 
     var body: some View {

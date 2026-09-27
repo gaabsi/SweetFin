@@ -21,8 +21,6 @@ struct SelectUserView: View {
     @Default(.selectUserServerSelection)
     private var serverSelection
 
-    @Environment(\.localUserAuthenticationAction)
-    private var authenticationAction
     @Environment(\.horizontalSizeClass)
     private var horizontalSizeClass
 
@@ -109,24 +107,7 @@ struct SelectUserView: View {
     }
 
     private func select(user: UserState) {
-        Task { @MainActor in
-
-            do {
-                guard let authenticationAction else { return }
-
-                let evaluatedPolicy = try await authenticationAction(
-                    policy: user.accessPolicy,
-                    reason: user.accessPolicy.authenticateReason(user: user)
-                )
-                let pin = (evaluatedPolicy as? PinEvaluatedUserAccessPolicy)?.pin ?? ""
-
-                await viewModel.signIn(user, pin: pin)
-            } catch is CancellationError {
-                return
-            } catch {
-                await viewModel.error(error)
-            }
-        }
+        viewModel.signIn(user)
     }
 
     @ViewBuilder
