@@ -19,6 +19,8 @@ enum DownloadStrings {
     static let missingSource = "Aucun fichier à télécharger pour ce média."
     static let failed = "Échec du téléchargement"
 
+    static let offlineBanner = "Hors connexion — seuls tes téléchargements sont disponibles."
+
     static let emptyTitle = "Aucun téléchargement"
     static let emptyMessage = "Ouvre un film ou un épisode, puis ⋯ → Télécharger. Il restera lisible sans connexion."
 
