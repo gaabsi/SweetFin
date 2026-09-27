@@ -38,6 +38,9 @@ struct DownloadsView: View {
     @Injected(\.currentUserSession)
     private var userSession
 
+    @Router
+    private var router
+
     var body: some View {
         content
             .navigationTitle(DownloadStrings.downloads)
@@ -63,12 +66,21 @@ struct DownloadsView: View {
                         .foregroundStyle(.secondary)
 
                     ForEach(downloads) { download in
+                        let state = manager.state(of: download.id, userID: userID)
+
                         DownloadCard(
                             download: download,
-                            state: manager.state(of: download.id, userID: userID),
+                            state: state,
                             posterURL: manager.posterURL(of: download.id, userID: userID)
                         ) {
                             manager.remove(itemID: download.id, userID: userID)
+                        }
+                        // Tap = lecture, et rien d'autre : l'onglet sert hors connexion, où
+                        // une fiche n'aurait rien à afficher. Seul un fichier complet se lit.
+                        .contentShape(RoundedRectangle(cornerRadius: 12))
+                        .onTapGesture {
+                            guard state == .done else { return }
+                            router.route(to: .videoPlayer(provider: manager.playbackProvider(for: download, userID: userID)))
                         }
                     }
                 }
@@ -79,7 +91,8 @@ struct DownloadsView: View {
     }
 }
 
-/// Une carte : affiche, titre, taille ou état, et un menu pour supprimer.
+/// Une carte : affiche, titre, taille ou état, et un menu pour supprimer. Le tap (lecture)
+/// est posé par la liste.
 private struct DownloadCard: View {
 
     let download: DownloadedItem
