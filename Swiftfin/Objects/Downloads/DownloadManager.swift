@@ -80,6 +80,38 @@ final class DownloadManager: NSObject, ObservableObject {
         states[Self.key(userID, itemID)] ?? .none
     }
 
+    /// Téléchargements d'un compte — en cours, terminés ou en échec —, le plus récent
+    /// d'abord. Lu sur le disque : aucun réseau, donc disponible hors connexion.
+    ///
+    /// Parametres :
+    /// - userID (String) : compte dont on liste les téléchargements
+    ///
+    /// Output :
+    /// - downloads ([DownloadedItem]) : un élément par dossier d'item lisible
+    func downloads(of userID: String) -> [DownloadedItem] {
+        let folders = Self.subfolders(of: root.appending(path: userID, directoryHint: .isDirectory))
+        let creation: (URL) -> Date = { folder in
+            (try? folder.resourceValues(forKeys: [.creationDateKey]).creationDate) ?? .distantPast
+        }
+
+        return folders
+            .sorted { creation($0) > creation($1) }
+            .compactMap(Self.read)
+    }
+
+    /// Affiche enregistrée avec l'item, si elle a pu être téléchargée.
+    ///
+    /// Parametres :
+    /// - itemID (String) : item Jellyfin
+    /// - userID (String) : compte propriétaire du téléchargement
+    ///
+    /// Output :
+    /// - url (URL?) : fichier local de l'affiche, `nil` s'il n'existe pas
+    func posterURL(of itemID: String, userID: String) -> URL? {
+        let url = folder(Self.key(userID, itemID)).appending(path: Self.posterFileName)
+        return FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) ? url : nil
+    }
+
     // MARK: - Actions
 
     /// Lance le téléchargement du fichier original d'un item.
@@ -152,7 +184,7 @@ final class DownloadManager: NSObject, ObservableObject {
     private func restoreStates() {
         for key in Self.subfolders(of: root).flatMap({ user in Self.subfolders(of: user).map { "\(user.lastPathComponent)/\($0.lastPathComponent)" } }) {
             guard let downloaded = Self.read(folder(key)) else { continue }
-            let isComplete = FileManager.default.fileExists(atPath: folder(key).appending(path: downloaded.fileName).path())
+            let isComplete = FileManager.default.fileExists(atPath: folder(key).appending(path: downloaded.fileName).path(percentEncoded: false))
             states[key] = isComplete ? .done : .failed
         }
 

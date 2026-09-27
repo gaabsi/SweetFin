@@ -10,19 +10,31 @@ import Foundation
 
 enum DownloadStrings {
 
+    static let downloads = "Téléchargements"
     static let download = "Télécharger"
     static let downloaded = "Téléchargé"
     static let cancelDownload = "Annuler le téléchargement"
     static let deleteDownload = "Supprimer le téléchargement"
     static let retryDownload = "Réessayer le téléchargement"
     static let missingSource = "Aucun fichier à télécharger pour ce média."
+    static let failed = "Échec du téléchargement"
+
+    static let emptyTitle = "Aucun téléchargement"
+    static let emptyMessage = "Ouvre un film ou un épisode, puis ⋯ → Télécharger. Il restera lisible sans connexion."
+
+    static func size(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+
+    static func totalSize(_ bytes: Int64) -> String {
+        "\(size(bytes)) utilisés sur cet appareil"
+    }
 
     static func downloading(_ progress: Double) -> String {
         "Téléchargement \(Int(progress * 100)) %"
     }
 
     static func notEnoughSpace(needed: Int64, available: Int64) -> String {
-        let format: (Int64) -> String = { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) }
-        return "Pas assez d'espace : \(format(needed)) nécessaires, \(format(available)) disponibles."
+        "Pas assez d'espace : \(size(needed)) nécessaires, \(size(available)) disponibles."
     }
 }
