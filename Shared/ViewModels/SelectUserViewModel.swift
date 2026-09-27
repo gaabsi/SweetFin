@@ -20,7 +20,7 @@ final class SelectUserViewModel: ViewModel {
         case deleteUsers(Set<UserState>)
         case error
         case getServers
-        case signIn(UserState, pin: String)
+        case signIn(UserState)
 
         var transition: Transition {
             switch self {
@@ -81,13 +81,7 @@ final class SelectUserViewModel: ViewModel {
     }
 
     @Function(\Action.Cases.signIn)
-    private func _signIn(_ user: UserState, _ pin: String) throws {
-        if user.accessPolicy == .requirePin, let storedPin = keychain.get("\(user.id)-pin") {
-            guard pin == storedPin else {
-                throw ErrorMessage(L10n.incorrectPinForUser(user.username))
-            }
-        }
-
+    private func _signIn(_ user: UserState) {
         events.send(.signedIn(user))
     }
 }

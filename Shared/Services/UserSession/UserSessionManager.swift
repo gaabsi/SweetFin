@@ -133,10 +133,7 @@ final class UserSessionManager: ObservableObject {
     }
 
     @MainActor
-    func handleOpenURL(
-        _ url: URL,
-        authenticationAction: LocalUserAuthenticationAction
-    ) async {
+    func handleOpenURL(_ url: URL) async {
         guard let deepLink = DeepLink(url) else { return }
 
         do {
@@ -146,11 +143,6 @@ final class UserSessionManager: ObservableObject {
                 .user.id
 
             if !isSameUserSession {
-                try await authenticate(
-                    user: deepLinkSession.user,
-                    authenticationAction: authenticationAction
-                )
-
                 if hasActivePlayback {
                     await stopActivePlayback()
                 }
@@ -214,26 +206,6 @@ final class UserSessionManager: ObservableObject {
         }
 
         return (server, user)
-    }
-
-    private func authenticate(
-        user: UserState,
-        authenticationAction: LocalUserAuthenticationAction
-    ) async throws {
-        guard user.accessPolicy != .none else { return }
-
-        let evaluatedPolicy = try await authenticationAction(
-            policy: user.accessPolicy,
-            reason: user.accessPolicy.authenticateReason(user: user)
-        )
-
-        guard let pinPolicy = evaluatedPolicy as? PinEvaluatedUserAccessPolicy else { return }
-
-        if let storedPin = keychain.get("\(user.id)-pin") {
-            guard pinPolicy.pin == storedPin else {
-                throw ErrorMessage(L10n.incorrectPinForUser(user.username))
-            }
-        }
     }
 
     @MainActor

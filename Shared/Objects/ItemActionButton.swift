@@ -11,7 +11,6 @@ import SwiftUI
 enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiable, Storable, SystemImageable {
 
     case played
-    case favorited
     case playback
     case subtitles
     case refresh
@@ -33,8 +32,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         switch self {
         case .played:
             L10n.played
-        case .favorited:
-            L10n.favorited
         case .playback:
             L10n.playback
         case .refresh:
@@ -68,8 +65,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         switch self {
         case .played:
             "checkmark"
-        case .favorited:
-            "heart.fill"
         case .playback:
             "list.and.film"
         case .refresh:
@@ -97,8 +92,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
 
     var secondarySystemImage: String {
         switch self {
-        case .favorited:
-            "heart"
         case .enhancedFinRating:
             "heart"
         case .enhancedFinWatchlist:
@@ -118,8 +111,6 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         switch self {
         case .played:
             .jellyfinPurple
-        case .favorited:
-            .pink
         case .enhancedFinRating:
             .orange
         case .enhancedFinWatchlist:

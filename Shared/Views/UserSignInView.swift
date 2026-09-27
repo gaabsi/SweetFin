@@ -19,9 +19,6 @@ struct UserSignInView: View {
         case password
     }
 
-    @Environment(\.localUserAuthenticationAction)
-    private var authenticationAction
-
     @Injected(\.userSessionManager)
     private var userSessionManager: UserSessionManager
 
@@ -32,15 +29,11 @@ struct UserSignInView: View {
     private var router
 
     @State
-    private var accessPolicy: LocalUserAccessPolicy = .none
-    @State
     private var existingUser: UserSignInViewModel.UserStateDataPair? = nil
     @State
     private var isPresentingExistingUser: Bool = false
     @State
     private var password: String = ""
-    @State
-    private var pinHint: String = ""
     @State
     private var username: String = ""
 
@@ -54,19 +47,7 @@ struct UserSignInView: View {
     private func handleEvent(_ event: UserSignInViewModel._Event) {
         switch event {
         case let .connected(user):
-            guard let authenticationAction else { return }
-
-            viewModel.save(
-                user: user,
-                authenticationAction: (
-                    authenticationAction,
-                    accessPolicy,
-                    accessPolicy.createReason(
-                        user: user.state.state
-                    )
-                ),
-                evaluatedPolicyMap: .init(action: processEvaluatedPolicy)
-            )
+            viewModel.save(user: user)
         case let .existingUser(existingUser):
             self.existingUser = existingUser
             self.isPresentingExistingUser = true
@@ -81,19 +62,6 @@ struct UserSignInView: View {
                 }
             }
         }
-    }
-
-    private func processEvaluatedPolicy(
-        _ evaluatedPolicy: any EvaluatedLocalUserAccessPolicy
-    ) -> any EvaluatedLocalUserAccessPolicy {
-        if let pinPolicy = evaluatedPolicy as? PinEvaluatedUserAccessPolicy {
-            return PinEvaluatedUserAccessPolicy(
-                pin: pinPolicy.pin,
-                pinHint: pinHint
-            )
-        }
-
-        return evaluatedPolicy
     }
 
     @ViewBuilder
@@ -140,17 +108,6 @@ struct UserSignInView: View {
             .focused($focusedTextField, equals: .password)
         } header: {
             Text(L10n.signInToServer(viewModel.server.name))
-        } footer: {
-            switch accessPolicy {
-            case .requireDeviceAuthentication:
-                Label(L10n.userDeviceAuthRequiredDescription, systemImage: "exclamationmark.circle.fill")
-                    .labelStyle(.sectionFooterWithImage(imageStyle: .orange))
-            case .requirePin:
-                Label(L10n.userPinRequiredDescription, systemImage: "exclamationmark.circle.fill")
-                    .labelStyle(.sectionFooterWithImage(imageStyle: .orange))
-            case .none:
-                EmptyView()
-            }
         }
 
         if case .signingIn = viewModel.state {
@@ -306,15 +263,6 @@ struct UserSignInView: View {
             if viewModel.state == .signingIn || viewModel.background.is(.gettingPublicData) {
                 ProgressView()
             }
-
-            Button(L10n.security, systemImage: "gearshape.fill") {
-                router.route(
-                    to: .userSecurity(
-                        pinHint: $pinHint,
-                        accessPolicy: $accessPolicy
-                    )
-                )
-            }
         }
         #else
         SplitLoginWindowView(
@@ -345,37 +293,12 @@ struct UserSignInView: View {
                 presenting: existingUser
             ) { existingUser in
 
-                let userState = existingUser.state.state
-                let existingUserAccessPolicy = userState.accessPolicy
-
                 Button(L10n.signIn) {
-                    viewModel.saveExisting(
-                        user: existingUser,
-                        replaceForAccessToken: false,
-                        authenticationAction: (
-                            authenticationAction!,
-                            existingUserAccessPolicy,
-                            existingUserAccessPolicy.authenticateReason(
-                                user: userState
-                            )
-                        ),
-                        evaluatedPolicyMap: .init(action: processEvaluatedPolicy)
-                    )
+                    viewModel.saveExisting(user: existingUser, replaceForAccessToken: false)
                 }
 
                 Button(L10n.replace) {
-                    viewModel.saveExisting(
-                        user: existingUser,
-                        replaceForAccessToken: true,
-                        authenticationAction: (
-                            authenticationAction!,
-                            existingUserAccessPolicy,
-                            existingUserAccessPolicy.authenticateReason(
-                                user: userState
-                            )
-                        ),
-                        evaluatedPolicyMap: .init(action: processEvaluatedPolicy)
-                    )
+                    viewModel.saveExisting(user: existingUser, replaceForAccessToken: true)
                 }
 
                 Button(L10n.dismiss, role: .cancel) {}

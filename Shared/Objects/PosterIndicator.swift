@@ -10,12 +10,12 @@ struct PosterIndicator: OptionSet, Hashable, Storable {
 
     let rawValue: Int
 
-    static let favorited = Self(rawValue: 1 << 0)
+    // EnhancedFin : le bit 1 << 0 était « favori », supprimé (pas de favoris dans le fork).
     static let played = Self(rawValue: 1 << 1)
     static let progress = Self(rawValue: 1 << 2)
     static let unplayed = Self(rawValue: 1 << 3)
 
     static var all: Self {
-        [.favorited, .played, .progress, .unplayed]
+        [.played, .progress, .unplayed]
     }
 }

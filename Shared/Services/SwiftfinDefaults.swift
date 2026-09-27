@@ -116,10 +116,6 @@ extension Defaults.Keys {
                 UserKey("libraryCinematicBackground", default: true)
             }
 
-            static var showFavorites: Key<Bool> {
-                UserKey("libraryShowFavorites", default: true)
-            }
-
         }
 
         enum Home {

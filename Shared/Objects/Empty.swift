@@ -17,5 +17,3 @@ extension Empty: WithRefresh {
 
     func refresh() async {}
 }
-
-extension Empty: EvaluatedLocalUserAccessPolicy {}

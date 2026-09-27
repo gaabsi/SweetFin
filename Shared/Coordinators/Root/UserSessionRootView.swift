@@ -12,9 +12,6 @@ import SwiftUI
 
 struct UserSessionRootView: View {
 
-    @Environment(\.localUserAuthenticationAction)
-    private var authenticationAction
-
     @InjectedObject(\.userSessionManager)
     private var userSessionManager
 
@@ -39,13 +36,8 @@ struct UserSessionRootView: View {
             await userSessionManager.start()
         }
         .onOpenURL { url in
-            guard let authenticationAction else { return }
-
             Task {
-                await userSessionManager.handleOpenURL(
-                    url,
-                    authenticationAction: authenticationAction
-                )
+                await userSessionManager.handleOpenURL(url)
             }
         }
     }

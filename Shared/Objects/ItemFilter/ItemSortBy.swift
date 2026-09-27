@@ -9,7 +9,7 @@
 import Foundation
 import JellyfinAPI
 
-extension ItemSortBy: Displayable, SupportedCaseIterable {
+extension ItemSortBy: Displayable {
 
     var displayTitle: String {
         switch self {
@@ -76,57 +76,6 @@ extension ItemSortBy: Displayable, SupportedCaseIterable {
         }
     }
 
-    /// All `ItemSortBy` cases supported in Swiftfin
-    /// - This is the order displayed in `FilterView`s so order matters!
-    static var supportedCases: [ItemSortBy] {
-        [
-            // Generic
-            .name,
-            .random,
-            .sortName,
-
-            // Dates
-            .airTime,
-            .dateCreated,
-            .dateLastContentAdded,
-            .datePlayed,
-            .premiereDate,
-            .startDate,
-
-            // Ratings
-            .communityRating,
-            .criticRating,
-            .officialRating,
-
-            // Year
-            .productionYear,
-
-            // Episode / Series
-            .airedEpisodeOrder,
-            .indexNumber,
-            .parentIndexNumber,
-            .seriesSortName,
-
-            // Music
-            .album,
-            .albumArtist,
-            .artist,
-
-            // Status
-            // EnhancedFin : pas de favoris dans le fork (`.isFavoriteOrLiked` retiré).
-            .isFolder,
-            .isPlayed,
-            .isUnplayed,
-
-            // Stats
-            .playCount,
-            .runtime,
-            .videoBitRate,
-
-            // Other
-            .studio
-        ]
-    }
 }
 
 extension ItemSortBy: ItemFilter {

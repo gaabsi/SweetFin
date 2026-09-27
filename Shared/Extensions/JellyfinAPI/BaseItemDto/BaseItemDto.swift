@@ -518,16 +518,6 @@ extension BaseItemDto {
         }
     }
 
-    /// Can this `BaseItemDto` be favorited
-    var canBeFavorited: Bool {
-        switch type {
-        case .program, .liveTvProgram, .tvProgram:
-            false
-        default:
-            true
-        }
-    }
-
     /// Can this `BaseItemDto` be mark as played
     var canBePlayed: Bool {
         switch type {

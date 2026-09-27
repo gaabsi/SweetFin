@@ -6,7 +6,6 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import FactoryKit
 import JellyfinAPI
 import SwiftUI
@@ -51,13 +50,11 @@ struct UserViewLibrary: PagingLibrary {
             .map(UserViewLibraryElement.userView)
 
         return elements
-            .prepending(.favorites, if: Defaults[.Customization.Library.showFavorites])
     }
 }
 
 enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement, SystemImageable {
 
-    case favorites
     case userView(BaseItemDto)
 
     static var supportedLibraryStyleOptions: LibraryStyleOptions {
@@ -66,8 +63,6 @@ enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement
 
     var displayTitle: String {
         switch self {
-        case .favorites:
-            L10n.favorites
         case let .userView(item):
             item.displayTitle
         }
@@ -75,8 +70,6 @@ enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement
 
     var id: String {
         switch self {
-        case .favorites:
-            "favorites"
         case let .userView(item):
             item.id ?? item.displayTitle
         }
@@ -84,8 +77,6 @@ enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement
 
     var systemImage: String {
         switch self {
-        case .favorites:
-            "heart.fill"
         case let .userView(item):
             if item.collectionType == .livetv {
                 "tv"
@@ -100,28 +91,6 @@ enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement
         in namespace: Namespace.ID
     ) {
         switch self {
-        case .favorites:
-            router.route(
-                to: .contentGroup(
-                    provider: ItemTypeContentGroupProvider(
-                        itemTypes: [
-                            BaseItemKind.movie,
-                            .series,
-                            .boxSet,
-                            .episode,
-                            .musicVideo,
-                            .video,
-                            .liveTvProgram,
-                            .tvChannel,
-                            .musicArtist,
-                            .person,
-                        ],
-                        parent: .init(name: L10n.favorites),
-                        environment: .init(filters: .favorites)
-                    )
-                ),
-                in: namespace
-            )
         case let .userView(item):
             if item.collectionType == .livetv {
                 router.route(to: .liveTV, in: namespace)
@@ -160,12 +129,7 @@ private struct UserViewLibraryGridElement: View {
     let element: UserViewLibraryElement
 
     private var isTitleLabelVisible: Bool {
-        switch element {
-        case .favorites:
-            true
-        case .userView:
-            useRandomImage
-        }
+        useRandomImage
     }
 
     var body: some View {
@@ -238,8 +202,6 @@ private extension UserViewLibraryElement {
         }
 
         switch self {
-        case .favorites:
-            return []
         case let .userView(item):
             return [item.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 500))]
         }
@@ -252,12 +214,9 @@ private extension UserViewLibraryElement {
         }
 
         var parentID: String?
-        var filters: [ItemTrait]?
         var includeItemTypes: [BaseItemKind] = BaseItemKind.supportedCases
 
         switch self {
-        case .favorites:
-            filters = [.isFavorite]
         case let .userView(item):
             if item.collectionType == .livetv {
                 includeItemTypes = [.tvProgram, .liveTvProgram]
@@ -267,7 +226,6 @@ private extension UserViewLibraryElement {
         }
 
         var parameters = Paths.GetItemsParameters()
-        parameters.filters = filters
         parameters.includeItemTypes = includeItemTypes
         parameters.isRecursive = true
         parameters.limit = 3

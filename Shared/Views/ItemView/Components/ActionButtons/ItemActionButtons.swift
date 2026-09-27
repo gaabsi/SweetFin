@@ -71,10 +71,6 @@ struct ItemActionButtons: View {
             // (voir `ItemContentGroupProvider.setIsPlayed`).
             provider.item.canBePlayed
                 || (EnhancedFinSyntheticItem.isSynthetic(provider.item.id) && provider.item.type == .movie)
-        case .favorited:
-            // EnhancedFin : pas de favoris dans le fork, quel que soit le réglage
-            // enregistré du compte.
-            false
         case .playback:
             provider.item.presentPlayButton && provider.mediaPlayerItemProvider?.mediaSource != nil
         case .refresh:
@@ -134,8 +130,6 @@ struct ItemActionButtons: View {
             switch button {
             case .played:
                 Played()
-            case .favorited:
-                Favorited()
             case .playback:
                 Playback()
             case .refresh:

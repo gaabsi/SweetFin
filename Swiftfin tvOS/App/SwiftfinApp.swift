@@ -20,9 +20,7 @@ struct SwiftfinApp: App {
     var body: some Scene {
         WindowGroup {
             OverlayToastView {
-                WithLocalUserAuthentication {
-                    RootView()
-                }
+                RootView()
             }
         }
     }

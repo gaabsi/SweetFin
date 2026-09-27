@@ -29,24 +29,9 @@ struct ItemFilterCollection: Hashable, Storable {
     /// The default collection of filters
     static let `default`: ItemFilterCollection = .init()
 
-    static let favorites: ItemFilterCollection = .init(
-        traits: [ItemTrait.isFavorite]
-    )
     static let recent: ItemFilterCollection = .init(
         sortBy: [ItemSortBy.dateCreated],
         sortOrder: [ItemSortOrder.descending]
-    )
-
-    /// A collection that has all statically available values.
-    ///
-    /// These may be altered when used to better represent all
-    /// available values within the current context.
-    static let all: ItemFilterCollection = .init(
-        categories: ChannelCategory.allCases,
-        letter: ItemLetter.allCases,
-        sortBy: ItemSortBy.supportedCases,
-        sortOrder: ItemSortOrder.allCases,
-        traits: ItemTrait.supportedCases
     )
 
     var isNotEmpty: Bool {

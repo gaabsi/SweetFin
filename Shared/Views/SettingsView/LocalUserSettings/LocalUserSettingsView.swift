@@ -70,12 +70,6 @@ struct LocalUserSettingsView: View {
             }
             #endif
 
-            Section {
-                ChevronButton(L10n.security) {
-                    router.route(to: .localUserSecurity)
-                }
-            }
-
             // TODO: Disabled as stored values and defaults
             // settings need to be migrated to final destinations
 //            StateAdapter(initialValue: false) { isPresented in

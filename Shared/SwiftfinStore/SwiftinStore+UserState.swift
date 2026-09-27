@@ -51,37 +51,6 @@ extension UserState {
         }
     }
 
-    var pin: String {
-        get {
-            guard let pin = Container.shared.keychainService().get("\(id)-pin") else {
-                assertionFailure("pin missing in keychain")
-                return ""
-            }
-
-            return pin
-        }
-        nonmutating set {
-            Container.shared.keychainService().set(newValue, forKey: "\(id)-pin")
-        }
-    }
-
-    var pinHint: String {
-        get {
-            StoredValues[.User.pinHint(id: id)]
-        }
-        nonmutating set {
-            StoredValues[.User.pinHint(id: id)] = newValue
-        }
-    }
-
-    var accessPolicy: LocalUserAccessPolicy {
-        get {
-            StoredValues[.User.accessPolicy(id: id)]
-        }
-        nonmutating set {
-            StoredValues[.User.accessPolicy(id: id)] = newValue
-        }
-    }
 }
 
 extension UserState {
