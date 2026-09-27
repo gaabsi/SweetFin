@@ -382,6 +382,20 @@ struct EnhancedFinPlayable: Decodable, Hashable {
     let itemId: String?
 }
 
+/// Réponse de `GET /media/{mediaKey}/seasons/{season}/playable` : seuls les épisodes
+/// lisibles y figurent, chacun avec l'item à lancer.
+struct EnhancedFinPlayableSeason: Decodable, Hashable {
+
+    struct Episode: Decodable, Hashable {
+
+        let episode: Int
+        let itemId: String
+    }
+
+    let season: Int
+    let episodes: [Episode]
+}
+
 /// Réponse de `GET /media/{mediaKey}`.
 ///
 /// `genres` porte les **identifiants TMDB numériques**, `genreNames` les libellés,

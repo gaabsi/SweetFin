@@ -123,6 +123,18 @@ final class EnhancedFinClient {
         )
     }
 
+    /// Les épisodes lisibles d'une saison, en une requête — `GET media/{key}/seasons/{n}/playable`.
+    ///
+    /// Le serveur seul décide de ce qui est lisible : un épisode absent de la réponse
+    /// ne l'est pas.
+    ///
+    /// - Parameters:
+    ///   - mediaKey: clé de la série.
+    ///   - season: numéro de saison.
+    func playableEpisodes(_ mediaKey: String, season: Int) async throws -> EnhancedFinPlayableSeason {
+        try await send(Request(path: "media/\(escaped(mediaKey))/seasons/\(season)/playable"))
+    }
+
     // MARK: - Personne
 
     /// Filmographie complète d'une personne, sur le serveur ou non.

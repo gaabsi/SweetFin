@@ -7,81 +7,95 @@
 //
 
 import FactoryKit
+import JellyfinAPI
 import SwiftUI
 
 extension ItemActionButtons {
 
-    /// EnhancedFin : télécharger l'item pour le lire hors connexion.
-    ///
-    /// Vit dans le menu « ⋯ » de la fiche : un seul emplacement, quatre états — absent
-    /// (télécharger), en cours (pourcentage, sous-menu pour annuler), terminé (sous-menu
-    /// pour supprimer), échec (sous-menu pour réessayer ou supprimer). Un menu n'affiche
-    /// que du texte et des symboles système : pas d'anneau de progression ici.
+    /// EnhancedFin : le téléchargement dans le menu « ⋯ » de la fiche.
     struct Download: View {
 
         @EnvironmentObject
         private var provider: ItemContentGroupProvider
-        @EnvironmentObject
-        private var toastProxy: ToastProxy
-
-        @ObservedObject
-        private var manager = Container.shared.downloadManager()
-
-        @Injected(\.currentUserSession)
-        private var userSession
 
         var body: some View {
-            if let itemID = provider.item.id, let userSession {
-                switch manager.state(of: itemID, userID: userSession.user.id) {
-                case .none:
-                    Button(DownloadStrings.download, systemImage: ItemActionButton.download.secondarySystemImage) {
+            DownloadButton(item: provider.item)
+        }
+    }
+}
+
+/// EnhancedFin : télécharger un item pour le lire hors connexion, depuis n'importe quel
+/// menu (« ⋯ » de la fiche, appui long sur un épisode ou une affiche).
+///
+/// Un seul emplacement, quatre états — absent (télécharger), en cours (pourcentage,
+/// sous-menu pour annuler), terminé (sous-menu pour supprimer), échec (sous-menu pour
+/// réessayer ou supprimer). Un menu n'affiche que du texte et des symboles système :
+/// pas d'anneau de progression ici. L'item peut n'avoir que son identifiant :
+/// `DownloadManager.start` recharge la fiche complète.
+struct DownloadButton: View {
+
+    let item: BaseItemDto
+
+    @EnvironmentObject
+    private var toastProxy: ToastProxy
+
+    @ObservedObject
+    private var manager = Container.shared.downloadManager()
+
+    @Injected(\.currentUserSession)
+    private var userSession
+
+    var body: some View {
+        if let itemID = item.id, let userSession {
+            switch manager.state(of: itemID, userID: userSession.user.id) {
+            case .none:
+                Button(DownloadStrings.download, systemImage: ItemActionButton.download.secondarySystemImage) {
+                    start(userSession: userSession)
+                }
+            case let .downloading(progress):
+                Menu {
+                    removeButton(DownloadStrings.cancelDownload, itemID: itemID, userID: userSession.user.id)
+                } label: {
+                    Label(DownloadStrings.downloading(progress), systemImage: "arrow.down.circle.dotted")
+                }
+            case .done:
+                Menu {
+                    removeButton(DownloadStrings.deleteDownload, itemID: itemID, userID: userSession.user.id)
+                } label: {
+                    Label(DownloadStrings.downloaded, systemImage: ItemActionButton.download.systemImage)
+                }
+                .isSelected(true)
+            case .failed:
+                Menu {
+                    Button(DownloadStrings.retryDownload, systemImage: "arrow.clockwise") {
                         start(userSession: userSession)
                     }
-                case let .downloading(progress):
-                    Menu {
-                        removeButton(DownloadStrings.cancelDownload, itemID: itemID, userID: userSession.user.id)
-                    } label: {
-                        Label(DownloadStrings.downloading(progress), systemImage: "arrow.down.circle.dotted")
-                    }
-                case .done:
-                    Menu {
-                        removeButton(DownloadStrings.deleteDownload, itemID: itemID, userID: userSession.user.id)
-                    } label: {
-                        Label(DownloadStrings.downloaded, systemImage: ItemActionButton.download.systemImage)
-                    }
-                    .isSelected(true)
-                case .failed:
-                    Menu {
-                        Button(DownloadStrings.retryDownload, systemImage: "arrow.clockwise") {
-                            start(userSession: userSession)
-                        }
-                        removeButton(DownloadStrings.deleteDownload, itemID: itemID, userID: userSession.user.id)
-                    } label: {
-                        Label(DownloadStrings.retryDownload, systemImage: "exclamationmark.arrow.circlepath")
-                    }
+                    removeButton(DownloadStrings.deleteDownload, itemID: itemID, userID: userSession.user.id)
+                } label: {
+                    Label(DownloadStrings.retryDownload, systemImage: "exclamationmark.arrow.circlepath")
                 }
             }
         }
+    }
 
-        /// Lance le téléchargement ; une erreur (espace insuffisant, source absente)
-        /// s'affiche en toast, rien n'est lancé.
-        ///
-        /// Parametres :
-        /// - userSession (UserSession) : compte connecté
-        private func start(userSession: UserSession) {
-            Task {
-                do {
-                    try await manager.start(provider.item, userSession: userSession)
-                } catch {
-                    toastProxy.present(error.localizedDescription, systemName: "exclamationmark.triangle")
-                }
+    /// Lance le téléchargement ; une erreur (espace insuffisant, source absente)
+    /// s'affiche en toast, rien n'est lancé.
+    ///
+    /// Parametres :
+    /// - userSession (UserSession) : compte connecté
+    private func start(userSession: UserSession) {
+        Task {
+            do {
+                try await manager.start(item, userSession: userSession)
+            } catch {
+                toastProxy.present(error.localizedDescription, systemName: "exclamationmark.triangle")
             }
         }
+    }
 
-        private func removeButton(_ title: String, itemID: String, userID: String) -> some View {
-            Button(title, systemImage: "trash", role: .destructive) {
-                manager.remove(itemID: itemID, userID: userID)
-            }
+    private func removeButton(_ title: String, itemID: String, userID: String) -> some View {
+        Button(title, systemImage: "trash", role: .destructive) {
+            manager.remove(itemID: itemID, userID: userID)
         }
     }
 }
