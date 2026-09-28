@@ -216,15 +216,6 @@ extension NavigationRoute {
         }
     }
 
-    static func userLiveTVAccess(viewModel: ServerUserAdminViewModel) -> NavigationRoute {
-        NavigationRoute(
-            id: "userLiveTVAccess",
-            style: .sheet
-        ) {
-            ServerUserLiveTVAccessView(viewModel: viewModel)
-        }
-    }
-
     static func userMediaAccess(viewModel: ServerUserAdminViewModel) -> NavigationRoute {
         NavigationRoute(
             id: "userMediaAccess",

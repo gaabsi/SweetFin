@@ -100,10 +100,6 @@ struct ServerUserDetailsView: View {
                     router.route(to: .userDeviceAccess(viewModel: viewModel))
                 }
 
-                ChevronButton(L10n.liveTV) {
-                    router.route(to: .userLiveTVAccess(viewModel: viewModel))
-                }
-
                 ChevronButton(L10n.media) {
                     router.route(to: .userMediaAccess(viewModel: viewModel))
                 }
