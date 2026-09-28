@@ -28,7 +28,6 @@ struct AppPermission: CaseIterable, Displayable, Identifiable, Hashable {
     }
 
     static let allCases: [AppPermission] = [
-        .deviceAuthentication,
         .location,
     ]
 
