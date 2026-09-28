@@ -168,7 +168,7 @@ struct SweetFinPlaybackControls: View {
     // MARK: - Bas
 
     private var buttonRow: some View {
-        HStack(spacing: 28) {
+        HStack(spacing: 20) {
             if let queue = manager.queue {
                 QueueButton(queue: queue, direction: .previous)
             }
@@ -200,9 +200,9 @@ struct SweetFinPlaybackControls: View {
             }
         }
         .labelStyle(.iconOnly)
-        // Symboles pleins, comme le lecteur natif, mais petits : en `.title2` ils
-        // étaient massifs, et leurs contours (`backward`, `play`…) sonnent faux.
-        .font(.title3)
+        // Symboles pleins, petits (`.body`) : la pause seule est grande, comme ElegantFin
+        // (×2 sur le web). ❌ Contours (`backward`, `play`…) : ils sonnent faux.
+        .font(.body)
         .foregroundStyle(.white)
         .buttonStyle(.plain)
         .edgePadding(.horizontal)
@@ -227,8 +227,8 @@ struct SweetFinPlaybackControls: View {
                 Label(L10n.play, systemImage: "play.fill")
             }
         }
-        // Un cran au-dessus des autres : c'est le repère de la rangée.
-        .font(.title2)
+        // Nettement au-dessus des autres : c'est le repère de la rangée.
+        .font(.title)
         .frame(width: 44)
     }
 
@@ -388,7 +388,7 @@ private struct SettingsMenu: View {
             // (activer ou couper les sous-titres).
             .disabled(playbackItem.subtitleStreams.isEmpty)
         } label: {
-            Label(PlayerStrings.settings, systemImage: "gearshape.fill")
+            Label(PlayerStrings.settings, systemImage: "gearshape")
         }
     }
 }
