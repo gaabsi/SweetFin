@@ -7,6 +7,6 @@
 //
 
 DEVELOPMENT_TEAM = 
-PRODUCT_BUNDLE_IDENTIFIER = org.jellyfin.swiftfin
+PRODUCT_BUNDLE_IDENTIFIER = com.gaabsi.sweetfin
 
 #include? "DevelopmentTeam.xcconfig"

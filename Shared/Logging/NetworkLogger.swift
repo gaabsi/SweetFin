@@ -10,7 +10,7 @@ import Foundation
 import JellyfinAPI
 import Pulse
 
-private let redactedMessage = "<Redacted by Swiftfin>"
+private let redactedMessage = "<Redacted by SweetFin>"
 
 extension NetworkLogger {
 

@@ -62,11 +62,11 @@ extension SwiftfinStore {
 
     private static let storage: SQLiteStore = {
         SQLiteStore(
-            fileName: "Swiftfin.sqlite"
+            fileName: "SweetFin.sqlite"
         )
     }()
 
-    private static let appOwnerID = "swiftfinApp"
+    private static let appOwnerID = "sweetfinApp"
 
     static func setupDataStack() async throws {
         var migrationTypes = try dataStack.requiredMigrationsForStorage(storage)
