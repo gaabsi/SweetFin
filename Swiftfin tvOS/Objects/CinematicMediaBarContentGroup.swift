@@ -9,7 +9,7 @@
 import JellyfinAPI
 import SwiftUI
 
-/// EnhancedFin : la media bar de tvOS, en vitrine.
+/// SweetFin : la media bar de tvOS, en vitrine.
 ///
 /// Même contenu que sur iOS (``RandomItemsLibrary`` : le tirage de films et séries non
 /// vus, avec logo et fond), un média à la fois dans une carte bordée : fond, logo,

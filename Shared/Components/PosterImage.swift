@@ -82,7 +82,7 @@ struct PosterImage<Element: Poster>: View {
             displayType,
             contentMode: contentMode
         )
-        // EnhancedFin : voir `EnvironmentValues.isPersonPoster`.
+        // SweetFin : voir `EnvironmentValues.isPersonPoster`.
         .environment(\.isPersonPoster, element is BaseItemPerson)
     }
 }

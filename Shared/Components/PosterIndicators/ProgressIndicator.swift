@@ -14,7 +14,7 @@ struct ProgressIndicator: View {
     @Default(.accentColor)
     private var accentColor
 
-    // EnhancedFin : optionnel — `nil` ne garde que la barre (rail de reprise).
+    // SweetFin : optionnel — `nil` ne garde que la barre (rail de reprise).
     let title: String?
     let progress: Double
     let posterDisplayType: PosterDisplayType

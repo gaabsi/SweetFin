@@ -9,7 +9,7 @@
 import CoreStore
 import Foundation
 
-extension SwiftfinStore.V1 {
+extension SweetFinStore.V1 {
 
     static let schema = CoreStoreSchema(
         modelVersion: "V1",

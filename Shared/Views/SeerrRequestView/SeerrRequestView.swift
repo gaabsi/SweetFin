@@ -9,7 +9,7 @@
 import FactoryKit
 import SwiftUI
 
-/// EnhancedFin : la fenêtre « Demander sur Seerr », ouverte depuis le menu « … » d'une
+/// SweetFin : la fenêtre « Demander sur Seerr », ouverte depuis le menu « … » d'une
 /// fiche incomplète ou de découverte (`EnhancedFinMedia.canRequestOnSeerr`).
 ///
 /// Reprise de la modale de media-rating (`detail_page.js`, `_open_season_picker` /

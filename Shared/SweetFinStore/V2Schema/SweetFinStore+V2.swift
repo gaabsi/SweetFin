@@ -11,7 +11,7 @@ import Foundation
 
 // TODO: complete and make migration
 
-extension SwiftfinStore.V2 {
+extension SweetFinStore.V2 {
 
     static let schema = CoreStoreSchema(
         modelVersion: "V2",

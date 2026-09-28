@@ -303,8 +303,8 @@ extension VideoPlayer {
         }
 
         private var dismissedSupplementContainerOffset: CGFloat {
-            // EnhancedFin : sur iOS, plus d'onglets « Info / Épisodes » sous la barre
-            // (l'icône pile de `EnhancedFinPlaybackControls` les ouvre) ; on ne garde
+            // SweetFin : sur iOS, plus d'onglets « Info / Épisodes » sous la barre
+            // (l'icône pile de `SweetFinPlaybackControls` les ouvre) ; on ne garde
             // que la marge du bas.
             UIDevice.isTV ? 120 : EdgeInsets.edgePadding * 2
         }
@@ -644,7 +644,7 @@ extension VideoPlayer {
                 NSLayoutConstraint.activate(playerRegularConstraints)
             }
 
-            // EnhancedFin : donner sa taille à la vue du lecteur tout de suite. Ajoutée en (0, 0),
+            // SweetFin : donner sa taille à la vue du lecteur tout de suite. Ajoutée en (0, 0),
             // son contenu SwiftUI (`VideoView`, qui lance VLC) n'apparaissait qu'au prochain
             // changement d'état — le masquage de l'interface, 5 s plus tard, ou jamais si on
             // touchait l'écran.

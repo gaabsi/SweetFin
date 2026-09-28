@@ -12,7 +12,7 @@ import SwiftUI
 
 struct PosterButton<Item: Poster>: View {
 
-    // EnhancedFin : l'alignement du libellé est un token de thème.
+    // SweetFin : l'alignement du libellé est un token de thème.
     @Default(.appearance)
     private var appearance
 
@@ -42,7 +42,7 @@ struct PosterButton<Item: Poster>: View {
         self.action = action
     }
 
-    // EnhancedFin : même règle que `PosterCornerRadiusModifier` (casting en ronds).
+    // SweetFin : même règle que `PosterCornerRadiusModifier` (casting en ronds).
     private var isCirclePerson: Bool {
         item is BaseItemPerson && displayType == .square && appearance.tokens.personPosterShape == .circle
     }
@@ -73,7 +73,7 @@ struct PosterButton<Item: Poster>: View {
 
     @ViewBuilder
     private func buttonLabel(overlay: some View = EmptyView()) -> some View {
-        // EnhancedFin : alignement décidé par le thème, voir `ThemeTokens`.
+        // SweetFin : alignement décidé par le thème, voir `ThemeTokens`.
         VStack(alignment: appearance.tokens.posterLabelAlignment) {
             posterImage(overlay: overlay)
 
@@ -101,7 +101,7 @@ struct PosterButton<Item: Poster>: View {
         .environment(\.posterDisplayType, displayType)
         .foregroundStyle(.primary, .secondary)
         .buttonStyle(.borderless)
-        // EnhancedFin : sur tvOS, le style de bouton découpe l'image à sa forme et
+        // SweetFin : sur tvOS, le style de bouton découpe l'image à sa forme et
         // écrasait le rond du casting (`ThemeTokens.personPosterShape`).
         .buttonBorderShape(isCirclePerson ? .circle : .roundedRectangle)
         #if os(tvOS)

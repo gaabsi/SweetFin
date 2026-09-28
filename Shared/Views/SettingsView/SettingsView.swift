@@ -18,7 +18,7 @@ struct SettingsView: View {
     private var appearance
     #endif
 
-    // EnhancedFin : l'accent **résolu**, posé par le thème. Lecture seule — il n'est
+    // SweetFin : l'accent **résolu**, posé par le thème. Lecture seule — il n'est
     // plus réglable, voir `RootCoordinator.applyAccentColor`.
     @Default(.accentColor)
     private var accentColor
@@ -125,7 +125,7 @@ struct SettingsView: View {
             #endif
 
             ChevronButton(L10n.advanced) {
-                // EnhancedFin : l'écran Avancé du fork sur iOS ; tvOS garde celui
+                // SweetFin : l'écran Avancé du fork sur iOS ; tvOS garde celui
                 // d'upstream tant qu'il n'est pas porté.
                 #if os(iOS)
                 router.route(to: .advancedSettings)
@@ -142,7 +142,7 @@ struct SettingsView: View {
 
     // MARK: - Diagnostics Section
 
-    /// EnhancedFin : les journaux contiennent les en-têtes des requêtes, donc les
+    /// SweetFin : les journaux contiennent les en-têtes des requêtes, donc les
     /// jetons d'authentification. Rien de tout ça pour un compte non administrateur.
     private var isAdministrator: Bool {
         viewModel.userSession?.user.data.policy?.isAdministrator == true

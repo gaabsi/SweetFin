@@ -174,14 +174,14 @@ extension EnhancedFinLibraryLinkable {
 
 /// Titre et sous-titre sous une affiche.
 ///
-/// Reprend la hiérarchie visuelle du libellé natif de Swiftfin (`footnote` pour
+/// Reprend la hiérarchie visuelle du libellé natif d'upstream (`footnote` pour
 /// le titre, `caption` secondaire pour le détail), que l'on ne peut pas réutiliser
 /// directement : il est `private` dans l'extension `BaseItemDto`.
 ///
 /// `reservesSpace` garde une hauteur constante d'une tuile à l'autre, sans quoi
 /// une grille de titres courts et longs part en escalier.
 ///
-/// Centré, contrairement au libellé natif de Swiftfin : c'est ce que fait le front
+/// Centré, contrairement au libellé natif d'upstream : c'est ce que fait le front
 /// web (`cardTextCentered`), et l'Explorer en est le miroir.
 struct EnhancedFinPosterLabel: View {
 

@@ -15,7 +15,7 @@ extension VideoPlayer.PlaybackControls.Toolbar.ActionButtons {
 
     struct PlaybackRateMenu: View {
 
-        private let rates = EnhancedFinPlayerPolicy.playbackRates
+        private let rates = SweetFinPlayerPolicy.playbackRates
 
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState

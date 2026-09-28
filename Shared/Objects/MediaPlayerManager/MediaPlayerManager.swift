@@ -139,7 +139,7 @@ final class MediaPlayerManager: ViewModel {
     var supplements: [any MediaPlayerSupplement] = []
 
     // TODO: replace with graph dependency package
-    // EnhancedFin : un seul panneau, les épisodes (absent pour un film).
+    // SweetFin : un seul panneau, les épisodes (absent pour un film).
     private func setSupplements() {
         supplements = [queue].compactMap { $0 }
     }

@@ -10,7 +10,7 @@ import CoreStore
 import Foundation
 import UIKit
 
-extension SwiftfinStore.V2 {
+extension SweetFinStore.V2 {
 
     final class StoredUser: CoreStoreObject {
 

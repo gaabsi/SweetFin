@@ -10,7 +10,7 @@ import Defaults
 import Foundation
 import JellyfinAPI
 
-/// EnhancedFin : « Ajoutés récemment » de l'Accueil, films et séries confondus.
+/// SweetFin : « Ajoutés récemment » de l'Accueil, films et séries confondus.
 ///
 /// Les 20 derniers ajouts, limités aux `recentlyAddedDays` derniers jours.
 ///

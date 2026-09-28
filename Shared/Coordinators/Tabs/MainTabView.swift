@@ -37,18 +37,18 @@ struct MainTabView: View {
     private static var defaultTabCoordinator: TabCoordinator {
         #if os(iOS)
         TabCoordinator {
-            // EnhancedFin : Accueil du fork — carrousel, bibliothèques, reprise
+            // SweetFin : Accueil du fork — carrousel, bibliothèques, reprise
             // fusionnée, ajouts récents — avec le fond que son thème demande (GlassFin).
             TabItem.home
-            // EnhancedFin : pas d'onglet Recherche, l'Explorer porte la recherche
+            // SweetFin : pas d'onglet Recherche, l'Explorer porte la recherche
             // (référentiel + TMDB + bibliothèque).
             TabItem.media
             TabItem.calendar
-            // EnhancedFin : iPhone seulement — une TV ne part pas en voyage.
+            // SweetFin : iPhone seulement — une TV ne part pas en voyage.
             TabItem.downloads
         }
         #else
-        // EnhancedFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
+        // SweetFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
         // profil en haut à droite qui les ouvre sur iOS. Séries, Films et Recherche
         // d'upstream retirés pour les mêmes raisons que sur iOS (« Mes médias » sur
         // l'Accueil, l'Explorer porte la recherche).
@@ -91,7 +91,7 @@ struct MainTabView: View {
                     .environment(\.tabItemSelected, tab.publisher)
                 } label: {
                     #if os(iOS)
-                    // EnhancedFin : icônes seules sur iPhone — la barre reste compacte avec
+                    // SweetFin : icônes seules sur iPhone — la barre reste compacte avec
                     // « Téléchargements », trop long. Le titre reste annoncé par VoiceOver.
                     // tvOS garde ses libellés (barre latérale lue à distance).
                     Image(systemName: tab.item.systemImage)
@@ -140,7 +140,7 @@ struct MainTabView: View {
                 FocusedPosterCinematicBackgroundView()
             }
             #else
-            // EnhancedFin : au lancement et au retour du réseau, envoyer la progression
+            // SweetFin : au lancement et au retour du réseau, envoyer la progression
             // notée hors connexion ; au retour du réseau, recharger aussi les onglets
             // restés en erreur. Pas de bascule automatique vers les téléchargements
             // (retirée, jugée inutile).
@@ -165,7 +165,7 @@ struct MainTabView: View {
     }
 
     #if os(iOS)
-    /// EnhancedFin : envoie à Jellyfin les positions des téléchargements lus sans réseau,
+    /// SweetFin : envoie à Jellyfin les positions des téléchargements lus sans réseau,
     /// **puis** recopie en local celles qu'il connaît (dans cet ordre, pour ne pas écraser
     /// ce qu'on vient d'envoyer).
     ///

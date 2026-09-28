@@ -19,7 +19,7 @@ extension MediaStream {
     func url(with client: JellyfinClient) -> URL? {
         guard let deliveryURL else { return nil }
 
-        // EnhancedFin : sous-titre téléchargé — le lien est déjà un fichier local, pas
+        // SweetFin : sous-titre téléchargé — le lien est déjà un fichier local, pas
         // un chemin à coller derrière l'adresse du serveur.
         if deliveryURL.hasPrefix("file://") {
             return URL(string: deliveryURL)

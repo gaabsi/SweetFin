@@ -18,7 +18,7 @@ struct NextUpLibrary: BaseItemKindLibrary {
 
         static let `default`: Self = .init(
             enableRewatching: false,
-            maxNextUp: EnhancedFinPlayerPolicy.maxNextUp
+            maxNextUp: SweetFinPlayerPolicy.maxNextUp
         )
     }
 

@@ -9,7 +9,7 @@
 import FactoryKit
 import UIKit
 
-/// EnhancedFin : seul point d'entrée qu'iOS offre quand il relance l'app pour un
+/// SweetFin : seul point d'entrée qu'iOS offre quand il relance l'app pour un
 /// téléchargement terminé app fermée. SwiftUI n'a pas d'équivalent.
 final class DownloadAppDelegate: NSObject, UIApplicationDelegate {
 

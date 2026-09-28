@@ -67,7 +67,7 @@ struct ItemActionButtons: View {
     ) -> Bool {
         switch button {
         case .played:
-            // EnhancedFin : un film de découverte se marque vu aussi, dans le plugin
+            // SweetFin : un film de découverte se marque vu aussi, dans le plugin
             // (voir `ItemContentGroupProvider.setIsPlayed`).
             provider.item.canBePlayed
                 || (EnhancedFinSyntheticItem.isSynthetic(provider.item.id) && provider.item.type == .movie)
@@ -199,7 +199,7 @@ extension ItemActionButtons {
         func resolvedButtons(
             for provider: ItemContentGroupProvider
         ) -> (visible: [ItemActionButton], overflow: [ItemActionButton], menu: [ItemActionButton]) {
-            // EnhancedFin : listes imposées, pas de réglage par compte.
+            // SweetFin : listes imposées, pas de réglage par compte.
             ItemActionButtons.resolvedButtons(
                 bar: ItemActionButton.barButtons,
                 menu: ItemActionButton.menuButtons,
@@ -235,7 +235,7 @@ extension ItemActionButtons {
                     content: ItemActionButtons.view(for:)
                 )
 
-                // EnhancedFin : demander le média sur Seerr, quand la fiche est
+                // SweetFin : demander le média sur Seerr, quand la fiche est
                 // incomplète ou de découverte. Hors de la liste configurable des
                 // boutons : ce n'est pas une préférence, c'est une situation.
                 if let media = provider.enhancedFinMedia, media.canRequestOnSeerr {

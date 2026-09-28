@@ -10,7 +10,7 @@ import Combine
 import FactoryKit
 import Foundation
 
-/// EnhancedFin : note la position d'une lecture de téléchargement **quand il n'y a aucun
+/// SweetFin : note la position d'une lecture de téléchargement **quand il n'y a aucun
 /// réseau**, là où les rapports de `MediaProgressObserver` échouent.
 ///
 /// En ligne, il ne fait rien : upstream rapporte déjà la position à Jellyfin, et une copie

@@ -11,9 +11,9 @@ import SwiftUI
 import UIKit
 
 @main
-struct SwiftfinApp: App {
+struct SweetFinApp: App {
 
-    // EnhancedFin : relance par iOS pour les téléchargements terminés app fermée.
+    // SweetFin : relance par iOS pour les téléchargements terminés app fermée.
     @UIApplicationDelegateAdaptor(DownloadAppDelegate.self)
     private var downloadAppDelegate
 
@@ -25,7 +25,7 @@ struct SwiftfinApp: App {
         // Sometimes the tab bar won't appear properly on push, always have material background.
         UITabBar.appearance().scrollEdgeAppearance = UITabBarAppearance(idiom: .unspecified)
 
-        SwiftfinSpotlight().addSwiftfinToSpotlight()
+        SweetFinSpotlight().addSweetFinToSpotlight()
     }
 
     var body: some Scene {

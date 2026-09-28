@@ -12,7 +12,7 @@ import SwiftUI
 // iOS uniquement : tvOS garde `CustomizeSettingsView`.
 #if os(iOS)
 
-/// EnhancedFin : l'écran « Avancé » du fork, à la place de `CustomizeSettingsView`.
+/// SweetFin : l'écran « Avancé » du fork, à la place de `CustomizeSettingsView`.
 ///
 /// Remplace l'écran upstream plutôt que de le modifier : `CustomizeSettingsView` reste
 /// intact et sert tvOS. Ce qui n'y figure plus (media bar, style de fiche, « Manquant »…)

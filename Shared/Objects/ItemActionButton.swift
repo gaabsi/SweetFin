@@ -126,7 +126,7 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         }
     }
 
-    // EnhancedFin : les boutons de la fiche sont **imposés**, pas réglables (lus par
+    // SweetFin : les boutons de la fiche sont **imposés**, pas réglables (lus par
     // `ItemActionButtons.Configuration`). Barre : les trois gestes du quotidien.
     static let barButtons: [ItemActionButton] = [
         .enhancedFinRating,
@@ -134,7 +134,7 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
         .enhancedFinFollow,
     ]
 
-    // EnhancedFin : menu « ⋯ » court — modifier, marquer comme vu, télécharger (le
+    // SweetFin : menu « ⋯ » court — modifier, marquer comme vu, télécharger (le
     // téléchargement n'existe que sur iPhone). Favoris, bandes-annonces, versions,
     // actualiser, sous-titres et supprimer n'y sont plus.
     static let menuButtons: [ItemActionButton] = {

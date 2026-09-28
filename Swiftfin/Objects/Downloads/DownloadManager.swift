@@ -20,7 +20,7 @@ extension Container {
     }
 }
 
-/// EnhancedFin : téléchargement des médias pour la lecture hors connexion.
+/// SweetFin : téléchargement des médias pour la lecture hors connexion.
 ///
 /// **Au niveau de l'app, pas de la session** : la session d'arrière-plan a un identifiant
 /// fixe, et iOS relance l'app pour elle quand un transfert finit app fermée — y compris

@@ -8,12 +8,12 @@
 
 import Foundation
 
-/// EnhancedFin : les valeurs que le fork impose au lecteur, en un seul endroit.
+/// SweetFin : les valeurs que le fork impose au lecteur, en un seul endroit.
 ///
 /// Le reste de la politique du lecteur est câblé en dur là où il s'applique : VLC seul
 /// (`VideoPlayer`), aperçus trickplay (`MediaPlayerItem.build`), panneau des épisodes
 /// seul (`MediaPlayerManager.setSupplements`), gestes (`…+TapGesture`, `…+PanGesture`).
-enum EnhancedFinPlayerPolicy {
+enum SweetFinPlayerPolicy {
 
     /// Vitesses proposées dans le lecteur.
     static let playbackRates: [Float] = [0.5, 1.0, 1.25, 1.5, 2.0]

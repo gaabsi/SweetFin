@@ -39,7 +39,7 @@ struct ItemImageDetailView: View {
                         .failure {
                             Image(systemName: "questionmark")
                         }
-                        .pipeline(.Swiftfin.other)
+                        .pipeline(.SweetFin.other)
                 }
             }
             .scaledToFit()

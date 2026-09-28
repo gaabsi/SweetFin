@@ -21,12 +21,12 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     private(set) var mediaPlayerItemProvider: MediaPlayerItemProvider?
     @Published
     private(set) var randomBackdropItem: BaseItemDto?
-    /// EnhancedFin : vrai tant que `playable` n'a pas répondu pour une fiche sans
+    /// SweetFin : vrai tant que `playable` n'a pas répondu pour une fiche sans
     /// lecteur natif — le bouton Lire affiche alors une roue.
     @Published
     private(set) var isResolvingPlayable = false
 
-    /// EnhancedFin : la résolution `playable` en cours, pour l'annuler au prochain
+    /// SweetFin : la résolution `playable` en cours, pour l'annuler au prochain
     /// chargement et pour que `Router.play` puisse l'attendre.
     private var playableTask: Task<Void, Never>?
 
@@ -64,7 +64,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
         let userSession = try requireUserSession()
         let fullItem = try await item.getFullItem(userSession: userSession, sendNotification: true)
-        // EnhancedFin : lancé avant les `await` qui suivent, pour courir en parallèle.
+        // SweetFin : lancé avant les `await` qui suivent, pour courir en parallèle.
         async let newEnhancedFinMedia = fetchEnhancedFinMedia(fullItem.enhancedFinMediaKey)
         let newMediaPlayerItemProvider = try await resolveMediaPlayerItemProvider(
             for: fullItem,
@@ -114,11 +114,11 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         return groups
     }
 
-    /// EnhancedFin : la fiche du plugin (métadonnées TMDB et notes), si elle a pu
+    /// SweetFin : la fiche du plugin (métadonnées TMDB et notes), si elle a pu
     /// être obtenue. Lue par `facts(for:)`.
     var enhancedFinMedia: EnhancedFinMedia?
 
-    /// EnhancedFin : demande au plugin la fiche détaillée d'un média.
+    /// SweetFin : demande au plugin la fiche détaillée d'un média.
     ///
     /// `enrich` fait entrer le média au référentiel s'il n'y est pas : la demande
     /// vient d'une fiche ouverte, elle est explicite, donc la règle « un GET ne crée
@@ -144,7 +144,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
     }
 
-    /// EnhancedFin : lance `playable` **sans l'attendre**, pour que la fiche s'affiche
+    /// SweetFin : lance `playable` **sans l'attendre**, pour que la fiche s'affiche
     /// tout de suite ; seul le bouton Lire patiente (roue), puis s'active ou se grise.
     ///
     /// Une résolution précédente est annulée : un rafraîchissement ne doit pas la
@@ -166,7 +166,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
     }
 
-    /// EnhancedFin : attend la résolution `playable` en cours.
+    /// SweetFin : attend la résolution `playable` en cours.
     ///
     /// Pour `Router.play`, qui lance la lecture sans ouvrir la fiche et doit donc
     /// attendre le lecteur que la fiche, elle, recevra plus tard.
@@ -174,7 +174,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         await playableTask?.value
     }
 
-    /// EnhancedFin : l'item que le serveur désigne comme lisible pour ce média.
+    /// SweetFin : l'item que le serveur désigne comme lisible pour ce média.
     ///
     /// Demandé pour toute fiche, native comme de découverte : la même question
     /// partout, le serveur seul décide. Une erreur vaut « rien à lire » — on grise
@@ -196,7 +196,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
     }
 
-    /// EnhancedFin : prépare la lecture de l'item désigné par le serveur, **seulement**
+    /// SweetFin : prépare la lecture de l'item désigné par le serveur, **seulement**
     /// si Jellyfin n'a rien fourni pour cette fiche — le lecteur natif reste prioritaire.
     ///
     /// Passe par le même chemin qu'une fiche native (`resolveMediaPlayerItemProvider`),
@@ -220,7 +220,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
     }
 
-    /// EnhancedFin : les données du bloc « infos ».
+    /// SweetFin : les données du bloc « infos ».
     ///
     /// Le plugin d'abord, l'item Jellyfin en secours. Pas de secours pour un item
     /// de découverte : il n'a qu'une année, datée au 1er janvier, et mieux vaut
@@ -241,7 +241,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         return ItemFacts(item: item)
     }
 
-    /// EnhancedFin : d'où viennent les saisons d'une série.
+    /// SweetFin : d'où viennent les saisons d'une série.
     ///
     /// Série du serveur : Jellyfin, qui détient aussi l'état vu. Série de découverte :
     /// le plugin (TMDB + sa table `playback`).
@@ -260,7 +260,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         return .jellyfin(seriesID: itemID, mediaKey: item.enhancedFinMediaKey)
     }
 
-    /// EnhancedFin : la carte « + » des saisons, pour une série du serveur que Seerr
+    /// SweetFin : la carte « + » des saisons, pour une série du serveur que Seerr
     /// dit incomplète. Jamais sur une série de découverte : elle montre déjà tout TMDB.
     ///
     /// Parametres :
@@ -287,12 +287,12 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
 
         Self.personContentGroups(for: item)
 
-        // EnhancedFin : un item de découverte (`enhancedfin:…`) n'existe pas sur le
+        // SweetFin : un item de découverte (`enhancedfin:…`) n'existe pas sur le
         // serveur. Les sections qui l'interrogent — épisodes, saisons, bonus,
         // similaires — ne récoltaient qu'un 400 chacune, sans rien afficher.
         let isOnServer = !EnhancedFinSyntheticItem.isSynthetic(itemID)
 
-        // EnhancedFin : sur iOS, une série n'a plus le rail horizontal de sa saison
+        // SweetFin : sur iOS, une série n'a plus le rail horizontal de sa saison
         // courante — ses épisodes s'ouvrent depuis `SeasonsContentGroup`, plus bas.
         // Une page de saison garde le sien : elle n'a pas de rail de saisons.
         #if os(tvOS)
@@ -308,13 +308,13 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
         }
 
-        // EnhancedFin : date, genres, réalisation et notes, voir
+        // SweetFin : date, genres, réalisation et notes, voir
         // `ItemFactsContentGroup`.
         if let facts = facts(for: item), !facts.isEmpty {
             ItemFactsContentGroup(facts: facts)
         }
 
-        // EnhancedFin : saisons, et leurs épisodes à marquer vus — série du serveur
+        // SweetFin : saisons, et leurs épisodes à marquer vus — série du serveur
         // comme de découverte. Voir `SeasonsContentGroup`.
         #if os(iOS)
         if item.type == .series, let backend = seasonsBackend(for: item, itemID: itemID) {
@@ -322,7 +322,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
         #endif
 
-        // EnhancedFin : pastilles Genres et Studios retirées (iOS et tvOS) : les genres
+        // SweetFin : pastilles Genres et Studios retirées (iOS et tvOS) : les genres
         // vivent dans le bloc « infos » ci-dessus (`ItemFactsContentGroup`).
 
         switch item.type {
@@ -344,7 +344,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
             .makeGroups(environment: .default)
         case .series:
-            // EnhancedFin : remplacé sur iOS par `SeasonsContentGroup`, plus haut.
+            // SweetFin : remplacé sur iOS par `SeasonsContentGroup`, plus haut.
             #if os(tvOS)
             try await ItemTypeContentGroupProvider(
                 itemTypes: [.season],
@@ -386,11 +386,11 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             PosterGroup(
                 id: "cast-and-crew",
                 library: StaticLibrary(
-                    title: ItemStrings.cast, // EnhancedFin : « Casting »
+                    title: ItemStrings.cast, // SweetFin : « Casting »
                     id: "cast-and-crew",
                     elements: castAndCrew
                 ),
-                // EnhancedFin : forme décidée par le thème (ronds pour ElegantFin).
+                // SweetFin : forme décidée par le thème (ronds pour ElegantFin).
                 posterDisplayType: Defaults[.appearance].tokens.personPosterShape.displayType,
                 posterSize: .small
             )
@@ -563,7 +563,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     private func setIsPlayed(_ isPlayed: Bool) async throws {
         guard let itemID = item.id else { return }
 
-        // EnhancedFin : un film de découverte n'existe pas sur le serveur, son état vu
+        // SweetFin : un film de découverte n'existe pas sur le serveur, son état vu
         // vit dans le plugin (saison 0, épisode 0).
         if EnhancedFinSyntheticItem.isSynthetic(itemID) {
             guard let mediaKey = item.enhancedFinMediaKey,

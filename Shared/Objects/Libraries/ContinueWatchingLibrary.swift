@@ -12,7 +12,7 @@ import JellyfinAPI
 
 /// « Continuer de regarder » : une seule liste, trois sources.
 ///
-/// L'Accueil de Swiftfin montrait « Continuer » et « Next Up » côte à côte, et une
+/// L'Accueil d'upstream montrait « Continuer » et « Next Up » côte à côte, et une
 /// série commencée y apparaissait deux fois. On les fusionne, et on y ajoute les
 /// lectures en cours sur les sources externes que le plugin connaît.
 ///
@@ -110,7 +110,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         parameters.enableUserData = true
         parameters.limit = Self.itemLimit
 
-        parameters.nextUpDateCutoff = Date.now.addingTimeInterval(-EnhancedFinPlayerPolicy.maxNextUp)
+        parameters.nextUpDateCutoff = Date.now.addingTimeInterval(-SweetFinPlayerPolicy.maxNextUp)
 
         let request = Paths.getNextUp(parameters: parameters)
 
@@ -119,7 +119,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
 
     /// Les reprises venues des sources externes, converties en items synthétiques.
     ///
-    /// ⚠️ **Ces tuiles ne sont pas lisibles dans Swiftfin** : il n'existe pas de
+    /// ⚠️ **Ces tuiles ne sont pas lisibles dans l'app** : il n'existe pas de
     /// lecteur source externe ou source externe ici. Un tap ouvre la fiche de découverte, et
     /// `PlayButton` se grise tout seul faute de `mediaPlayerItemProvider`. C'est
     /// assumé : savoir où on en est vaut mieux que ne pas voir le média du tout.

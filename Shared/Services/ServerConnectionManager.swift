@@ -10,7 +10,7 @@ import Foundation
 import JellyfinAPI
 import Pulse
 
-/// EnhancedFin : ne garde que le test d'une adresse de serveur. Le changement
+/// SweetFin : ne garde que le test d'une adresse de serveur. Le changement
 /// automatique de connexion (surveillance du réseau, bascule d'adresse) est supprimé.
 enum ServerConnectionManager {
 

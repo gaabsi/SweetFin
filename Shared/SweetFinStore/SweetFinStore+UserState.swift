@@ -15,7 +15,7 @@ import Logging
 import Pulse
 import UIKit
 
-extension SwiftfinStore.State {
+extension SweetFinStore.State {
 
     struct User: Hashable, Identifiable, Codable {
         let id: String

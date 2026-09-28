@@ -262,7 +262,7 @@ extension BaseItemDto: Poster {
     }
 }
 
-/// EnhancedFin : le menu d'appui long d'une affiche, **le même partout** — médiathèques,
+/// SweetFin : le menu d'appui long d'une affiche, **le même partout** — médiathèques,
 /// rails, recherche. C'est une propriété de l'élément, pas de la zone.
 ///
 /// - Aller à l'élément, et à la série pour un épisode ;
@@ -341,7 +341,7 @@ private struct BaseItemDtoPosterContextMenu: View {
             }
         }
 
-        // EnhancedFin : télécharger pour le hors-connexion (iPhone) — film ou épisode du
+        // SweetFin : télécharger pour le hors-connexion (iPhone) — film ou épisode du
         // serveur ; pas une série représentée par un épisode, ni une reprise externe.
         #if os(iOS)
         if !isSynthetic, !representsSeries, [.movie, .episode].contains(item.type), item.canBeDownloaded {
@@ -547,7 +547,7 @@ private struct BaseItemDtoPosterLabel: View {
         }
 
         var body: some View {
-            // EnhancedFin : alignement décidé par le thème (`ThemeTokens`), et non
+            // SweetFin : alignement décidé par le thème (`ThemeTokens`), et non
             // plus câblé ici. Le fork centrait déjà ses propres libellés
             // (`EnhancedFinPosterLabel`) ; les aligner tous sur la même source a
             // supprimé la valeur d'environnement et le décorateur qui servaient à ne

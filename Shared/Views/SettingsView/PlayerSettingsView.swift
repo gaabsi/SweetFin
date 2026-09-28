@@ -11,12 +11,12 @@ import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
-/// EnhancedFin : Réglages → Avancé → Lecteur vidéo, à la place de
+/// SweetFin : Réglages → Avancé → Lecteur vidéo, à la place de
 /// `VideoPlayerSettingsView` (upstream, gardé pour tvOS).
 ///
 /// Seulement ce que l'utilisateur règle vraiment : la longueur des sauts, et ses
 /// langues préférées. Le reste (moteur, aperçus, gestes…) est imposé par
-/// `EnhancedFinPlayerPolicy`.
+/// `SweetFinPlayerPolicy`.
 struct PlayerSettingsView: View {
 
     @Default(.VideoPlayer.jumpBackwardInterval)

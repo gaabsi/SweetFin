@@ -58,7 +58,7 @@ final class RootCoordinator: ObservableObject {
         started = true
 
         do {
-            try await SwiftfinStore.setupDataStack()
+            try await SweetFinStore.setupDataStack()
             startPreferenceObservation()
         } catch {
             throw AppStartupError.dataStack(error)
@@ -103,7 +103,7 @@ final class RootCoordinator: ObservableObject {
     private func setAppDefaultsObservation() {
         appearanceCancellable?.cancel()
 
-        // EnhancedFin : plus de garde-fou `selectUserUseSplashscreen` ici, ni de tâche
+        // SweetFin : plus de garde-fou `selectUserUseSplashscreen` ici, ni de tâche
         // qui l'observe. Tous deux ne servaient qu'au forçage `.dark` de l'écran de
         // sélection, supprimé avec les thèmes clairs — voir `applyAppearance`.
         appearanceCancellable = Task {
@@ -116,7 +116,7 @@ final class RootCoordinator: ObservableObject {
         .asAnyCancellable()
     }
 
-    /// EnhancedFin : **le thème est le seul propriétaire de la couleur d'accent.**
+    /// SweetFin : **le thème est le seul propriétaire de la couleur d'accent.**
     ///
     /// ⚠️ Il y avait deux écrivains concurrents sur `Defaults[.accentColor]` : une
     /// tâche qui suivait le réglage utilisateur et `applyAppearance`. `Defaults.updates`
@@ -142,7 +142,7 @@ final class RootCoordinator: ObservableObject {
         Defaults[.appearance] = appearance
         UIApplication.shared.setAppearance(appearance.tokens.style)
 
-        // EnhancedFin : un thème impose sa couleur d'accent.
+        // SweetFin : un thème impose sa couleur d'accent.
         //
         // Posé ici plutôt que dans les deux tâches d'observation : `applyAppearance`
         // est le point de passage commun aux réglages de l'app **et** à ceux de
@@ -152,7 +152,7 @@ final class RootCoordinator: ObservableObject {
         #endif
     }
 
-    /// EnhancedFin : recopie l'apparence de l'utilisateur au niveau application.
+    /// SweetFin : recopie l'apparence de l'utilisateur au niveau application.
     ///
     /// ⚠️ **Sans elle, l'application change de couleur sous les yeux au démarrage.**
     /// L'apparence choisie est stockée **par utilisateur**, mais avant l'ouverture de

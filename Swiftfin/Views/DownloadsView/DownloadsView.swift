@@ -12,7 +12,7 @@ import SwiftUI
 
 extension TabItem {
 
-    /// EnhancedFin : 4ᵉ onglet, toujours affiché, même vide — la barre ne bouge jamais
+    /// SweetFin : 4ᵉ onglet, toujours affiché, même vide — la barre ne bouge jamais
     /// et on sait où chercher ses films quand on n'a plus de réseau.
     static var downloads: TabItem {
         TabItem(
@@ -25,7 +25,7 @@ extension TabItem {
     }
 }
 
-/// EnhancedFin : les téléchargements du compte connecté.
+/// SweetFin : les téléchargements du compte connecté.
 ///
 /// Tout vient du disque (`DownloadManager.downloads(of:)`) : l'écran fonctionne sans
 /// serveur. Se redessine à chaque changement d'état publié par le gestionnaire

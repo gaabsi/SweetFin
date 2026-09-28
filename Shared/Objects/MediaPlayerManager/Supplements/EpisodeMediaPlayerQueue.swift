@@ -247,7 +247,7 @@ extension EpisodeMediaPlayerQueue {
 
         private struct _Body: View {
 
-            // EnhancedFin : lu ici et passé à `EpisodeRow`, voir la note d'`EpisodeButton`.
+            // SweetFin : lu ici et passé à `EpisodeRow`, voir la note d'`EpisodeButton`.
             @EnvironmentObject
             private var manager: MediaPlayerManager
 
@@ -310,7 +310,7 @@ extension EpisodeMediaPlayerQueue {
             private var safeAreaInsets: EdgeInsets
             #endif
 
-            // EnhancedFin : lu ici et passé à `EpisodeButton`, voir sa note.
+            // SweetFin : lu ici et passé à `EpisodeButton`, voir sa note.
             @EnvironmentObject
             private var manager: MediaPlayerManager
 
@@ -485,7 +485,7 @@ extension EpisodeMediaPlayerQueue {
         }
     }
 
-    // EnhancedFin : même correctif qu'`EpisodeButton`, pour `CollectionVGrid`.
+    // SweetFin : même correctif qu'`EpisodeButton`, pour `CollectionVGrid`.
     private struct EpisodeRow: View {
 
         let episode: BaseItemDto
@@ -516,7 +516,7 @@ extension EpisodeMediaPlayerQueue {
         }
     }
 
-    // EnhancedFin : plus de `@EnvironmentObject` ici. `CollectionHStack` et
+    // SweetFin : plus de `@EnvironmentObject` ici. `CollectionHStack` et
     // `CollectionVGrid` mesurent la première cellule dans un `UIHostingController`
     // vierge, sans environnement : lire le manager y faisait planter l'ouverture du
     // panneau « Épisodes » (depuis la mise à jour des paquets upstream `a1c5abb5`).

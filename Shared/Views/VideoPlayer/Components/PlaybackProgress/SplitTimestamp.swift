@@ -96,7 +96,7 @@ extension VideoPlayer.PlaybackControls {
 
         var iOSView: some View {
             HStack {
-                // EnhancedFin : temps restant imposé, plus de bascule au toucher.
+                // SweetFin : temps restant imposé, plus de bascule au toucher.
                 leadingTimestamp
                     .foregroundStyle(.primary, .secondary)
 

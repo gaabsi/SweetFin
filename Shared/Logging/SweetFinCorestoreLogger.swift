@@ -9,7 +9,7 @@
 import CoreStore
 import Logging
 
-struct SwiftfinCorestoreLogger: CoreStoreLogger {
+struct SweetFinCorestoreLogger: CoreStoreLogger {
 
     private let logger = Logger.swiftfin()
 

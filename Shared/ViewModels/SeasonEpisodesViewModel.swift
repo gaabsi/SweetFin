@@ -9,7 +9,7 @@
 import Foundation
 import JellyfinAPI
 
-/// EnhancedFin : une saison, quelle que soit sa source.
+/// SweetFin : une saison, quelle que soit sa source.
 struct SeasonRow: Identifiable, Hashable {
 
     let number: Int
@@ -24,7 +24,7 @@ struct SeasonRow: Identifiable, Hashable {
     var id: Int { number }
 }
 
-/// EnhancedFin : un épisode, quelle que soit sa source.
+/// SweetFin : un épisode, quelle que soit sa source.
 struct EpisodeRow: Identifiable, Hashable {
 
     let id: String
@@ -40,7 +40,7 @@ struct EpisodeRow: Identifiable, Hashable {
     let jellyfinID: String?
 }
 
-/// EnhancedFin : saisons et épisodes d'une série, et leur état « vu ».
+/// SweetFin : saisons et épisodes d'une série, et leur état « vu ».
 ///
 /// Une seule vue pour deux sources, comme la modale d'épisodes du front web :
 /// - série **du serveur** : Jellyfin, qui détient aussi l'état vu — le plugin le relit
@@ -66,14 +66,14 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     private(set) var isLoadingEpisodes = false
     @Published
     private(set) var error: Error?
-    /// EnhancedFin : épisodes lisibles de la saison ouverte, numéro → item à lancer
+    /// SweetFin : épisodes lisibles de la saison ouverte, numéro → item à lancer
     /// (`playable` par saison). Le natif reste prioritaire : voir `playableItemID(for:)`.
     @Published
     private(set) var playableItemIDs: [Int: String] = [:]
 
     let backend: Backend
 
-    /// EnhancedFin : la résolution `playable` en cours, annulée au changement de saison.
+    /// SweetFin : la résolution `playable` en cours, annulée au changement de saison.
     private var playableTask: Task<Void, Never>?
 
     /// Clé EnhancedFin de la série, quel que soit le backend.
@@ -140,7 +140,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
     // MARK: - Lecture
 
-    /// EnhancedFin : demande au serveur les épisodes lisibles de la saison, **sans
+    /// SweetFin : demande au serveur les épisodes lisibles de la saison, **sans
     /// l'attendre** — la feuille s'affiche tout de suite. Même question pour toute
     /// série, dans la médiathèque ou non : le serveur seul décide.
     ///

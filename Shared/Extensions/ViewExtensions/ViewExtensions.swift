@@ -332,7 +332,7 @@ extension View {
         }
     }
 
-    // EnhancedFin : valeurs lues sur le thème, voir `ThemeTokens`.
+    // SweetFin : valeurs lues sur le thème, voir `ThemeTokens`.
     @ViewBuilder
     func posterCornerRadius(
         _ type: PosterDisplayType
@@ -340,7 +340,7 @@ extension View {
         modifier(PosterCornerRadiusModifier(type: type))
     }
 
-    /// EnhancedFin : n'affiche pas le titre de navigation, sans le retirer.
+    /// SweetFin : n'affiche pas le titre de navigation, sans le retirer.
     ///
     /// À la racine d'un onglet, le titre répète l'onglet sélectionné juste en dessous.
     /// `navigationTitle` reste posé : VoiceOver et l'historique du bouton retour le
@@ -498,7 +498,7 @@ private struct PosterCornerRadiusModifier: ViewModifier {
     @Default(.appearance)
     private var appearance
 
-    // EnhancedFin : voir `ThemeTokens.personPosterShape`.
+    // SweetFin : voir `ThemeTokens.personPosterShape`.
     @Environment(\.isPersonPoster)
     private var isPersonPoster
 

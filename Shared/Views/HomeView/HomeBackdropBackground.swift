@@ -19,7 +19,7 @@ extension Container {
     }
 }
 
-/// EnhancedFin : le média affiché par la media bar, pour le fond de l'Accueil (GlassFin).
+/// SweetFin : le média affiché par la media bar, pour le fond de l'Accueil (GlassFin).
 ///
 /// La media bar l'écrit à chaque changement de diapo ; le fond de l'Accueil le lit. Rien
 /// d'autre n'y touche.
@@ -32,7 +32,7 @@ final class HomeBackdrop: ObservableObject {
 
 extension TabItem {
 
-    /// EnhancedFin : l'Accueil du fork, avec le fond que son thème demande.
+    /// SweetFin : l'Accueil du fork, avec le fond que son thème demande.
     static var home: TabItem {
         let provider = HomeContentGroupProvider()
 

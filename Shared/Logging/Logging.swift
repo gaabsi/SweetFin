@@ -16,7 +16,7 @@ extension Logger {
     }
 }
 
-struct SwiftfinConsoleHandler: LogHandler {
+struct SweetFinConsoleHandler: LogHandler {
 
     var logLevel: Logger.Level = .trace
     var metadata: Logger.Metadata = [:]

@@ -52,9 +52,9 @@ struct VideoPlayer: View {
             proxy.videoPlayerBody
                 .eraseToAnyView()
         } playbackControls: {
-            // EnhancedFin : l'overlay du fork sur iOS ; tvOS garde celui d'upstream.
+            // SweetFin : l'overlay du fork sur iOS ; tvOS garde celui d'upstream.
             #if os(iOS)
-            EnhancedFinPlaybackControls()
+            SweetFinPlaybackControls()
             #else
             PlaybackControls()
             #endif

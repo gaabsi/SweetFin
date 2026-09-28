@@ -40,7 +40,7 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
     /// un `404` y est le cas normal pour un résultat TMDB jamais touché, et ne
     /// doit rien casser.
     override func makeGroups(environment: Empty) async throws -> [any ContentGroup] {
-        // EnhancedFin : non attendu — la fiche s'affiche tout de suite, le bouton Lire
+        // SweetFin : non attendu — la fiche s'affiche tout de suite, le bouton Lire
         // montre une roue le temps que le serveur réponde.
         if let userSession {
             startPlayableResolution(mediaKey, userSession: userSession)
