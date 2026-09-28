@@ -145,6 +145,15 @@ extension NavigationRoute {
     }
     #endif
 
+    #if os(iOS)
+    /// La suite de la saison en cours à télécharger, voir `SeasonDownloadView`.
+    static func seasonDownload(series: BaseItemDto) -> NavigationRoute {
+        NavigationRoute(id: "seasonDownload-\(series.id ?? "")", style: .sheet) {
+            SeasonDownloadView(series: series)
+        }
+    }
+    #endif
+
     /// La fenêtre « Demander sur Seerr », voir `SeerrRequestView`.
     static func seerrRequest(media: EnhancedFinMedia) -> NavigationRoute {
         NavigationRoute(id: "seerrRequest-\(media.mediaKey)", style: .sheet) {

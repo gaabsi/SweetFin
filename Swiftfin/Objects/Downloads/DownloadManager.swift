@@ -293,7 +293,7 @@ final class DownloadManager: NSObject, ObservableObject {
               let url = userSession.client.url(path: "/Items/\(itemID)/Download")
         else { throw DownloadError.missingSource }
 
-        try checkSpace(for: source)
+        try checkSpace(needed: source.size.map(Int64.init))
 
         let userID = userSession.user.id
         let folder = folder(Self.key(userID, itemID))
@@ -310,6 +310,52 @@ final class DownloadManager: NSObject, ObservableObject {
 
         Task {
             await downloadExtras(of: downloaded, into: folder, client: userSession.client)
+        }
+    }
+
+    /// Les épisodes qu'il reste à voir dans la saison en cours : de l'épisode « à
+    /// suivre » (Next Up, S1E1 si rien n'est commencé) jusqu'à la fin de sa saison.
+    /// Vide si la série est finie.
+    ///
+    /// Parametres :
+    /// - series (BaseItemDto) : série du serveur
+    /// - userSession (UserSession) : compte connecté
+    ///
+    /// Output :
+    /// - episodes ([BaseItemDto]) : épisodes dans l'ordre, avec leurs sources (tailles)
+    func remainingEpisodes(of series: BaseItemDto, userSession: UserSession) async throws -> [BaseItemDto] {
+        guard let seriesID = series.id else { return [] }
+
+        var nextUpParameters = Paths.GetNextUpParameters()
+        nextUpParameters.userID = userSession.user.id
+        nextUpParameters.seriesID = seriesID
+        let nextUp = try await userSession.client.send(Paths.getNextUp(parameters: nextUpParameters)).value.items?.first
+
+        guard let nextUpID = nextUp?.id, let seasonID = nextUp?.seasonID else { return [] }
+
+        var parameters = Paths.GetEpisodesParameters()
+        parameters.userID = userSession.user.id
+        parameters.seasonID = seasonID
+        parameters.isMissing = false
+        parameters.fields = [.mediaSources, .canDownload]
+        let episodes = try await userSession.client.send(Paths.getEpisodes(seriesID: seriesID, parameters: parameters)).value.items ?? []
+
+        return Array(episodes.drop { $0.id != nextUpID })
+    }
+
+    /// Lance plusieurs épisodes d'un coup, en sautant ceux déjà téléchargés ou en
+    /// cours. L'espace est vérifié pour le **total** avant de lancer quoi que ce soit.
+    ///
+    /// Parametres :
+    /// - episodes ([BaseItemDto]) : épisodes à télécharger, avec leurs sources
+    /// - userSession (UserSession) : compte connecté
+    @MainActor
+    func start(_ episodes: [BaseItemDto], userSession: UserSession) async throws {
+        let pending = episodes.filter { state(of: $0.id ?? "", userID: userSession.user.id) == .none }
+        try checkSpace(needed: pending.compactMap { $0.mediaSources?.first?.size }.reduce(0) { $0 + Int64($1) })
+
+        for episode in pending {
+            try await start(episode, userSession: userSession)
         }
     }
 
@@ -360,12 +406,12 @@ final class DownloadManager: NSObject, ObservableObject {
         }
     }
 
-    /// Refuse de lancer un fichier qui ne tiendrait pas dans l'espace libre.
+    /// Refuse de lancer ce qui ne tiendrait pas dans l'espace libre.
     ///
     /// Parametres :
-    /// - source (MediaSourceInfo) : source dont on connaît la taille
-    private func checkSpace(for source: MediaSourceInfo) throws {
-        guard let needed = source.size.map(Int64.init),
+    /// - needed (Int64?) : octets à télécharger ; inconnu = pas de refus
+    private func checkSpace(needed: Int64?) throws {
+        guard let needed,
               let available = try root.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
               .volumeAvailableCapacityForImportantUsage,
               needed > available

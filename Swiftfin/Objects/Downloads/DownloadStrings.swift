@@ -24,6 +24,13 @@ enum DownloadStrings {
     static let emptyTitle = "Aucun téléchargement"
     static let emptyMessage = "Ouvre un film ou un épisode, puis ⋯ → Télécharger. Il restera lisible sans connexion."
 
+    static let downloadSeason = "Télécharger la suite de la saison"
+    static let nothingToDownload = "Rien à télécharger : tu as tout vu, ou la suite de la saison est déjà téléchargée."
+
+    static func seasonSummary(count: Int, bytes: Int64) -> String {
+        "\(count) épisode\(count > 1 ? "s" : "") · \(size(bytes))"
+    }
+
     static func size(_ bytes: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
