@@ -48,11 +48,6 @@ extension VideoPlayer.PlaybackControls {
             isScrubbing && (currentTranslation.y >= 60)
         }
 
-        private var insetSliderWidth: CGFloat {
-            guard sliderSize.width.isFinite else { return 0 }
-            return max(0, sliderSize.width - EdgeInsets.edgePadding * 2)
-        }
-
         private var previewXOffset: CGFloat {
             guard sliderSize.width.isFinite, sliderSize.width > 0 else { return 0 }
 
@@ -124,16 +119,16 @@ extension VideoPlayer.PlaybackControls {
             .font(.caption)
         }
 
+        /// SweetFin : barre fine en pilule (4 pt, 6 pt au glisser), comme ElegantFin.
+        /// ❌ Upstream l'étirait au glisser (`scaleEffect`) : avec les temps de part et
+        /// d'autre, elle passait par-dessus.
         @ViewBuilder
         private var capsuleSlider: some View {
             AlternateLayoutView {
                 EmptyHitTestView()
-                    .frame(height: 10)
+                    .frame(height: 6)
                     .trackingSize($sliderSize)
             } content: {
-                // Use scale effect, slider doesn't respond well to horizontal frame changes
-                let xScale = insetSliderWidth > 0 ? max(1, sliderSize.width / insetSliderWidth) : 1
-
                 SliderContainer(
                     value: $scrubbedSecondsBox.value.map(
                         getter: { $0.seconds },
@@ -147,43 +142,58 @@ extension VideoPlayer.PlaybackControls {
                 .onEditingChanged { newValue in
                     isScrubbing = newValue
                 }
-                .frame(maxWidth: sliderSize != .zero ? insetSliderWidth : .infinity)
-                .scaleEffect(x: isScrubbing ? xScale : 1, y: 1, anchor: .center)
-                .frame(height: isScrubbing ? 20 : 10)
+                .frame(height: isScrubbing ? 6 : 4)
                 .foregroundStyle(manager.state == .loadingItem ? .gray : .primary)
             }
             .animation(.linear(duration: 0.05), value: scrubbedSeconds)
-            .frame(height: 10)
+            .frame(height: 6)
             .disabled(manager.state == .loadingItem)
         }
 
+        /// Temps restant, négatif : « -21:49 ».
+        @ViewBuilder
+        private var remainingTime: some View {
+            if let runtime = manager.item.runtime {
+                Text(.zero - (runtime - scrubbedSeconds), format: .runtime)
+            } else {
+                Text(verbatim: .emptyRuntime)
+            }
+        }
+
         var body: some View {
-            VStack(spacing: 5) {
+            Group {
                 if manager.item.isLiveStream {
                     liveIndicator
-                        .edgePadding(.horizontal)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
-                    capsuleSlider
-                        .trackingSize($sliderSize)
+                    // SweetFin : « 0:42 ▬▬▬ -21:49 » sur une seule ligne, comme ElegantFin.
+                    // L'aperçu s'accroche à la barre : ses coordonnées sont celles de la barre.
+                    HStack(spacing: 12) {
+                        Text(scrubbedSeconds, format: .runtime)
 
-                    SplitTimeStamp()
-                        .offset(y: isScrubbing ? 5 : 0)
-                        .frame(maxWidth: isScrubbing ? nil : insetSliderWidth)
+                        capsuleSlider
+                            .overlay(alignment: .topLeading) {
+                                if isScrubbing, let previewImageProvider = manager.playbackItem?.previewImageProvider {
+                                    PreviewImageView(previewImageProvider: previewImageProvider)
+                                        .aspectRatio(videoSizeAspectRatio, contentMode: .fit)
+                                        .frame(height: 85)
+                                        .posterBorder()
+                                        .cornerRadius(ratio: 1 / 30, of: \.width)
+                                        .offset(x: previewXOffset, y: -100)
+                                }
+                            }
+
+                        remainingTime
+                    }
+                    .font(.caption)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .foregroundStyle(isScrubbing ? .primary : .secondary)
                 }
             }
+            .edgePadding(.horizontal)
             .frame(maxWidth: .infinity)
             .animation(.bouncy(duration: 0.4, extraBounce: 0.1), value: isScrubbing)
-            .overlay(alignment: .topLeading) {
-                if isScrubbing, let previewImageProvider = manager.playbackItem?.previewImageProvider {
-                    PreviewImageView(previewImageProvider: previewImageProvider)
-                        .aspectRatio(videoSizeAspectRatio, contentMode: .fit)
-                        .frame(height: 85)
-                        .posterBorder()
-                        .cornerRadius(ratio: 1 / 30, of: \.width)
-                        .offset(x: previewXOffset, y: -100)
-                }
-            }
             .overlay(alignment: .bottom) {
                 if isSlowScrubbing {
                     slowScrubbingIndicator
