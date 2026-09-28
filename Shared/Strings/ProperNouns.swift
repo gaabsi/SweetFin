@@ -127,7 +127,7 @@ extension L10n {
 
     // MARK: - Brands
 
-    static let swiftfin = "Swiftfin"
+    static let sweetFin = "SweetFin"
     static let jellyfin = "Jellyfin"
 
     // MARK: - Platforms
