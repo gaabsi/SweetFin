@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5377CBF0263B596A003A4E83"
-               BuildableName = "Swiftfin iOS.app"
-               BlueprintName = "Swiftfin iOS"
+               BlueprintIdentifier = "5358705F2669D21600D05A09"
+               BuildableName = "SweetFin tvOS.app"
+               BlueprintName = "SweetFin tvOS"
                ReferencedContainer = "container:Swiftfin.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -44,9 +44,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5377CBF0263B596A003A4E83"
-            BuildableName = "Swiftfin iOS.app"
-            BlueprintName = "Swiftfin iOS"
+            BlueprintIdentifier = "5358705F2669D21600D05A09"
+            BuildableName = "SweetFin tvOS.app"
+            BlueprintName = "SweetFin tvOS"
             ReferencedContainer = "container:Swiftfin.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -61,9 +61,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5377CBF0263B596A003A4E83"
-            BuildableName = "Swiftfin iOS.app"
-            BlueprintName = "Swiftfin iOS"
+            BlueprintIdentifier = "5358705F2669D21600D05A09"
+            BuildableName = "SweetFin tvOS.app"
+            BlueprintName = "SweetFin tvOS"
             ReferencedContainer = "container:Swiftfin.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
