@@ -235,6 +235,16 @@ extension ItemActionButtons {
                     content: ItemActionButtons.view(for:)
                 )
 
+                #if os(iOS)
+                // SweetFin : la suite de la saison en cours d'une série du serveur,
+                // téléchargée d'un coup. La feuille dit ce qui sera lancé.
+                if provider.item.type == .series, !EnhancedFinSyntheticItem.isSynthetic(provider.item.id) {
+                    Button(DownloadStrings.downloadSeason, systemImage: "square.and.arrow.down.on.square") {
+                        router.route(to: .seasonDownload(series: provider.item))
+                    }
+                }
+                #endif
+
                 // SweetFin : demander le média sur Seerr, quand la fiche est
                 // incomplète ou de découverte. Hors de la liste configurable des
                 // boutons : ce n'est pas une préférence, c'est une situation.
