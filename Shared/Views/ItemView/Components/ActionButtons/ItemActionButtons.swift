@@ -238,7 +238,9 @@ extension ItemActionButtons {
                 // SweetFin : demander le média sur Seerr, quand la fiche est
                 // incomplète ou de découverte. Hors de la liste configurable des
                 // boutons : ce n'est pas une préférence, c'est une situation.
-                if let media = provider.enhancedFinMedia, media.canRequestOnSeerr {
+                if let media = provider.enhancedFinMedia,
+                   media.canRequestOnSeerr(isNative: !EnhancedFinSyntheticItem.isSynthetic(provider.item.id))
+                {
                     Divider()
 
                     Button(SeerrStrings.requestOnSeerr, systemImage: "arrow.down.circle") {

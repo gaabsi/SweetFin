@@ -445,17 +445,27 @@ struct EnhancedFinMedia: Decodable, Hashable {
 
     /// SweetFin : « Demander sur Seerr » a un sens pour ce média.
     ///
-    /// - série : tant qu'elle n'est pas entièrement disponible — la fenêtre de demande
-    ///   grise ensuite, saison par saison, ce qui est déjà demandé ou disponible ;
-    /// - film : seulement s'il n'est ni demandé, ni en cours, ni disponible.
+    /// `isNative` : la fiche est un item du serveur, pas une fiche de découverte. Le
+    /// média est donc déjà là, quoi qu'en dise Seerr, qui ne connaît que ce que sa
+    /// synchro a vu (média ajouté hors Seerr, synchro en retard) :
+    ///
+    /// - film natif : jamais ;
+    /// - série native : seulement s'il lui manque des saisons selon Seerr ;
+    /// - série de découverte : tant qu'elle n'est pas entièrement disponible — la
+    ///   fenêtre de demande grise ensuite, saison par saison, le déjà demandé ;
+    /// - film de découverte : seulement s'il n'est ni demandé, ni en cours, ni disponible.
     ///
     /// Faux si Seerr n'a pas répondu : pas de proposition à tort.
-    var canRequestOnSeerr: Bool {
+    func canRequestOnSeerr(isNative: Bool) -> Bool {
         guard let seerr else { return false }
 
-        return mediaType == EnhancedFinMediaType.tv.rawValue
-            ? seerr.status != EnhancedFinSeerr.available
-            : seerr.status == nil || seerr.status == EnhancedFinSeerr.unknown
+        if mediaType == EnhancedFinMediaType.tv.rawValue {
+            return isNative
+                ? seerr.status == EnhancedFinSeerr.partiallyAvailable
+                : seerr.status != EnhancedFinSeerr.available
+        }
+
+        return !isNative && (seerr.status == nil || seerr.status == EnhancedFinSeerr.unknown)
     }
 }
 
