@@ -119,7 +119,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		535870602669D21600D05A09 /* Swiftfin tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Swiftfin tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		535870602669D21600D05A09 /* SweetFin tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SweetFin tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5362E4AA267D40AD000E2F71 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		5362E4AC267D40B1000E2F71 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		5362E4AE267D40B5000E2F71 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -136,7 +136,7 @@
 		5362E4C4267D40F0000E2F71 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		5362E4C6267D40F4000E2F71 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		5362E4C8267D40F7000E2F71 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		5377CBF1263B596A003A4E83 /* Swiftfin iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Swiftfin iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5377CBF1263B596A003A4E83 /* SweetFin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SweetFin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		53ABFDDB267972BF00886593 /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS15.0.sdk/System/Library/Frameworks/TVServices.framework; sourceTree = DEVELOPER_DIR; };
 		62666E0027E5016900EC0ECD /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		62666E0527E5017A00EC0ECD /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -382,8 +382,8 @@
 		5377CBF2263B596A003A4E83 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5377CBF1263B596A003A4E83 /* Swiftfin iOS.app */,
-				535870602669D21600D05A09 /* Swiftfin tvOS.app */,
+				5377CBF1263B596A003A4E83 /* SweetFin.app */,
+				535870602669D21600D05A09 /* SweetFin tvOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -465,7 +465,7 @@
 				E1456FC82DFCB323008FF700 /* Translations */,
 				E150B7D12DFF2E7C00DC7CF4 /* XcodeConfig */,
 			);
-			name = "Swiftfin tvOS";
+			name = "SweetFin tvOS";
 			packageProductDependencies = (
 				E13DD3CC27164CA7009D4DAF /* CoreStore */,
 				E12186DD2718F1C50010884C /* Defaults */,
@@ -493,8 +493,8 @@
 				E144DBFB30464F3A009B85B5 /* SwiftVLC */,
 				E16C08F8305A386900895062 /* CollectionHStack */,
 			);
-			productName = "JellyfinPlayer tvOS";
-			productReference = 535870602669D21600D05A09 /* Swiftfin tvOS.app */;
+			productName = "SweetFin tvOS";
+			productReference = 535870602669D21600D05A09 /* SweetFin tvOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 		5377CBF0263B596A003A4E83 /* Swiftfin iOS */ = {
@@ -518,7 +518,7 @@
 				E1456FC82DFCB323008FF700 /* Translations */,
 				E150B7D12DFF2E7C00DC7CF4 /* XcodeConfig */,
 			);
-			name = "Swiftfin iOS";
+			name = SweetFin;
 			packageProductDependencies = (
 				E13DD3C52716499E009D4DAF /* CoreStore */,
 				E13DD3D227168E65009D4DAF /* Defaults */,
@@ -571,8 +571,8 @@
 				E16C08F3305A350C00895062 /* CollectionHStack */,
 				E16C08F6305A385900895062 /* CollectionHStack */,
 			);
-			productName = JellyfinPlayer;
-			productReference = 5377CBF1263B596A003A4E83 /* Swiftfin iOS.app */;
+			productName = SweetFin;
+			productReference = 5377CBF1263B596A003A4E83 /* SweetFin.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
