@@ -23,8 +23,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>swiftfin</string>
-				<string>jellyfin</string>
+				<string>sweetfin</string>
 			</array>
 		</dict>
 	</array>

@@ -40,7 +40,7 @@ struct NetworkConnectionContext: Equatable {
 
     static func current() async -> NetworkConnectionContext {
         let monitor = NWPathMonitor()
-        let queue = DispatchQueue(label: "Swiftfin.NetworkConnectionContext")
+        let queue = DispatchQueue(label: "SweetFin.NetworkConnectionContext")
         let resumeState = ContinuationResumeState()
 
         return await withCheckedContinuation { continuation in

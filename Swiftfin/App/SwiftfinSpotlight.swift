@@ -10,7 +10,7 @@ import CoreSpotlight
 import Foundation
 
 struct SwiftfinSpotlight {
-    private let mainIndex = CSSearchableIndex(name: "SwiftfinAppIndex")
+    private let mainIndex = CSSearchableIndex(name: "SweetFinAppIndex")
 
     func addSwiftfinToSpotlight() {
         Task.detached {
@@ -18,7 +18,7 @@ struct SwiftfinSpotlight {
             attributeSet.title = L10n.sweetFin
 
             let searchableItem = CSSearchableItem(
-                uniqueIdentifier: "org.jellyfin.swiftfin",
+                uniqueIdentifier: "com.gaabsi.sweetfin",
                 domainIdentifier: nil,
                 attributeSet: attributeSet
             )

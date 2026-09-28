@@ -12,7 +12,7 @@ import Logging
 extension Logger {
 
     static func swiftfin() -> Logger {
-        Logger(label: "org.jellyfin.swiftfin")
+        Logger(label: "com.gaabsi.sweetfin")
     }
 }
 
