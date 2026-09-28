@@ -12,7 +12,7 @@ import SwiftUI
 
 struct PosterIndicatorsOverlay: View {
 
-    // EnhancedFin : pas de temps restant dans un rail de reprise, voir plus bas.
+    // SweetFin : pas de temps restant dans un rail de reprise, voir plus bas.
     @Environment(\.viewContext)
     private var viewContext
 
@@ -23,7 +23,7 @@ struct PosterIndicatorsOverlay: View {
         UIDevice.isTV ? 45 : 25
     }
 
-    // EnhancedFin : indicateurs imposés — progression et « vu », jamais « non vu ».
+    // SweetFin : indicateurs imposés — progression et « vu », jamais « non vu ».
     private var showsProgressIndicator: Bool {
         item.progressLabel != nil &&
             item.userData?.isPlayed != true
@@ -49,7 +49,7 @@ struct PosterIndicatorsOverlay: View {
 
             if showsProgressIndicator {
                 ProgressIndicator(
-                    // EnhancedFin : pas de temps restant dans un rail de reprise, la
+                    // SweetFin : pas de temps restant dans un rail de reprise, la
                     // barre suffit à dire où on en est.
                     title: viewContext.contains(.isInResume) ? nil : item.progressLabel,
                     progress: item.progressPercentage ?? 0,

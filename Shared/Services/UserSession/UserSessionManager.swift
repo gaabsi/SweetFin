@@ -185,7 +185,7 @@ final class UserSessionManager: ObservableObject {
         guard !hasActivePlayback else { return }
 
         let backgroundedInterval = Date.now.timeIntervalSince(Defaults[.backgroundTimeStamp])
-        // EnhancedFin : délai imposé (1 h), plus de réglage.
+        // SweetFin : délai imposé (1 h), plus de réglage.
         if backgroundedInterval > 3600 {
             await signOut(reason: .backgroundTimeout)
         }

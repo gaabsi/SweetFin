@@ -10,7 +10,7 @@ import SwiftUI
 
 extension Notifications.Key {
 
-    /// EnhancedFin : un item vient d'être masqué de « Continuer de regarder ».
+    /// SweetFin : un item vient d'être masqué de « Continuer de regarder ».
     ///
     /// Pas `didDeleteItem` : il retirerait l'item de **tous** les rails chargés.
     ///
@@ -20,7 +20,7 @@ extension Notifications.Key {
     }
 }
 
-/// EnhancedFin : « Continuer de regarder ».
+/// SweetFin : « Continuer de regarder ».
 ///
 /// Trois écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
 /// - **un tap lance la lecture** (`Router.play`) au lieu d'ouvrir la fiche : c'est une

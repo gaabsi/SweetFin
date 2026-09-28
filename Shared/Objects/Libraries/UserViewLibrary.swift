@@ -114,7 +114,7 @@ enum UserViewLibraryElement: Displayable, Hashable, Identifiable, LibraryElement
 
 private struct UserViewLibraryGridElement: View {
 
-    // EnhancedFin : image aléatoire imposée.
+    // SweetFin : image aléatoire imposée.
     private let useRandomImage = true
 
     @Namespace

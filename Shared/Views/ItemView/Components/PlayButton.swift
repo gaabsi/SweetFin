@@ -57,7 +57,7 @@ struct PlayButton: View {
             play()
         } label: {
             HStack {
-                // EnhancedFin : roue tant que le serveur n'a pas dit s'il y a quelque
+                // SweetFin : roue tant que le serveur n'a pas dit s'il y a quelque
                 // chose à lire (`playable`, résolu après l'affichage de la fiche).
                 if provider.mediaPlayerItemProvider == nil, provider.isResolvingPlayable {
                     ProgressView()

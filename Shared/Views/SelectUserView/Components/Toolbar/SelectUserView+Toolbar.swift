@@ -123,7 +123,7 @@ extension SelectUserView {
 
         @ViewBuilder
         private var regularContentView: some View {
-            // EnhancedFin : plus de réglages ici, seule reste l'édition des comptes.
+            // SweetFin : plus de réglages ici, seule reste l'édition des comptes.
             Button {
                 isEditing = true
             } label: {

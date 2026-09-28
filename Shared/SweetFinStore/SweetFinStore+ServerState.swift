@@ -12,7 +12,7 @@ import Foundation
 import JellyfinAPI
 import Pulse
 
-extension SwiftfinStore.State {
+extension SweetFinStore.State {
 
     struct Server: Hashable, Identifiable, Codable {
 

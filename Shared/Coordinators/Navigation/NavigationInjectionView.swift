@@ -25,7 +25,7 @@ struct PresentationControllerShouldDismissPreferenceKey: PreferenceKey {
 
 struct NavigationInjectionView: View {
 
-    // EnhancedFin : `\.appearance` est l'apparence **résolue** posée par
+    // SweetFin : `\.appearance` est l'apparence **résolue** posée par
     // `RootCoordinator.applyAppearance`, et non le réglage brut — celui-ci diffère
     // selon qu'on est connecté ou non.
     @Default(.appearance)
@@ -131,7 +131,7 @@ struct NavigationInjectionView: View {
     }
 }
 
-// EnhancedFin : aussi utilisé par les feuilles qui ont leur propre `NavigationStack`
+// SweetFin : aussi utilisé par les feuilles qui ont leur propre `NavigationStack`
 // (`SeasonsContentGroup`).
 extension View {
 

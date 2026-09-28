@@ -12,7 +12,7 @@ import SwiftUI
 
 extension ItemActionButtons {
 
-    /// EnhancedFin : le téléchargement dans le menu « ⋯ » de la fiche.
+    /// SweetFin : le téléchargement dans le menu « ⋯ » de la fiche.
     struct Download: View {
 
         @EnvironmentObject
@@ -24,7 +24,7 @@ extension ItemActionButtons {
     }
 }
 
-/// EnhancedFin : télécharger un item pour le lire hors connexion, depuis n'importe quel
+/// SweetFin : télécharger un item pour le lire hors connexion, depuis n'importe quel
 /// menu (« ⋯ » de la fiche, appui long sur un épisode ou une affiche).
 ///
 /// Un seul emplacement, quatre états — absent (télécharger), en cours (pourcentage,

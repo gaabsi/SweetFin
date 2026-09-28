@@ -217,7 +217,7 @@ extension VLCMediaPlayerProxy {
         @ObservedObject
         var proxy: VLCMediaPlayerProxy
 
-        // EnhancedFin : style des sous-titres imposé.
+        // SweetFin : style des sous-titres imposé.
         private let subtitleConfiguration = SubtitleConfiguration.default
 
         @EnvironmentObject

@@ -30,7 +30,7 @@ extension NavigationRoute {
     static func castAndCrew(people: [BaseItemPerson], itemID: String?) -> NavigationRoute {
         let id = itemID == nil ? "castAndCrew" : "castAndCrew-\(itemID!)"
         let library = StaticLibrary(
-            title: ItemStrings.cast, // EnhancedFin : « Casting »
+            title: ItemStrings.cast, // SweetFin : « Casting »
             id: id,
             elements: people
         )

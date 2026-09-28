@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-/// EnhancedFin : sélecteur de lettres imposé, toujours affiché sur le bord droit.
+/// SweetFin : sélecteur de lettres imposé, toujours affiché sur le bord droit.
 struct LetterPickerBarModifier: ViewModifier {
 
     let viewModel: FilterViewModel?

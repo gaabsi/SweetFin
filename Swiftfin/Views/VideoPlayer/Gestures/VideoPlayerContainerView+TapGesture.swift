@@ -70,7 +70,7 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
             containerState.isPresentingOverlay.toggle()
         }
 
-        // EnhancedFin : deux taps du même côté = recul / avance, seul geste imposé.
+        // SweetFin : deux taps du même côté = recul / avance, seul geste imposé.
         let jumpProgressObserver = containerState.jumpProgressObserver
         let width = location.x / unitPoint.x
 
@@ -154,7 +154,7 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         return (p1Side == p2Side, p1Side)
     }
 
-    /// EnhancedFin : l'appui long ne sert plus qu'à déverrouiller les gestes (verrou posé
+    /// SweetFin : l'appui long ne sert plus qu'à déverrouiller les gestes (verrou posé
     /// par le bouton de la barre).
     func handleLongPressGesture(
         location: CGPoint,

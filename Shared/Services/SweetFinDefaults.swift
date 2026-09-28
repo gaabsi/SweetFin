@@ -64,7 +64,7 @@ extension Defaults.Keys {
 
     /// The _real_ accent color key to be used.
     ///
-    /// EnhancedFin : écrite **uniquement** par `RootCoordinator.applyAppearance`, à
+    /// SweetFin : écrite **uniquement** par `RootCoordinator.applyAppearance`, à
     /// partir du thème. Le réglage utilisateur et sa clé `userAccentColor` ont été
     /// retirés — deux écrivains concurrents rendaient la valeur finale dépendante de
     /// l'ordre d'exécution de deux `Task`.
@@ -112,7 +112,7 @@ extension Defaults.Keys {
         }
 
         enum Home {
-            // EnhancedFin : sections optionnelles de l'Accueil (la media bar et « Continuer
+            // SweetFin : sections optionnelles de l'Accueil (la media bar et « Continuer
             // de regarder » sont imposées). Anciens noms de clé gardés : un compte retrouve
             // son choix.
             static var showLibraries: Key<Bool> {

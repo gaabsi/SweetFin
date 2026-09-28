@@ -44,7 +44,7 @@ extension BaseItemPerson: Poster {
         BaseItemDto(person: self).posterContextMenu
     }
 
-    /// EnhancedFin : remplit le cadre, visage au centre.
+    /// SweetFin : remplit le cadre, visage au centre.
     ///
     /// Sans ce `transform`, l'image n'était que `resizable` : invisible tant que le
     /// cadre avait le ratio de la photo (2:3), mais étirée dans un rond du casting,
@@ -71,7 +71,7 @@ extension BaseItemPerson: Poster {
             )
     }
 
-    /// EnhancedFin : les ronds du casting sont carrés, et une personne n'a pas
+    /// SweetFin : les ronds du casting sont carrés, et une personne n'a pas
     /// d'image carrée. Sans ça, le défaut du protocole (`[]`) laissait l'icône de
     /// remplacement ; la photo portrait est recadrée par `transform(image:)`.
     func squareImageSources(
@@ -92,7 +92,7 @@ extension BaseItemPerson: Poster {
 
 private extension VerticalAlignment {
 
-    /// EnhancedFin : le point à 33 % de la hauteur, repris d'ElegantFin
+    /// SweetFin : le point à 33 % de la hauteur, repris d'ElegantFin
     /// (`#castCollapsible .cardImageContainer { background-position-y: 33% }`).
     ///
     /// Aligner ce point du cadre sur ce même point de la photo décale celle-ci de

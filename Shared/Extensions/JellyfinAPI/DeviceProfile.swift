@@ -10,7 +10,7 @@ import JellyfinAPI
 
 extension DeviceProfile {
 
-    /// EnhancedFin : VLC lit tout côté client → lecture directe dans 100 % des cas, le
+    /// SweetFin : VLC lit tout côté client → lecture directe dans 100 % des cas, le
     /// Pi ne transcode jamais. Ni conditions par codec, ni profil de transcodage, ni
     /// sous-titres incrustés.
     ///

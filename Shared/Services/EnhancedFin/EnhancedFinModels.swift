@@ -443,7 +443,7 @@ struct EnhancedFinMedia: Decodable, Hashable {
         seerr.map { $0.status != EnhancedFinSeerr.available } ?? false
     }
 
-    /// EnhancedFin : « Demander sur Seerr » a un sens pour ce média.
+    /// SweetFin : « Demander sur Seerr » a un sens pour ce média.
     ///
     /// - série : tant qu'elle n'est pas entièrement disponible — la fenêtre de demande
     ///   grise ensuite, saison par saison, ce qui est déjà demandé ou disponible ;

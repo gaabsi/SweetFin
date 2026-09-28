@@ -9,7 +9,7 @@
 import JellyfinAPI
 import SwiftUI
 
-/// EnhancedFin : ce que le bloc « infos » d'une fiche affiche.
+/// SweetFin : ce que le bloc « infos » d'une fiche affiche.
 ///
 /// Deux sources, une seule forme :
 /// - le **plugin** (TMDB + MDBList), pour toute fiche qui a un identifiant TMDB ;
@@ -76,7 +76,7 @@ struct ItemFacts {
     }
 }
 
-/// EnhancedFin : le bloc « infos » d'une fiche.
+/// SweetFin : le bloc « infos » d'une fiche.
 ///
 /// Repris de la fiche web de media-rating : une carte, une ligne par information,
 /// les notes en pied. Il remplace les sections natives Genres et Studios, dont les

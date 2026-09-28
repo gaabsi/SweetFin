@@ -18,7 +18,7 @@ extension Container {
     }
 }
 
-/// EnhancedFin : « l'appareil n'a aucun réseau » (mode avion, ni Wi-Fi ni cellulaire).
+/// SweetFin : « l'appareil n'a aucun réseau » (mode avion, ni Wi-Fi ni cellulaire).
 ///
 /// **Seulement ça** : une 4G/5G compte comme « en ligne », même si le serveur ne répond
 /// pas — le streaming habituel reste la règle dès qu'il y a du réseau (choix de Gabriel).

@@ -131,7 +131,7 @@ struct MediaBarView: View {
         .task(id: items.count) {
             await rotate()
         }
-        // EnhancedFin : le média affiché, pour le fond de l'Accueil (GlassFin). Sur
+        // SweetFin : le média affiché, pour le fond de l'Accueil (GlassFin). Sur
         // l'identifiant : un recentrage de la fenêtre circulaire garde le même média.
         .onChange(of: item(at: position)?.id, initial: true) {
             Container.shared.homeBackdrop().item = item(at: position)

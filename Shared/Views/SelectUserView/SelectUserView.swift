@@ -57,7 +57,7 @@ struct SelectUserView: View {
     }
 
     private var splashScreenImageSources: [ImageSource] {
-        // EnhancedFin : fond illustré imposé, celui de tous les serveurs ou du serveur filtré.
+        // SweetFin : fond illustré imposé, celui de tous les serveurs ou du serveur filtré.
         switch serverSelection {
         case .all:
             viewModel
@@ -117,7 +117,7 @@ struct SelectUserView: View {
                 Color.clear
             } content: {
                 ImageView(splashScreenImageSources)
-                    .pipeline(.Swiftfin.local)
+                    .pipeline(.SweetFin.local)
                     .aspectRatio(contentMode: .fill)
                     .id(splashScreenImageSources)
             }
@@ -262,7 +262,7 @@ struct SelectUserView: View {
                         }
                         .controlSize(.small)
                     } else {
-                        // EnhancedFin : plus de réglages ici, seule reste l'édition des comptes.
+                        // SweetFin : plus de réglages ici, seule reste l'édition des comptes.
                         Button(L10n.editUsers, systemImage: "pencil") {
                             isEditing = true
                         }

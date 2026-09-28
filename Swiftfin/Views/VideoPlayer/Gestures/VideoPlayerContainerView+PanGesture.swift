@@ -11,7 +11,7 @@ import UIKit
 
 extension VideoPlayer.UIVideoPlayerContainerViewController {
 
-    /// EnhancedFin : le glisser ne sert qu'à ouvrir / fermer le panneau des épisodes.
+    /// SweetFin : le glisser ne sert qu'à ouvrir / fermer le panneau des épisodes.
     /// Luminosité, volume, scrub et balayages sont coupés.
     func handlePanGesture(
         translation: CGPoint,

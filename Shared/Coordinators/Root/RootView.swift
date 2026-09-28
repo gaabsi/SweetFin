@@ -12,7 +12,7 @@ import SwiftUI
 
 struct RootView: View {
 
-    // EnhancedFin : le thème du lancement précédent, déjà en `UserDefaults`.
+    // SweetFin : le thème du lancement précédent, déjà en `UserDefaults`.
     //
     // ⚠️ **Sans ce fond, l'app démarre en blanc puis en noir.** L'état `.initial`
     // n'était qu'un `ProgressView` sans fond : on voyait le `systemBackground` de la

@@ -33,7 +33,7 @@ extension VideoPlayer.PlaybackControls.Toolbar.ActionButtons {
             }
         }
 
-        // EnhancedFin : plus de choix de qualité (lecture directe), seulement la version.
+        // SweetFin : plus de choix de qualité (lecture directe), seulement la version.
         var body: some View {
             if let playbackItem = manager.playbackItem,
                let versions = playbackItem.baseItem.mediaSources,

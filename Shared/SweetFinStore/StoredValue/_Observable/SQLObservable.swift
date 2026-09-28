@@ -70,8 +70,8 @@ final class SQLObservable<Value: Storable>: ObservableObject, _StoredValueObserv
         let clause = From<AnyStoredData>()
             .where(ownerFilter && keyFilter && fieldFilter)
 
-        if let values = try? SwiftfinStore.dataStack.fetchAll(clause), let first = values.first {
-            let publisher = first.asPublisher(in: SwiftfinStore.dataStack)
+        if let values = try? SweetFinStore.dataStack.fetchAll(clause), let first = values.first {
+            let publisher = first.asPublisher(in: SweetFinStore.dataStack)
 
             publisher.addObserver(self) { [weak self] objectPublisher in
                 guard self?.shouldListenToPublish == true else { return }

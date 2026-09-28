@@ -9,7 +9,7 @@
 import SwiftUI
 
 @main
-struct SwiftfinApp: App {
+struct SweetFinApp: App {
 
     init() {
         Self.configure()

@@ -11,7 +11,7 @@ import Foundation
 
 // TODO: complete and make migration
 
-extension SwiftfinStore.V2 {
+extension SweetFinStore.V2 {
 
     final class StoredServer: CoreStoreObject {
 

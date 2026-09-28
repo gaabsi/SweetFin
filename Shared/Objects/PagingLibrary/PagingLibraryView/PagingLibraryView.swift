@@ -35,7 +35,7 @@ struct PagingLibraryView<Library: PagingLibrary>: View where Library.Element: Li
         viewModel.libraryStyleOptions
     }
 
-    /// EnhancedFin : disposition imposée (grille, affiches portrait), adaptée seulement à
+    /// SweetFin : disposition imposée (grille, affiches portrait), adaptée seulement à
     /// ce que les éléments savent afficher.
     private var libraryStyle: LibraryStyle {
         libraryStyleOptions.normalized(.default)

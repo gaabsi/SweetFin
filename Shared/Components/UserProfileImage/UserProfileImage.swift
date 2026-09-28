@@ -20,7 +20,7 @@ struct UserProfileImage: View {
 
     let userID: String?
     let source: ImageSource
-    var pipeline: ImagePipeline = .Swiftfin.posters
+    var pipeline: ImagePipeline = .SweetFin.posters
 
     private var overlayOpacity: Double {
         /// Dim the Profile Image if Editing & Unselected or if Disabled

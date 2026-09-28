@@ -17,7 +17,7 @@ extension NetworkLogger {
     static func swiftfin() -> NetworkLogger {
         var configuration = NetworkLogger.Configuration()
 
-        // EnhancedFin : les jetons ne doivent jamais finir dans les journaux, qu'on peut
+        // SweetFin : les jetons ne doivent jamais finir dans les journaux, qu'on peut
         // lire et exporter depuis l'app. Pulse les masque lui-même.
         // - en-têtes : le jeton Jellyfin sous toutes ses formes ;
         // - paramètres d'URL : `api_key` (images, flux) ;

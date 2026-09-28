@@ -9,7 +9,7 @@
 import Foundation
 import JellyfinAPI
 
-/// EnhancedFin : un média téléchargé, tel qu'enregistré dans son dossier (`item.json`).
+/// SweetFin : un média téléchargé, tel qu'enregistré dans son dossier (`item.json`).
 ///
 /// Écrit **au lancement** du téléchargement, avant le fichier : hors connexion, c'est la
 /// seule source de la fiche (titre, pistes, sous-titres), puisqu'il n'y a plus de serveur.
@@ -27,7 +27,7 @@ struct DownloadedItem: Codable, Identifiable {
     }
 }
 
-/// EnhancedFin : où en est le téléchargement d'un item.
+/// SweetFin : où en est le téléchargement d'un item.
 enum DownloadState: Equatable {
 
     case none
@@ -36,7 +36,7 @@ enum DownloadState: Equatable {
     case failed
 }
 
-/// EnhancedFin : ce qui empêche de lancer un téléchargement.
+/// SweetFin : ce qui empêche de lancer un téléchargement.
 enum DownloadError: LocalizedError {
 
     case missingSource
@@ -52,7 +52,7 @@ enum DownloadError: LocalizedError {
     }
 }
 
-/// EnhancedFin : position atteinte **sans réseau**, en attente d'envoi à Jellyfin
+/// SweetFin : position atteinte **sans réseau**, en attente d'envoi à Jellyfin
 /// (`progress.json`). Supprimée dès qu'elle est envoyée.
 struct DownloadProgress: Codable {
 

@@ -20,7 +20,7 @@ extension AnyStoredData {
         let clause = From<AnyStoredData>()
             .where(ownerFilter && keyFilter && fieldFilter)
 
-        let values = try SwiftfinStore.dataStack
+        let values = try SweetFinStore.dataStack
             .fetchAll(
                 clause
             )
@@ -43,7 +43,7 @@ extension AnyStoredData {
         let clause = From<AnyStoredData>()
             .where(ownerFilter && keyFilter && fieldFilter)
 
-        try SwiftfinStore.dataStack.perform { transaction in
+        try SweetFinStore.dataStack.perform { transaction in
             let existing = try transaction.fetchAll(clause)
 
             assert(existing.count < 2, "More than one stored object for same name, id, and field!")
@@ -94,7 +94,7 @@ extension AnyStoredData {
     /// Note: if performing deletion with another transaction, use `fetchClause`
     ///       instead to delete within the other transaction
     static func deleteAll(ownerID: String) throws {
-        try SwiftfinStore.dataStack.perform { transaction in
+        try SweetFinStore.dataStack.perform { transaction in
             let values = try transaction.fetchAll(fetchClause(ownerID: ownerID))
 
             transaction.delete(values)
@@ -106,7 +106,7 @@ extension AnyStoredData {
     /// Note: if performing deletion with another transaction, use `fetchClause`
     ///       instead to delete within the other transaction
     static func deleteAll(ownerID: String, field: String) throws {
-        try SwiftfinStore.dataStack.perform { transaction in
+        try SweetFinStore.dataStack.perform { transaction in
             let values = try transaction.fetchAll(fetchClause(ownerID: ownerID, field: field))
 
             transaction.delete(values)
@@ -118,7 +118,7 @@ extension AnyStoredData {
     /// Note: if performing deletion with another transaction, use `fetchClause`
     ///       instead to delete within the other transaction
     static func delete(ownerID: String, field: String, key: String) throws {
-        try SwiftfinStore.dataStack.perform { transaction in
+        try SweetFinStore.dataStack.perform { transaction in
             let values = try transaction.fetchAll(fetchClause(ownerID: ownerID, field: field, key: key))
 
             transaction.delete(values)

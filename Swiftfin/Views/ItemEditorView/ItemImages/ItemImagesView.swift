@@ -224,7 +224,7 @@ struct ItemImagesView: View {
                     .failure {
                         Image(systemName: "photo")
                     }
-                    .pipeline(.Swiftfin.other)
+                    .pipeline(.SweetFin.other)
                 }
                 .posterStyle(posterType)
                 .subtleShadow()

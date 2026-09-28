@@ -25,7 +25,7 @@ struct SettingsBarButton: View {
                     source: user.profileImageSource(
                         client: server.client
                     ),
-                    pipeline: .Swiftfin.local
+                    pipeline: .SweetFin.local
                 )
             }
         }

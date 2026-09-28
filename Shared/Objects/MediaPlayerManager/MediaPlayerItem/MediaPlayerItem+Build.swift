@@ -60,7 +60,7 @@ extension MediaPlayerItem {
             throw ErrorMessage(L10n.unknownError)
         }
 
-        // EnhancedFin : lecture directe, jamais de test de débit — il retarderait chaque
+        // SweetFin : lecture directe, jamais de test de débit — il retarderait chaque
         // démarrage, et un débit mesuré trop bas ferait refuser le brut au serveur.
         let maxBitrate = 360_000_000
         let deviceProfile = DeviceProfile.build()
@@ -131,7 +131,7 @@ extension MediaPlayerItem {
             logger: logger
         )
 
-        // EnhancedFin : aperçus trickplay seulement, sans secours par les chapitres.
+        // SweetFin : aperçus trickplay seulement, sans secours par les chapitres.
         let previewImageProvider: (any PreviewImageProvider)? = {
             guard let mediaSourceID = mediaSource.id,
                   let trickplayInfo = item.trickplay?[mediaSourceID]?.first

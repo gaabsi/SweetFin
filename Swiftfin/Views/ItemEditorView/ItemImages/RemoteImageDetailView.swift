@@ -32,7 +32,7 @@ struct RemoteImageDetailView: View {
                     .failure {
                         Image(systemName: "questionmark")
                     }
-                    .pipeline(.Swiftfin.other)
+                    .pipeline(.SweetFin.other)
             }
             .scaledToFit()
             .frame(maxHeight: 300)

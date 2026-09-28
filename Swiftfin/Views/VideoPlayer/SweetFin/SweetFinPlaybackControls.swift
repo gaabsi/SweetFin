@@ -10,7 +10,7 @@ import Defaults
 import JellyfinAPI
 import SwiftUI
 
-/// EnhancedFin : l'overlay du lecteur iOS, sur le modèle du web Jellyfin (ElegantFin).
+/// SweetFin : l'overlay du lecteur iOS, sur le modèle du web Jellyfin (ElegantFin).
 ///
 /// Remplace `VideoPlayer.PlaybackControls` (upstream, gardé intact) dans
 /// `VideoPlayer.swift`. Seule l'interface change : moteur, `MediaPlayerManager`, gestes
@@ -21,7 +21,7 @@ import SwiftUI
 ///   (épisodes) et l'engrenage ; dessous, la barre de progression
 ///   (`PlaybackProgress`, réutilisée telle quelle) ;
 /// - rien au centre de l'image.
-struct EnhancedFinPlaybackControls: View {
+struct SweetFinPlaybackControls: View {
 
     @Default(.VideoPlayer.jumpBackwardInterval)
     private var jumpBackwardInterval
@@ -61,7 +61,7 @@ struct EnhancedFinPlaybackControls: View {
             controls
 
             if isPresentingPauseScreen {
-                EnhancedFinPauseScreen(onClose: closePauseScreen)
+                SweetFinPauseScreen(onClose: closePauseScreen)
                     .transition(.opacity)
             }
         }
@@ -319,7 +319,7 @@ private struct QueueButton: View {
 /// `PlaybackRateMenu`) : pensés pour la barre, ils ouvrent chacun leur propre menu.
 private struct SettingsMenu: View {
 
-    private let rates = EnhancedFinPlayerPolicy.playbackRates
+    private let rates = SweetFinPlayerPolicy.playbackRates
 
     @EnvironmentObject
     private var manager: MediaPlayerManager

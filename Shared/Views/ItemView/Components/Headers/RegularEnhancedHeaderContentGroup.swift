@@ -39,7 +39,7 @@ extension ItemView {
             }
             #endif
 
-            // EnhancedFin : logo et colonne agrandis sur tvOS (100 pt dans 450 pt de
+            // SweetFin : logo et colonne agrandis sur tvOS (100 pt dans 450 pt de
             // large : un logo large devenait minuscule sous le fond plein écran).
             private var logoHeight: CGFloat {
                 UIDevice.isTV ? 300 : 70

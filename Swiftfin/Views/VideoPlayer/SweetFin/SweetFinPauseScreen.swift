@@ -9,16 +9,16 @@
 import JellyfinAPI
 import SwiftUI
 
-/// EnhancedFin : l'écran de pause, sur le modèle du web Jellyfin (ElegantFin).
+/// SweetFin : l'écran de pause, sur le modèle du web Jellyfin (ElegantFin).
 ///
-/// Présenté par `EnhancedFinPlaybackControls` après quelques secondes de pause. Fond
+/// Présenté par `SweetFinPlaybackControls` après quelques secondes de pause. Fond
 /// assombri, logo, année et durée, synopsis, puis la progression :
 /// « 0:26 / 22:31 • 2 % regardé • Se termine à 22:00 ». Un tap n'importe où, ou `×`,
 /// le ferme.
 ///
 /// Pour un épisode, fond et logo sont ceux de la **série** : un épisode n'a
 /// généralement ni l'un ni l'autre.
-struct EnhancedFinPauseScreen: View {
+struct SweetFinPauseScreen: View {
 
     @Environment(\.safeAreaInsets)
     private var safeAreaInsets

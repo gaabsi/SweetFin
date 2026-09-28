@@ -13,7 +13,7 @@ import Nuke
 import PulseLogHandler
 import UIKit
 
-extension SwiftfinApp {
+extension SweetFinApp {
 
     static func configure() {
 
@@ -24,7 +24,7 @@ extension SwiftfinApp {
             //       - default info, boolean to go down to trace
             let handlers: [any LogHandler] = [PersistentLogHandler(label: label)]
                 #if DEBUG
-                    .appending(SwiftfinConsoleHandler())
+                    .appending(SweetFinConsoleHandler())
                 #endif
 
             var multiplexHandler = MultiplexLogHandler(handlers)
@@ -34,8 +34,8 @@ extension SwiftfinApp {
 
         // CoreStore
 
-        CoreStoreDefaults.dataStack = SwiftfinStore.dataStack
-        CoreStoreDefaults.logger = SwiftfinCorestoreLogger()
+        CoreStoreDefaults.dataStack = SweetFinStore.dataStack
+        CoreStoreDefaults.logger = SweetFinCorestoreLogger()
 
         // Nuke
 
@@ -47,6 +47,6 @@ extension SwiftfinApp {
             return mimeType.contains("svg") ? ImageDecoders.Empty() : nil
         }
 
-        ImagePipeline.shared = .Swiftfin.posters
+        ImagePipeline.shared = .SweetFin.posters
     }
 }

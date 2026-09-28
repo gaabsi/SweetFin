@@ -9,10 +9,10 @@
 import CoreSpotlight
 import Foundation
 
-struct SwiftfinSpotlight {
+struct SweetFinSpotlight {
     private let mainIndex = CSSearchableIndex(name: "SweetFinAppIndex")
 
-    func addSwiftfinToSpotlight() {
+    func addSweetFinToSpotlight() {
         Task.detached {
             let attributeSet = CSSearchableItemAttributeSet(contentType: UTType.application)
             attributeSet.title = L10n.sweetFin

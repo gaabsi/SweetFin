@@ -8,7 +8,7 @@
 
 extension ViewContext {
 
-    /// EnhancedFin : une tuile de « Continuer de regarder », seul endroit où l'appui
+    /// SweetFin : une tuile de « Continuer de regarder », seul endroit où l'appui
     /// long propose « Masquer » (`BaseItemDtoPosterContextMenu`).
     ///
     /// Distinct d'`isInResume`, qui sert aussi à tvOS et aux indicateurs d'affiche.

@@ -11,7 +11,7 @@ import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
-/// EnhancedFin : le rail des saisons d'une série, et la feuille de ses épisodes.
+/// SweetFin : le rail des saisons d'une série, et la feuille de ses épisodes.
 ///
 /// Même rendu pour une série du serveur et une série de découverte : la source est
 /// cachée derrière ``SeasonEpisodesViewModel``. Un tap sur une saison ouvre la liste
@@ -185,7 +185,7 @@ private struct SeasonCard: View {
 
 // MARK: - Feuille des épisodes
 
-/// EnhancedFin : la feuille des épisodes, et la lecture qui en part.
+/// SweetFin : la feuille des épisodes, et la lecture qui en part.
 ///
 /// Le lecteur ne s'ouvre qu'**une fois la feuille fermée** : SwiftUI refuse deux
 /// présentations à la fois, et le lecteur est présenté par le coordinateur, sous la
@@ -242,7 +242,7 @@ private struct SeasonEpisodesSheet: View {
     @ObservedObject
     var viewModel: SeasonEpisodesViewModel
 
-    /// EnhancedFin : un épisode à lire est prêt ; celui qui présente la feuille la ferme
+    /// SweetFin : un épisode à lire est prêt ; celui qui présente la feuille la ferme
     /// puis ouvre le lecteur.
     let onPlay: (MediaPlayerItemProvider) -> Void
 
@@ -256,7 +256,7 @@ private struct SeasonEpisodesSheet: View {
     private var downloadManager = Container.shared.downloadManager()
     #endif
 
-    /// EnhancedFin : l'item à télécharger pour un épisode (iPhone, épisode du serveur,
+    /// SweetFin : l'item à télécharger pour un épisode (iPhone, épisode du serveur,
     /// compte autorisé à télécharger) ; `nil` sinon.
     private func downloadableID(_ episode: EpisodeRow) -> String? {
         #if os(iOS)
@@ -430,7 +430,7 @@ private struct EpisodeRowView: View {
     let isSelected: Bool
     let toggleSelection: () -> Void
     let play: () -> Void
-    /// EnhancedFin : item à proposer au téléchargement (appui long), `nil` = pas de menu.
+    /// SweetFin : item à proposer au téléchargement (appui long), `nil` = pas de menu.
     let downloadableID: String?
     let isDownloaded: Bool
 
@@ -487,7 +487,7 @@ private struct EpisodeRowView: View {
             if isSelecting { toggleSelection() } else { play() }
         }
         #if os(iOS)
-        // EnhancedFin : appui long → télécharger, comme sur les affiches.
+        // SweetFin : appui long → télécharger, comme sur les affiches.
         .contextMenu {
             if let downloadableID, !isSelecting {
                 DownloadButton(item: BaseItemDto(id: downloadableID, type: .episode))
@@ -512,7 +512,7 @@ private struct EpisodeRowView: View {
                 }
             }
             #if os(iOS)
-            // EnhancedFin : disponible hors connexion.
+            // SweetFin : disponible hors connexion.
             .overlay(alignment: .bottomLeading) {
                 if isDownloaded, !isSelecting {
                     Image(systemName: "arrow.down.circle.fill")

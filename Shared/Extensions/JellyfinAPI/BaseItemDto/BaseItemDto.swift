@@ -207,7 +207,7 @@ extension BaseItemDto {
             environment: .init(useParent: true)
         )
 
-        guard let firstImage = await ImagePipeline.Swiftfin.other.loadFirstImage(from: imageSources) else {
+        guard let firstImage = await ImagePipeline.SweetFin.other.loadFirstImage(from: imageSources) else {
             let failedSystemContentView = SystemImageContentView(
                 systemName: systemImage
             )

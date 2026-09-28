@@ -24,7 +24,7 @@ extension VideoPlayer.PlaybackControls {
             isSpeedBoosting = true
             containerState.originalPlaybackRate = manager.rate
 
-            // EnhancedFin : accélération imposée à 2×.
+            // SweetFin : accélération imposée à 2×.
             let multiplier: Float = 2
             manager.setRate(rate: multiplier)
 

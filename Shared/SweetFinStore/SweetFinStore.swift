@@ -12,12 +12,12 @@ import Foundation
 import JellyfinAPI
 import Logging
 
-typealias AnyStoredData = SwiftfinStore.V3.AnyData
+typealias AnyStoredData = SweetFinStore.V3.AnyData
 
-typealias ServerState = SwiftfinStore.State.Server
-typealias UserState = SwiftfinStore.State.User
+typealias ServerState = SweetFinStore.State.Server
+typealias UserState = SweetFinStore.State.User
 
-enum SwiftfinStore {
+enum SweetFinStore {
 
     enum V1 {}
 
@@ -28,7 +28,7 @@ enum SwiftfinStore {
     enum State {}
 }
 
-extension SwiftfinStore {
+extension SweetFinStore {
 
     private struct V1ServerSnapshot {
         let id: String
@@ -160,7 +160,7 @@ extension SwiftfinStore {
         let sourceStorage = SQLiteStore(fileURL: sourceStoreURL)
         try await addStorage(sourceStorage, to: sourceStack)
 
-        let servers = try sourceStack.fetchAll(From<SwiftfinStore.V1.StoredServer>())
+        let servers = try sourceStack.fetchAll(From<SweetFinStore.V1.StoredServer>())
             .map {
                 V1ServerSnapshot(
                     id: $0.id,
@@ -170,7 +170,7 @@ extension SwiftfinStore {
                 )
             }
 
-        let users = try sourceStack.fetchAll(From<SwiftfinStore.V1.StoredUser>())
+        let users = try sourceStack.fetchAll(From<SweetFinStore.V1.StoredUser>())
             .map {
                 V1UserSnapshot(
                     id: $0.id,
@@ -193,9 +193,9 @@ extension SwiftfinStore {
         try await addStorage(destinationStorage, to: destinationStack)
 
         try destinationStack.perform { transaction in
-            var v2ServersByID: [String: SwiftfinStore.V2.StoredServer] = [:]
+            var v2ServersByID: [String: SweetFinStore.V2.StoredServer] = [:]
             for server in servers {
-                let newServer = transaction.create(Into<SwiftfinStore.V2.StoredServer>())
+                let newServer = transaction.create(Into<SweetFinStore.V2.StoredServer>())
                 let urls = transformServerURLs(server.uris)
 
                 newServer.id = server.id
@@ -207,7 +207,7 @@ extension SwiftfinStore {
             }
 
             for user in users {
-                let newUser = transaction.create(Into<SwiftfinStore.V2.StoredUser>())
+                let newUser = transaction.create(Into<SweetFinStore.V2.StoredUser>())
 
                 newUser.id = user.id
                 newUser.username = user.username
@@ -228,7 +228,7 @@ extension SwiftfinStore {
         let sourceStorage = SQLiteStore(fileURL: sourceStoreURL)
         try await addStorage(sourceStorage, to: sourceStack)
 
-        return try sourceStack.fetchAll(From<SwiftfinStore.V2.AnyData>())
+        return try sourceStack.fetchAll(From<SweetFinStore.V2.AnyData>())
             .map {
                 V2AnyDataSnapshot(
                     data: $0.data,
@@ -251,18 +251,18 @@ extension SwiftfinStore {
 
         try destinationStack.perform { transaction in
             func upsertAnyData(ownerID: String, field: String, key: String, data: Data?) throws {
-                let ownerFilter: Where<SwiftfinStore.V3.AnyData> = Where(\.$ownerID == ownerID)
-                let fieldFilter: Where<SwiftfinStore.V3.AnyData> = Where(\.$field == field)
-                let keyFilter: Where<SwiftfinStore.V3.AnyData> = Where(\.$key == key)
+                let ownerFilter: Where<SweetFinStore.V3.AnyData> = Where(\.$ownerID == ownerID)
+                let fieldFilter: Where<SweetFinStore.V3.AnyData> = Where(\.$field == field)
+                let keyFilter: Where<SweetFinStore.V3.AnyData> = Where(\.$key == key)
                 let existing = try transaction.fetchOne(
-                    From<SwiftfinStore.V3.AnyData>()
+                    From<SweetFinStore.V3.AnyData>()
                         .where(ownerFilter && fieldFilter && keyFilter)
                 )
 
                 if let existing {
                     existing.data = data
                 } else {
-                    let newEntry = transaction.create(Into<SwiftfinStore.V3.AnyData>())
+                    let newEntry = transaction.create(Into<SweetFinStore.V3.AnyData>())
                     newEntry.ownerID = ownerID
                     newEntry.field = field
                     newEntry.key = key
@@ -335,8 +335,8 @@ extension SwiftfinStore {
         let sourceStorage = SQLiteStore(fileURL: sourceStoreURL)
         try await addStorage(sourceStorage, to: sourceStack)
 
-        let servers = try sourceStack.fetchAll(From<SwiftfinStore.V2.StoredServer>()).map(\.state)
-        let users = try sourceStack.fetchAll(From<SwiftfinStore.V2.StoredUser>()).map(\.state)
+        let servers = try sourceStack.fetchAll(From<SweetFinStore.V2.StoredServer>()).map(\.state)
+        let users = try sourceStack.fetchAll(From<SweetFinStore.V2.StoredUser>()).map(\.state)
 
         return (servers, users)
     }

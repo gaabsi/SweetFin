@@ -28,7 +28,7 @@ extension ItemView {
 
             private let headerAspectRatio = 1.6
 
-            // EnhancedFin : cet en-tête sert aussi sur iPad (`ItemView.isCompact`), où
+            // SweetFin : cet en-tête sert aussi sur iPad (`ItemView.isCompact`), où
             // 70 pt donnaient un logo minuscule sous un fond pleine largeur.
             @Environment(\.horizontalSizeClass)
             private var horizontalSizeClass

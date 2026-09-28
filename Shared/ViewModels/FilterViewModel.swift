@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// EnhancedFin : plus de tiroir de filtres. Ne porte que les filtres courants d'une
+/// SweetFin : plus de tiroir de filtres. Ne porte que les filtres courants d'une
 /// médiathèque, que le sélecteur de lettres modifie.
 @MainActor
 final class FilterViewModel: ObservableObject {
