@@ -390,7 +390,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
                     id: "cast-and-crew",
                     elements: castAndCrew
                 ),
-                // SweetFin : forme décidée par le thème (ronds pour ElegantFin).
+                // SweetFin : forme décidée par le thème (ronds par défaut).
                 posterDisplayType: Defaults[.appearance].tokens.personPosterShape.displayType,
                 posterSize: .small
             )

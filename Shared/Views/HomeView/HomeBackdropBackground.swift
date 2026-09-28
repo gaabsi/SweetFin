@@ -19,7 +19,7 @@ extension Container {
     }
 }
 
-/// SweetFin : le média affiché par la media bar, pour le fond de l'Accueil (GlassFin).
+/// SweetFin : le média affiché par la media bar, pour le fond de l'Accueil.
 ///
 /// La media bar l'écrit à chaque changement de diapo ; le fond de l'Accueil le lit. Rien
 /// d'autre n'y touche.
@@ -50,7 +50,7 @@ extension TabItem {
 private extension View {
 
     /// Fond de l'Accueil selon le thème : rien à faire pour un fond uni (la pile de
-    /// navigation le peint déjà), le backdrop de la media bar pour GlassFin.
+    /// navigation le peint déjà), le backdrop de la media bar si le thème le demande.
     func homeBackground() -> some View {
         modifier(HomeBackgroundModifier())
     }

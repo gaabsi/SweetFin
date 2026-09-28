@@ -21,21 +21,20 @@ import SwiftUI
 /// que le compilateur réclame tant qu'il manque.
 enum AppAppearance: String, CaseIterable, Displayable, Storable {
 
-    /// Le thème web **ElegantFin** (`lscambo13/ElegantFin`) : indigo `#5D55E7`
-    /// (`--accentColor: hsl(243, 75%, 62%)`) sur bleu nuit `#111827`
-    /// (`--darkerGradientPoint`).
-    case elegantFin
+    /// **Default** : fond bleu nuit `#111827`, accent indigo `#5D55E7` (couleurs
+    /// inspirées du thème web ElegantFin, tout le reste est à nous). Fond de l'Accueil =
+    /// backdrop flouté de la media bar.
+    case standard
 
-    /// **GlassFin** : ElegantFin à l'identique, sauf le fond de l'Accueil, qui reprend en
-    /// flou le backdrop affiché par la media bar et le suit en temps réel.
-    case glassFin
+    /// **Dark** : Default sur fond noir pur.
+    case dark
 
     var displayTitle: String {
         switch self {
-        case .elegantFin:
-            "ElegantFin"
-        case .glassFin:
-            "GlassFin"
+        case .standard:
+            "Default"
+        case .dark:
+            "Dark"
         }
     }
 }

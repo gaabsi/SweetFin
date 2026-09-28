@@ -74,11 +74,11 @@ extension Defaults.Keys {
     ///
     /// This is set externally whenever the app or user appearances change,
     /// depending on the current app state.
-    static let appearance: Key<AppAppearance> = AppKey("appearance", default: .elegantFin)
+    static let appearance: Key<AppAppearance> = AppKey("appearance", default: .standard)
 
     /// The appearance default for non-user contexts.
     /// /// Only use for `set`, use `appearance` for `get`.
-    static let appAppearance: Key<AppAppearance> = AppKey("appAppearance", default: .elegantFin)
+    static let appAppearance: Key<AppAppearance> = AppKey("appAppearance", default: .standard)
 
     static let backgroundTimeStamp: Key<Date> = AppKey("backgroundTimeStamp", default: Date.now)
     static let lastSignedInUserID: Key<UserSessionState> = AppKey("lastSignedInUserID", default: .signedOut)
@@ -94,7 +94,7 @@ extension Defaults.Keys {
     /// The appearance default for user contexts.
     /// /// Only use for `set`, use `appearance` for `get`.
     static var userAppearance: Key<AppAppearance> {
-        UserKey("userAppearance", default: .elegantFin)
+        UserKey("userAppearance", default: .standard)
     }
 
     enum Customization {

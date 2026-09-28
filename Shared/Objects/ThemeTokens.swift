@@ -55,20 +55,6 @@ struct ThemeTokens {
     /// Fond de l'Accueil : uni (``background``) ou le backdrop de la media bar, en flou.
     var homeBackground: HomeBackground = .solid
 
-    /// Les mêmes tokens, avec un autre fond d'Accueil — pour dériver un thème d'un
-    /// autre sans recopier ses valeurs.
-    ///
-    /// Parametres :
-    /// - background (HomeBackground) : fond de l'Accueil voulu
-    ///
-    /// Output :
-    /// - tokens (ThemeTokens) : copie modifiée
-    func withHomeBackground(_ background: HomeBackground) -> ThemeTokens {
-        var copy = self
-        copy.homeBackground = background
-        return copy
-    }
-
     /// L'équivalent `TextAlignment` de ``posterLabelAlignment``, pour les titres qui
     /// passent à la ligne. Dérivé plutôt que déclaré : deux champs à tenir d'accord
     /// finiraient par diverger.
@@ -89,29 +75,40 @@ extension AppAppearance {
     /// compile pas tant que ses tokens ne sont pas écrits.
     var tokens: ThemeTokens {
         switch self {
-        case .elegantFin:
-            ThemeTokens(
-                // ElegantFin est un thème sombre : ses couleurs de texte supposent un
-                // fond foncé, et le laisser suivre le système le rendrait illisible.
-                style: .dark,
-                accent: Color(uiColor: .elegantFinAccent),
-                background: Color(uiColor: .elegantFinBackground),
-                // Arrondis repris d'ElegantFin (`--smallRadius`, `--largeRadius`) et
-                // des cartes du front web. Les valeurs upstream (1/30 et 0,0375)
-                // donnaient des coins presque droits, que rien d'autre ne rappelait.
-                posterCornerRatio: (landscape: 1 / 16, portrait: 0.065),
-                posterShadow: (color: .black.opacity(0.5), radius: 8, y: 4),
-                // Titres centrés partout : le fork centrait déjà les siens, et aligner
-                // les tuiles natives à gauche donnait deux styles selon l'écran.
-                posterLabelAlignment: .center,
-                // Casting en ronds, comme le front web d'ElegantFin
-                // (`#castCollapsible .cardScalable { border-radius: 50% }`).
-                personPosterShape: .circle
-            )
-        case .glassFin:
-            // ElegantFin à l'identique : une seule différence, le fond de l'Accueil.
-            AppAppearance.elegantFin.tokens.withHomeBackground(.mediaBarBackdrop)
+        case .standard:
+            Self.tokens(background: Color(uiColor: .standardBackground))
+        case .dark:
+            Self.tokens(background: .black)
         }
+    }
+
+    /// Tout ce que les thèmes partagent : ils ne diffèrent que par le fond.
+    ///
+    /// Parametres :
+    /// - background (Color) : fond de l'app
+    ///
+    /// Output :
+    /// - tokens (ThemeTokens) : les valeurs du thème
+    private static func tokens(background: Color) -> ThemeTokens {
+        ThemeTokens(
+            // Thème sombre : les couleurs de texte supposent un fond foncé, et le
+            // laisser suivre le système le rendrait illisible.
+            style: .dark,
+            accent: Color(uiColor: .standardAccent),
+            background: background,
+            // Arrondis repris d'ElegantFin (`--smallRadius`, `--largeRadius`) et
+            // des cartes du front web. Les valeurs upstream (1/30 et 0,0375)
+            // donnaient des coins presque droits, que rien d'autre ne rappelait.
+            posterCornerRatio: (landscape: 1 / 16, portrait: 0.065),
+            posterShadow: (color: .black.opacity(0.5), radius: 8, y: 4),
+            // Titres centrés partout : le fork centrait déjà les siens, et aligner
+            // les tuiles natives à gauche donnait deux styles selon l'écran.
+            posterLabelAlignment: .center,
+            // Casting en ronds, comme le front web d'ElegantFin
+            // (`#castCollapsible .cardScalable { border-radius: 50% }`).
+            personPosterShape: .circle,
+            homeBackground: .mediaBarBackdrop
+        )
     }
 }
 
@@ -144,8 +141,8 @@ enum PersonPosterShape {
 private extension UIColor {
 
     /// `hsl(243, 75%, 62%)`
-    static let elegantFinAccent = UIColor(red: 93 / 255, green: 85 / 255, blue: 231 / 255, alpha: 1)
+    static let standardAccent = UIColor(red: 93 / 255, green: 85 / 255, blue: 231 / 255, alpha: 1)
 
     /// `#111827`
-    static let elegantFinBackground = UIColor(red: 17 / 255, green: 24 / 255, blue: 39 / 255, alpha: 1)
+    static let standardBackground = UIColor(red: 17 / 255, green: 24 / 255, blue: 39 / 255, alpha: 1)
 }

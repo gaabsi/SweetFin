@@ -38,7 +38,7 @@ struct MainTabView: View {
         #if os(iOS)
         TabCoordinator {
             // SweetFin : Accueil du fork — carrousel, bibliothèques, reprise
-            // fusionnée, ajouts récents — avec le fond que son thème demande (GlassFin).
+            // fusionnée, ajouts récents — avec le fond que son thème demande (backdrop de la media bar).
             TabItem.home
             // SweetFin : pas d'onglet Recherche, l'Explorer porte la recherche
             // (référentiel + TMDB + bibliothèque).
