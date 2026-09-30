@@ -34,9 +34,14 @@ final class UserSession {
 
     lazy var serverSocketManager = ServerSocketManager()
 
+    // SweetFin : SyncPlay
+    @MainActor
+    lazy var syncPlayManager = SyncPlayManager()
+
     @MainActor
     private lazy var services: [any UserSessionService] = [
         serverSocketManager,
+        syncPlayManager,
     ]
 
     init(

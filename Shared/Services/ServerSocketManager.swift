@@ -244,6 +244,22 @@ extension ServerSocketManager {
         }
     }
 
+    // SweetFin : SyncPlay, commandes horodatées du groupe (play, pause, seek, stop)
+    var syncPlayCommands: AnyPublisher<SendCommand, Never> {
+        commands { event in
+            guard case let .message(.syncPlayCommandMessage(message)) = event else { return nil }
+            return message.data
+        }
+    }
+
+    // SweetFin : SyncPlay, état du groupe (rejoint, quitté, file, attente)
+    var syncPlayGroupUpdates: AnyPublisher<GroupUpdate, Never> {
+        commands { event in
+            guard case let .message(.syncPlayGroupUpdateMessage(message)) = event else { return nil }
+            return message.data
+        }
+    }
+
     private func commands<Command>(
         extract: @escaping (JellyfinSocket.Session.Event) -> Command?
     ) -> AnyPublisher<Command, Never> {

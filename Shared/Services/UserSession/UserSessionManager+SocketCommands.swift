@@ -50,6 +50,19 @@ extension UserSessionManager {
                 }
             }
             .store(in: &cancellables)
+
+        // SweetFin : SyncPlay, mises à jour du groupe (file de lecture)
+        $currentSession
+            .map { session -> AnyPublisher<GroupUpdate, Never> in
+                session?.serverSocketManager.syncPlayGroupUpdates ?? Combine.Empty<GroupUpdate, Never>().eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .sink { [weak self] update in
+                Task { @MainActor in
+                    self?.onReceive(syncPlayGroupUpdate: update)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     @MainActor
@@ -109,6 +122,22 @@ extension UserSessionManager {
         case .none:
             return
         }
+    }
+
+    // SweetFin : SyncPlay. Le groupe change de média → on ouvre le même, à sa position.
+    @MainActor
+    private func onReceive(syncPlayGroupUpdate: GroupUpdate) {
+        guard let currentSession,
+              case let .syncPlayPlayQueueUpdate(update) = syncPlayGroupUpdate,
+              let queue = update.data,
+              queue.changesPlayingItem,
+              let itemID = queue.playingItem?.itemID
+        else { return }
+
+        // Déjà dans le lecteur (c'est nous qui l'avons proposé) : `SyncPlayManager` se recale.
+        if hasActivePlayback, mediaPlayerManager?.item.id == itemID { return }
+
+        playItem(id: itemID, startPositionTicks: queue.startPositionTicks, userSession: currentSession)
     }
 
     @MainActor
