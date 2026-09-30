@@ -81,8 +81,8 @@ struct MainTabView: View {
                         tab.item.content
                             #if os(iOS)
                                 .if(tabCoordinator.tabs.first?.item.id == tab.item.id) { view in
-                                    view.topBarTrailing {
-                                        FirstTabSettingsBarButton()
+                                    view.toolbar {
+                                        firstTabToolbar()
                                     }
                                 }
                             #endif
@@ -140,6 +140,10 @@ struct MainTabView: View {
                 FocusedPosterCinematicBackgroundView()
             }
             #else
+            // SweetFin : invitation SyncPlay reçue, quel que soit l'onglet.
+            .ifLet(userSessionManager.currentSession?.syncPlayManager) { view, manager in
+                view.modifier(SyncPlayInviteBanner(manager: manager))
+            }
             // SweetFin : au lancement et au retour du réseau, envoyer la progression
             // notée hors connexion ; au retour du réseau, recharger aussi les onglets
             // restés en erreur. Pas de bascule automatique vers les téléchargements
@@ -183,6 +187,48 @@ struct MainTabView: View {
 }
 
 #if os(iOS)
+extension MainTabView {
+
+    /// SweetFin : « o O » — petit bouton SyncPlay, puis la photo de profil dans sa propre
+    /// bulle. Sous iOS 26, des éléments d'un même groupe partagent une capsule de verre :
+    /// le `ToolbarSpacer` les sépare, et le bouton SyncPlay dessine sa bulle, plus petite.
+    @ToolbarContentBuilder
+    func firstTabToolbar() -> some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: .topBarTrailing) {
+                FirstTabSyncPlayButton()
+            }
+            .sharedBackgroundVisibility(.hidden)
+
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
+
+            ToolbarItem(placement: .topBarTrailing) {
+                FirstTabSettingsBarButton()
+            }
+        } else {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                FirstTabSyncPlayButton()
+                FirstTabSettingsBarButton()
+            }
+        }
+    }
+}
+
+private struct FirstTabSyncPlayButton: View {
+
+    @Injected(\.currentUserSession)
+    private var userSession
+
+    @Router
+    private var router
+
+    var body: some View {
+        if router.isRootOfPath, let userSession {
+            SyncPlayBarButton(manager: userSession.syncPlayManager)
+        }
+    }
+}
+
 private struct FirstTabSettingsBarButton: View {
 
     @Injected(\.currentUserSession)

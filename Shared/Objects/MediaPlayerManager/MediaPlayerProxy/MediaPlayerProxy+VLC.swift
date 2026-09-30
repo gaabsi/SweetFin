@@ -73,10 +73,14 @@ class VLCMediaPlayerProxy: VideoMediaPlayerProxy,
         guard target > .zero else { return }
 
         player.jump(by: target)
+        // SweetFin : SyncPlay
+        manager?.seeks.send((manager?.seconds ?? .zero) + target)
     }
 
     func jumpBackward(_ seconds: Duration) {
         player.jump(by: .zero - seconds)
+        // SweetFin : SyncPlay
+        manager?.seeks.send(max(.zero, (manager?.seconds ?? .zero) - seconds))
     }
 
     func setRate(_ rate: Float) {
@@ -94,6 +98,8 @@ class VLCMediaPlayerProxy: VideoMediaPlayerProxy,
 
         do {
             try player.seek(to: seconds)
+            // SweetFin : SyncPlay
+            manager?.seeks.send(seconds)
         } catch {
             log(error)
         }

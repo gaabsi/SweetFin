@@ -224,6 +224,21 @@ final class EnhancedFinClient {
         ))
     }
 
+    // MARK: - SyncPlay
+
+    /// Invite un utilisateur dans mon groupe SyncPlay (l'expéditeur est tiré du jeton).
+    ///
+    /// Output :
+    /// - delivered (Int) : nombre d'appareils de la cible qui l'ont reçue, 0 = pas connecté
+    func inviteToSyncPlay(groupID: String, userID: String) async throws -> Int {
+        let response: SyncPlayInviteResponse = try await send(Request(
+            path: "syncplay/invite",
+            method: .post,
+            body: SyncPlayInviteBody(groupId: groupID, userId: userID)
+        ))
+        return response.delivered
+    }
+
     // MARK: - Calendrier
 
     /// Les sorties des médias suivis, regroupées par jour.
@@ -357,6 +372,16 @@ final class EnhancedFinClient {
     /// Corps de `POST /me/requests/{mediaKey}`.
     private struct SeerrRequestBody: Encodable {
         let seasons: [Int]
+    }
+
+    /// Corps de `POST /syncplay/invite` (camelCase côté plugin).
+    private struct SyncPlayInviteBody: Encodable {
+        let groupId: String
+        let userId: String
+    }
+
+    private struct SyncPlayInviteResponse: Decodable {
+        let delivered: Int
     }
 
     /// Échappe une clé média avant de l'interpoler dans un chemin d'URL.

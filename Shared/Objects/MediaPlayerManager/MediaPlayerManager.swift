@@ -152,6 +152,9 @@ final class MediaPlayerManager: ViewModel {
         set { secondsBox.value = newValue }
     }
 
+    // SweetFin : SyncPlay, chaque déplacement demandé au lecteur (utilisateur ou groupe).
+    let seeks = PassthroughSubject<Duration, Never>()
+
     /// Holds a weak reference to the current media player proxy.
     weak var proxy: (any MediaPlayerProxy)? {
         didSet {
