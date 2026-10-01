@@ -146,6 +146,29 @@ extension Defaults.Keys {
                 UserKey("playbackRate", default: Float(1.0))
             }
         }
+
+        // SweetFin : pistes proposées dans l'engrenage du lecteur (`MediaTrackFilter`).
+        // Les langues préférées, elles, vivent sur le serveur.
+        enum Audio {
+
+            /// Affiche aussi les pistes d'audiodescription (malvoyants).
+            static var showAudioDescription: Key<Bool> {
+                UserKey("audioShowAudioDescription", default: false)
+            }
+        }
+
+        enum Subtitles {
+
+            /// Langues affichées en plus de la langue préférée (codes ISO 639-2).
+            static var extraLanguages: Key<[String]> {
+                UserKey("subtitleExtraLanguages", default: [])
+            }
+
+            /// Affiche aussi les pistes SDH (sourds et malentendants).
+            static var showSDH: Key<Bool> {
+                UserKey("subtitleShowSDH", default: false)
+            }
+        }
     }
 }
 

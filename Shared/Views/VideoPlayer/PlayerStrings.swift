@@ -27,6 +27,32 @@ enum PlayerStrings {
     static let audioAndSubtitles = "Audio & Sous-titres"
     static let preferredAudioLanguage = "Langue audio préférée"
     static let preferredSubtitleLanguage = "Langue des sous-titres préférée"
+    static let extraSubtitleLanguages = "Autres langues de sous-titres"
+    static let showSDH = "Sous-titres SDH"
+    static let showAudioDescription = "Audiodescription"
+    static let accessibilityFooter = """
+    SDH : sous-titres pour sourds et malentendants, qui décrivent aussi les bruits, la \
+    musique et qui parle. Audiodescription : une voix décrit l'action pour les \
+    malvoyants. Les sous-titres forcés de vos langues sont toujours proposés.
+    """
+
+    // Pistes de l'engrenage (`MediaTrackFilter`)
+    static func forcedTrack(_ language: String) -> String {
+        "\(language) (forcé)"
+    }
+
+    static func sdhTrack(_ language: String) -> String {
+        "\(language) (SDH)"
+    }
+
+    static func audioDescriptionTrack(_ language: String) -> String {
+        "\(language) (audiodescription)"
+    }
+
+    /// Une piste sans langue connue : « Audio 2 », « Piste 3 ».
+    static func untitledTrack(isAudio: Bool, position: Int) -> String {
+        "\(isAudio ? "Audio" : "Piste") \(position)"
+    }
 
     // Écran de pause
     static let endsAt = "Se termine à"
