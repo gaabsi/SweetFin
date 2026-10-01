@@ -1339,8 +1339,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/gaabsi/jellyfin-sdk-swift.git";
 			requirement = {
-				branch = sweetfin;
-				kind = branch;
+				kind = revision;
+				revision = a8e88c2f0a51b40f71ee3caa116a9f6b6027d248;
 			};
 		};
 		E1DC9812296DC06200982F06 /* XCRemoteSwiftPackageReference "PulseLogHandler" */ = {
