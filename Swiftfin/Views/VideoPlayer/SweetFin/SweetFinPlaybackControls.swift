@@ -7,6 +7,7 @@
 //
 
 import Defaults
+import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
@@ -321,6 +322,13 @@ private struct SettingsMenu: View {
 
     private let rates = SweetFinPlayerPolicy.playbackRates
 
+    @Default(.VideoPlayer.Subtitles.extraLanguages)
+    private var extraSubtitleLanguages
+    @Default(.VideoPlayer.Subtitles.showSDH)
+    private var showSDH
+    @Default(.VideoPlayer.Audio.showAudioDescription)
+    private var showAudioDescription
+
     @EnvironmentObject
     private var manager: MediaPlayerManager
 
@@ -334,15 +342,49 @@ private struct SettingsMenu: View {
     }
 
     private var audioTitle: String {
-        playbackItem.audioStreams
-            .first { $0.index == playbackItem.selectedAudioStreamIndex }?
-            .displayTitle ?? L10n.none
+        title(of: playbackItem.selectedAudioStreamIndex, among: playbackItem.audioStreams)
     }
 
     private var subtitleTitle: String {
-        playbackItem.subtitleStreams
-            .first { $0.index == playbackItem.selectedSubtitleStreamIndex }?
-            .displayTitle ?? L10n.none
+        title(of: playbackItem.selectedSubtitleStreamIndex, among: playbackItem.subtitleStreams)
+    }
+
+    /// Les pistes audio retenues par `MediaTrackFilter`.
+    private var visibleAudioStreams: [MediaStream] {
+        MediaTrackFilter.visibleAudio(
+            playbackItem.audioStreams,
+            showAudioDescription: showAudioDescription,
+            selectedIndex: playbackItem.selectedAudioStreamIndex
+        )
+    }
+
+    /// Les sous-titres retenus par `MediaTrackFilter`, selon les réglages de l'utilisateur.
+    private var visibleSubtitleStreams: [MediaStream] {
+        let preferences = MediaTrackFilter.SubtitlePreferences(
+            preferredLanguage: Container.shared.currentUserSession()?.user.data.configuration?.subtitleLanguagePreference,
+            extraLanguages: extraSubtitleLanguages,
+            showSDH: showSDH
+        )
+
+        return MediaTrackFilter.visibleSubtitles(
+            playbackItem.subtitleStreams,
+            preferences: preferences,
+            selectedIndex: playbackItem.selectedSubtitleStreamIndex
+        )
+    }
+
+    /// Le libellé de la piste en cours, « Aucun » s'il n'y en a pas.
+    ///
+    /// Parametres :
+    /// - index (Int?) : index de la piste en cours
+    /// - streams ([MediaStream]) : les pistes du même type
+    ///
+    /// Output :
+    /// - title (String) : le libellé
+    private func title(of index: Int?, among streams: [MediaStream]) -> String {
+        guard let stream = streams.first(where: { $0.index == index }) else { return L10n.none }
+
+        return MediaTrackFilter.label(of: stream, among: streams)
     }
 
     var body: some View {
@@ -363,8 +405,8 @@ private struct SettingsMenu: View {
             .pickerStyle(.menu)
 
             Picker(selection: $playbackItem.selectedAudioStreamIndex) {
-                ForEach(playbackItem.audioStreams, id: \.index) { stream in
-                    Text(stream.displayTitle ?? L10n.unknown)
+                ForEach(visibleAudioStreams, id: \.index) { stream in
+                    Text(MediaTrackFilter.label(of: stream, among: playbackItem.audioStreams))
                         .tag(stream.index as Int?)
                 }
             } label: {
@@ -372,11 +414,14 @@ private struct SettingsMenu: View {
                 Text(audioTitle)
             }
             .pickerStyle(.menu)
-            .disabled(playbackItem.audioStreams.count <= 1)
+            .disabled(visibleAudioStreams.count <= 1)
 
             Picker(selection: $playbackItem.selectedSubtitleStreamIndex) {
-                ForEach(playbackItem.subtitleStreams.prepending(.none), id: \.index) { stream in
-                    Text(stream.displayTitle ?? L10n.unknown)
+                Text(L10n.none)
+                    .tag(MediaStream.none.index as Int?)
+
+                ForEach(visibleSubtitleStreams, id: \.index) { stream in
+                    Text(MediaTrackFilter.label(of: stream, among: playbackItem.subtitleStreams))
                         .tag(stream.index as Int?)
                 }
             } label: {
@@ -384,9 +429,9 @@ private struct SettingsMenu: View {
                 Text(subtitleTitle)
             }
             .pickerStyle(.menu)
-            // Grisé seulement sans aucune piste : avec une seule, « Aucun » reste un choix
-            // (activer ou couper les sous-titres).
-            .disabled(playbackItem.subtitleStreams.isEmpty)
+            // Grisé seulement sans aucune piste proposée : avec une seule, « Aucun » reste
+            // un choix (activer ou couper les sous-titres).
+            .disabled(visibleSubtitleStreams.isEmpty)
         } label: {
             Label(PlayerStrings.settings, systemImage: "gearshape")
         }
