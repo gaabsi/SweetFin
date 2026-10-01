@@ -80,8 +80,11 @@ enum MediaTrackFilter {
 
             return true
         }
+        // En cas de doublon, le texte (SRT) l'emporte sur l'image (PGS) : plus net.
+        let priority = { (stream: MediaStream) in (stream.isTextSubtitleStream == true ? 0 : 1, stream.index ?? 0) }
+        let textFirst = wanted.sorted { priority($0) < priority($1) }
 
-        return deduplicated(wanted, selectedIndex: selectedIndex)
+        return deduplicated(textFirst, selectedIndex: selectedIndex)
     }
 
     // MARK: - Audio
