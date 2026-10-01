@@ -54,6 +54,13 @@ enum PlayerStrings {
         "\(isAudio ? "Audio" : "Piste") \(position)"
     }
 
+    // Segments (`SkipSegmentButton`)
+    static let skipIntro = "Passer l'intro"
+    static let skipRecap = "Passer le résumé"
+    static let skipCredits = "Passer le générique"
+    static let nextEpisode = "Épisode suivant"
+    static let skip = "Passer"
+
     // Écran de pause
     static let endsAt = "Se termine à"
 
