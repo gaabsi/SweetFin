@@ -89,8 +89,9 @@ struct SyncPlaySheet: View {
                     Button(SyncPlayStrings.close) { dismiss() }
                 }
             }
-            // Relu à chaque entrée / sortie de groupe : la liste change avec.
+            // Relu à chaque sortie de groupe : la liste change avec.
             .task(id: manager.groupID) {
+                guard manager.group == nil else { return }
                 groups = (try? await manager.groups()) ?? []
             }
         }
@@ -107,7 +108,7 @@ struct SyncPlaySheet: View {
 
         Section {
             NavigationLink(SyncPlayStrings.invite) {
-                SyncPlayInviteList(manager: manager, participants: group.participants ?? [])
+                SyncPlayInviteList(manager: manager)
             }
 
             Button(SyncPlayStrings.leave, role: .destructive) {
@@ -159,7 +160,6 @@ struct SyncPlayInviteList: View {
 
     @ObservedObject
     var manager: SyncPlayManager
-    let participants: [String]
 
     @Injected(\.currentUserSession)
     private var userSession
@@ -169,23 +169,28 @@ struct SyncPlayInviteList: View {
     @State
     private var states: [String: InviteState] = [:]
 
+    /// Filtrée à chaque rendu : quelqu'un qui rejoint le groupe disparaît de la liste.
+    private var invitableUsers: [UserDto] {
+        let participants = manager.group?.participants ?? []
+        return users.filter { user in
+            user.id != userSession?.user.id && !participants.contains(user.name ?? "")
+        }
+    }
+
     var body: some View {
         List {
-            if users.isEmpty {
+            if invitableUsers.isEmpty {
                 Text(SyncPlayStrings.noUsers)
                     .foregroundStyle(.secondary)
             }
 
-            ForEach(users, id: \.id) { user in
+            ForEach(invitableUsers, id: \.id) { user in
                 row(user)
             }
         }
         .navigationTitle(SyncPlayStrings.invite)
         .task {
-            let all = (try? await manager.users()) ?? []
-            users = all.filter { user in
-                user.id != userSession?.user.id && !participants.contains(user.name ?? "")
-            }
+            users = (try? await manager.users()) ?? []
         }
     }
 
@@ -226,8 +231,8 @@ struct SyncPlayInviteList: View {
         guard let userID = user.id else { return }
 
         Task {
-            guard let delivered = try? await manager.invite(userID: userID) else { return }
-            states[userID] = delivered > 0 ? .sent : .offline
+            guard let delivered = try? await manager.sendInvite(to: userID) else { return }
+            states[userID] = delivered ? .sent : .offline
         }
     }
 }
@@ -240,23 +245,26 @@ struct SyncPlayInviteList: View {
 /// Se ferme seul au bout de 15 s, comme le message que le serveur envoie aux autres clients.
 struct SyncPlayInviteBanner: ViewModifier {
 
+    /// Comme le message que le serveur affiche sur les autres clients.
+    private static let duration: Duration = .seconds(15)
+
     @ObservedObject
     var manager: SyncPlayManager
 
     func body(content: Content) -> some View {
         content
             .overlay(alignment: .top) {
-                if let invite = manager.invite {
+                if let invite = manager.pendingInvite {
                     banner(invite)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .task(id: invite.id) {
-                            try? await Task.sleep(for: .seconds(15))
+                            try? await Task.sleep(for: Self.duration)
                             guard !Task.isCancelled else { return }
                             manager.declineInvite()
                         }
                 }
             }
-            .animation(.spring, value: manager.invite?.id)
+            .animation(.spring, value: manager.pendingInvite?.id)
     }
 
     private func banner(_ invite: SyncPlayInvite) -> some View {

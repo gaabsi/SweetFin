@@ -229,8 +229,8 @@ final class EnhancedFinClient {
     /// Invite un utilisateur dans mon groupe SyncPlay (l'expéditeur est tiré du jeton).
     ///
     /// Output :
-    /// - delivered (Int) : nombre d'appareils de la cible qui l'ont reçue, 0 = pas connecté
-    func inviteToSyncPlay(groupID: String, userID: String) async throws -> Int {
+    /// - delivered (Bool) : faux si la personne n'a aucun appareil connecté
+    func inviteToSyncPlay(groupID: String, userID: String) async throws -> Bool {
         let response: SyncPlayInviteResponse = try await send(Request(
             path: "syncplay/invite",
             method: .post,
@@ -381,7 +381,7 @@ final class EnhancedFinClient {
     }
 
     private struct SyncPlayInviteResponse: Decodable {
-        let delivered: Int
+        let delivered: Bool
     }
 
     /// Échappe une clé média avant de l'interpoler dans un chemin d'URL.

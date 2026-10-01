@@ -135,7 +135,7 @@ extension UserSessionManager {
         else { return }
 
         // Déjà dans le lecteur (c'est nous qui l'avons proposé) : `SyncPlayManager` se recale.
-        if hasActivePlayback, mediaPlayerManager?.item.id == itemID { return }
+        if currentSession.syncPlayManager.hasLoaded(itemID: itemID) { return }
 
         playItem(id: itemID, startPositionTicks: queue.startPositionTicks, userSession: currentSession)
     }
