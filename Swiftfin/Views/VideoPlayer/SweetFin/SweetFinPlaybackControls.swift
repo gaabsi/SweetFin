@@ -61,6 +61,14 @@ struct SweetFinPlaybackControls: View {
         ZStack {
             controls
 
+            // Hors de `controls` : visible pendant tout le segment, commandes masquées ou non.
+            SkipSegmentButton()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .padding(.trailing, safeAreaInsets.trailing)
+                .padding(.bottom, isPresentingOverlay ? Self.skipButtonOverlayOffset : safeAreaInsets.bottom)
+                .edgePadding()
+                .isVisible(!isScrubbing && !containerState.isPresentingSupplement && !isPresentingPauseScreen)
+
             if isPresentingPauseScreen {
                 SweetFinPauseScreen(onClose: closePauseScreen)
                     .transition(.opacity)
@@ -106,6 +114,10 @@ struct SweetFinPlaybackControls: View {
             }
         }
     }
+
+    /// Hauteur de la rangée de boutons et de la barre de progression : le bouton « Passer »
+    /// se pose au-dessus quand les commandes sont affichées.
+    private static let skipButtonOverlayOffset: CGFloat = 90
 
     // MARK: - Écran de pause
 
