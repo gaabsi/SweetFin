@@ -239,11 +239,69 @@ struct SyncPlayInviteList: View {
 
 // MARK: - Invitation reçue
 
-/// SweetFin : bandeau « X t'invite à regarder ensemble », Rejoindre en vert, Refuser en rouge.
+/// SweetFin : installe le bandeau d'invitation dans sa propre fenêtre, au-dessus de tout.
+///
+/// Posé sur `MainTabView`, le bandeau restait **sous** le lecteur (présenté par-dessus) : le
+/// minuteur refusait l'invitation sans qu'on l'ait vue. Une fenêtre à part, comme une
+/// bannière de notification, reste visible sur tous les écrans, lecteur compris.
+struct SyncPlayInviteBanner: ViewModifier {
+
+    let manager: SyncPlayManager
+
+    /// Seule référence à la fenêtre : elle est libérée avec la vue (déconnexion, changement
+    /// de compte). ❌ Pas d'`onDisappear` pour la retirer : le lecteur, présenté en plein
+    /// écran, fait « disparaître » `MainTabView`, et le bandeau partait avec.
+    @State
+    private var window: BannerWindow?
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear(perform: installWindow)
+    }
+
+    /// Crée la fenêtre du bandeau, juste au-dessus de celle de l'app. Elle ne devient
+    /// jamais la fenêtre principale : clavier et orientation restent ceux de l'app.
+    private func installWindow() {
+        guard window == nil,
+              let appWindow = UIApplication.shared.keyWindow,
+              let scene = appWindow.windowScene
+        else { return }
+
+        let window = BannerWindow(windowScene: scene)
+        let host = UIHostingController(rootView: SyncPlayInviteBannerView(manager: manager) { [weak window] frame in
+            window?.bannerFrame = frame
+        })
+        host.view.backgroundColor = .clear
+
+        window.rootViewController = host
+        window.windowLevel = appWindow.windowLevel + 1
+        window.overrideUserInterfaceStyle = appWindow.overrideUserInterfaceStyle
+        window.tintColor = appWindow.tintColor
+        window.isHidden = false
+        self.window = window
+    }
+}
+
+/// Fenêtre qui ne capte que les touchers tombant **sur** le bandeau : le reste passe à
+/// l'app en dessous.
+///
+/// Le cadre vient de SwiftUI : depuis iOS 18, la vue touchée est toujours la vue racine du
+/// `UIHostingController`, même sur un bouton, donc elle ne dit pas si l'on vise le bandeau.
+private final class BannerWindow: UIWindow {
+
+    /// Cadre du bandeau, `.zero` sans invitation.
+    var bannerFrame: CGRect = .zero
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        bannerFrame.contains(point) ? super.hitTest(point, with: event) : nil
+    }
+}
+
+/// Le bandeau « X t'invite à regarder ensemble », Rejoindre en vert, Refuser en rouge.
 ///
 /// À la place d'une alerte système, qui ne sait colorer qu'une action destructrice.
 /// Se ferme seul au bout de 15 s, comme le message que le serveur envoie aux autres clients.
-struct SyncPlayInviteBanner: ViewModifier {
+private struct SyncPlayInviteBannerView: View {
 
     /// Comme le message que le serveur affiche sur les autres clients.
     private static let duration: Duration = .seconds(15)
@@ -251,20 +309,26 @@ struct SyncPlayInviteBanner: ViewModifier {
     @ObservedObject
     var manager: SyncPlayManager
 
-    func body(content: Content) -> some View {
-        content
-            .overlay(alignment: .top) {
-                if let invite = manager.pendingInvite {
-                    banner(invite)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .task(id: invite.id) {
-                            try? await Task.sleep(for: Self.duration)
-                            guard !Task.isCancelled else { return }
-                            manager.declineInvite()
-                        }
-                }
+    /// Reçoit le cadre du bandeau (dans la fenêtre), `.zero` quand il disparaît.
+    let onFrameChange: (CGRect) -> Void
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Color.clear
+
+            if let invite = manager.pendingInvite {
+                banner(invite)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .global) }, action: onFrameChange)
+                    .onDisappear { onFrameChange(.zero) }
+                    .task(id: invite.id) {
+                        try? await Task.sleep(for: Self.duration)
+                        guard !Task.isCancelled else { return }
+                        manager.declineInvite()
+                    }
             }
-            .animation(.spring, value: manager.pendingInvite?.id)
+        }
+        .animation(.spring, value: manager.pendingInvite?.id)
     }
 
     private func banner(_ invite: SyncPlayInvite) -> some View {
