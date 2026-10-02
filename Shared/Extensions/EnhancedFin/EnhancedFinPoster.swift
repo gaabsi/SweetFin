@@ -89,7 +89,7 @@ extension EnhancedFinPosterItem {
             return ImageSource(url: url)
         }
 
-        // ⚠️ `maxWidth` en points (×3 à l'écran) : sans lui, le Pi servait l'image
+        // ⚠️ `maxWidth` en points (×3 à l'écran) : sans lui, le serveur servait l'image
         // originale pour chaque tuile. Assez large pour les grilles, pas plus.
         let options = ImageSourceOptions(maxWidth: serverType == .primary ? 200 : 400)
 

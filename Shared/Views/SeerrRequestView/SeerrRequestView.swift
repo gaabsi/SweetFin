@@ -12,7 +12,7 @@ import SwiftUI
 /// SweetFin : la fenêtre « Demander sur Seerr », ouverte depuis le menu « … » d'une
 /// fiche incomplète ou de découverte (`EnhancedFinMedia.canRequestOnSeerr(isNative:)`).
 ///
-/// Reprise de la modale de media-rating (`detail_page.js`, `_open_season_picker` /
+/// Reprise de la modale du front web (`detail_page.js`, `_open_season_picker` /
 /// `_open_movie_confirm`), **sans choix de langue** : il n'avait pas d'effet
 /// ici.
 ///

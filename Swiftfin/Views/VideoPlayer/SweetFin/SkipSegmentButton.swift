@@ -14,7 +14,7 @@ import SwiftUI
 /// (écrits par Intro Skipper dans les segments natifs de Jellyfin 10.10+).
 ///
 /// Visible pendant **tout** le segment, commandes affichées ou non, comme Netflix.
-/// Jamais de saut automatique (décision de Gabriel).
+/// Jamais de saut automatique.
 ///
 /// - intro, résumé, aperçu, pub : saut à la fin du segment **moins 2 s**, pour voir la fin
 ///   du générique ;

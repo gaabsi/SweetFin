@@ -37,12 +37,6 @@ struct ServerConnectionView: View {
                     Text(connection.url.absoluteString)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-
-                    if connection.interface == .wifi {
-                        Text(connection.wifiSSIDs.first ?? L10n.anyWifiNetwork)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 

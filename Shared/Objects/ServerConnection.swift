@@ -10,23 +10,6 @@ import Foundation
 
 struct ServerConnection: Displayable, Hashable, Identifiable, Storable {
 
-    enum Interface: String, CaseIterable, Displayable, Storable {
-        case any
-        case wifi
-        case cellular
-
-        var displayTitle: String {
-            switch self {
-            case .any:
-                L10n.any
-            case .wifi:
-                L10n.wifi
-            case .cellular:
-                L10n.cellular
-            }
-        }
-    }
-
     enum TestState {
         case idle
         case testing
@@ -37,23 +20,17 @@ struct ServerConnection: Displayable, Hashable, Identifiable, Storable {
     let id: String
     var name: String
     private(set) var url: URL
-    private(set) var interface: Interface
-    private(set) var wifiSSIDs: [String]
     var priority: Int
 
     init(
         id: String,
         name: String,
         url: URL,
-        interface: Interface,
-        wifiSSIDs: [String] = [],
         priority: Int
     ) {
         self.id = id
         self.name = name
         self.url = url
-        self.interface = interface
-        self.wifiSSIDs = wifiSSIDs
         self.priority = priority
     }
 
@@ -61,31 +38,10 @@ struct ServerConnection: Displayable, Hashable, Identifiable, Storable {
         name.nilIfBlank ?? url.absoluteString
     }
 
-    func matches(_ context: NetworkConnectionContext) -> Bool {
-        switch interface {
-        case .any:
-            return context.isSatisfied
-        case .wifi:
-            guard context.interface == .wifi else { return false }
-            guard wifiSSIDs.isNotEmpty else { return true }
-            return wifiSSIDs.contains {
-                $0.caseInsensitiveCompare(context.wifiSSID ?? .empty) == .orderedSame
-            }
-        case .cellular:
-            return context.interface == .cellular
-        }
-    }
-
-    private var ssidKey: Set<String> {
-        Set(wifiSSIDs.map(\.localizedLowercase))
-    }
-
     static func isDuplicate(_ connection: ServerConnection, in connections: [ServerConnection]) -> Bool {
         connections.contains { existingConnection in
             existingConnection.id != connection.id &&
-                existingConnection.url == connection.url &&
-                existingConnection.interface == connection.interface &&
-                existingConnection.ssidKey == connection.ssidKey
+                existingConnection.url == connection.url
         }
     }
 
@@ -104,8 +60,6 @@ struct ServerConnection: Displayable, Hashable, Identifiable, Storable {
             id: id,
             name: name,
             url: url,
-            interface: interface,
-            wifiSSIDs: wifiSSIDs,
             priority: priority
         )
     }

@@ -7,9 +7,6 @@
 //
 
 import SwiftUI
-#if os(iOS)
-import UIKit
-#endif
 
 struct EditServerConnectionView: View {
 
@@ -24,11 +21,6 @@ struct EditServerConnectionView: View {
 
     @State
     private var draft: ServerConnectionDraft
-
-    #if os(iOS)
-    @State
-    private var locationPermissionStatus = AppPermission.location.status
-    #endif
 
     private let initialConnection: ServerConnection
     private let initialDraft: ServerConnectionDraft
@@ -78,23 +70,6 @@ struct EditServerConnectionView: View {
         isTesting || !hasChanges || isNameEmpty || isDuplicateConnection
     }
 
-    private var firstWifiSSID: Binding<String> {
-        $draft.map(
-            getter: { $0.wifiSSIDs.first ?? .empty },
-            setter: { wifiSSID in
-                var updatedDraft = draft
-
-                if updatedDraft.wifiSSIDs.isEmpty {
-                    updatedDraft.wifiSSIDs = [wifiSSID]
-                } else {
-                    updatedDraft.wifiSSIDs[0] = wifiSSID
-                }
-
-                return updatedDraft
-            }
-        )
-    }
-
     init(
         viewModel: ServerConnectionViewModel,
         connection: ServerConnection
@@ -105,34 +80,6 @@ struct EditServerConnectionView: View {
 
         self._draft = State(initialValue: ServerConnectionDraft(connection: connection))
     }
-
-    #if os(iOS)
-    @ViewBuilder
-    private var locationPermissionWarning: some View {
-
-        if draft.interface == .wifi,
-           locationPermissionStatus != .authorized,
-           AppPermission.location.privacyDescription.isNotEmpty
-        {
-            VStack(alignment: .leading, spacing: 8) {
-                Label(
-                    AppPermission.location.privacyDescription,
-                    systemImage: "exclamationmark.circle.fill"
-                )
-                .labelStyle(.sectionFooterWithImage(imageStyle: .orange))
-
-                if locationPermissionStatus == .denied {
-                    Button(L10n.permissions) {
-                        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
-                        UIApplication.shared.open(url)
-                    }
-                    .foregroundStyle(Color.accentColor)
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-    #endif
 
     private func save() async throws {
         guard !isNameEmpty else {
@@ -155,20 +102,6 @@ struct EditServerConnectionView: View {
         guard let draftConnection = try? draft.connection() else { return }
 
         test(draftConnection)
-    }
-
-    private func populateCurrentWifiSSID(keepSpecificOnFailure: Bool) {
-        #if os(iOS)
-        Task { @MainActor in
-            guard let ssid = await NetworkConnectionContext.currentWifiSSID() else {
-                draft.useWifiName = keepSpecificOnFailure
-                return
-            }
-
-            draft.wifiSSIDs = [ssid]
-            draft.useWifiName = true
-        }
-        #endif
     }
 
     private func test(_ connection: ServerConnection) {
@@ -206,31 +139,6 @@ struct EditServerConnectionView: View {
                         .labelStyle(.sectionFooterWithImage(imageStyle: .orange))
                 }
             }
-
-            #if os(iOS)
-            Section {
-                Picker(L10n.network, selection: $draft.interface) {
-                    ForEach(ServerConnection.Interface.allCases, id: \.self) { interface in
-                        Text(interface.displayTitle)
-                            .tag(interface)
-                    }
-                }
-
-                if draft.interface == .wifi {
-                    Toggle(L10n.wifiName, isOn: $draft.useWifiName)
-
-                    if draft.useWifiName {
-                        TextField(L10n.wifiName, text: firstWifiSSID)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    }
-                }
-            } header: {
-                Text(L10n.network)
-            } footer: {
-                locationPermissionWarning
-            }
-            #endif
 
             Section(L10n.status) {
                 if isCurrentConnection {
@@ -302,27 +210,9 @@ struct EditServerConnectionView: View {
             }
             .disabled(isSaveDisabled)
         }
-        .animation(.linear(duration: 0.1), value: draft.interface)
-        .animation(.linear(duration: 0.1), value: draft.useWifiName)
         .onFirstAppear {
             isNameFocused = true
         }
-        #if os(iOS)
-        .onChange(of: draft.interface) {
-            guard draft.interface == .wifi, draft.wifiSSIDs.first?.nilIfBlank == nil else { return }
-            populateCurrentWifiSSID(keepSpecificOnFailure: false)
-        }
-        .onChange(of: draft.useWifiName) {
-            guard draft.useWifiName, draft.interface == .wifi, draft.wifiSSIDs.first?.nilIfBlank == nil else { return }
-            populateCurrentWifiSSID(keepSpecificOnFailure: true)
-        }
-        .onAppear {
-            locationPermissionStatus = AppPermission.location.status
-        }
-        .onNotification(.applicationWillEnterForeground) {
-            locationPermissionStatus = AppPermission.location.status
-        }
-        #endif
     }
 }
 
@@ -330,19 +220,13 @@ private struct ServerConnectionDraft: Equatable {
     let id: String
     var name: String
     var urlString: String
-    var interface: ServerConnection.Interface
-    var wifiSSIDs: [String]
     var priority: Int
-    var useWifiName: Bool
 
     init(connection: ServerConnection) {
         self.id = connection.id
         self.name = connection.name
         self.urlString = connection.url.absoluteString
-        self.interface = connection.interface
-        self.wifiSSIDs = connection.wifiSSIDs
         self.priority = connection.priority
-        self.useWifiName = connection.interface == .wifi && connection.wifiSSIDs.isNotEmpty
     }
 
     var url: URL? {
@@ -358,28 +242,11 @@ private struct ServerConnectionDraft: Equatable {
             throw ErrorMessage(L10n.invalidURL)
         }
 
-        let normalizedSSIDs = Self.normalizeSSIDs(wifiSSIDs)
-
-        if interface == .wifi,
-           useWifiName,
-           normalizedSSIDs.isEmpty
-        {
-            throw ErrorMessage(L10n.invalidWifiName)
-        }
-
         return ServerConnection(
             id: id,
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             url: url,
-            interface: interface,
-            wifiSSIDs: interface == .wifi && useWifiName ? normalizedSSIDs : [],
             priority: priority
         )
-    }
-
-    private static func normalizeSSIDs(_ wifiSSIDs: [String]) -> [String] {
-        wifiSSIDs
-            .compactMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).nilIfBlank }
-            .sorted()
     }
 }

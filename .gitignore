@@ -88,6 +88,12 @@ Thumbs.db
 # SweetFin
 Shared/Generated/Strings.swift
 XcodeConfig/DevelopmentTeam.xcconfig
+XcodeConfig/test.entitlements
+# Notes de travail privées
+CLAUDE.md
+syncplay.md
+REGLAGES.md
+NOTES_*.md
 
 # Other
 .idea

@@ -25,8 +25,7 @@ import JellyfinAPI
 /// ⚠️ **La déduplication se fait par identifiant TMDB, pas par `seriesId`.** Le
 /// réflexe est de dédupliquer par série, ce qui suffirait entre les deux routes
 /// natives — mais pas avec les entrées du plugin, qui n'ont aucun
-/// identifiant Jellyfin. C'est exactement pour ça que media-rating exposait
-/// `Resume/ResolveSeriesTmdb`.
+/// identifiant Jellyfin. D'où la résolution par identifiant TMDB.
 struct ContinueWatchingLibrary: BaseItemKindLibrary {
 
     /// Ce qu'on garde après fusion. Au-delà, le rail devient un inventaire.
@@ -297,8 +296,8 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     ///
     /// ⚠️ **Un item sans clé n'est jamais fusionné avec un autre item sans clé.** Deux
     /// médias inconnus de TMDB n'ont rien à voir l'un avec l'autre ; les regrouper sous
-    /// une clé « vide » en ferait disparaître un. Même précaution que
-    /// `ResumeAggregator` côté media-rating, qui leur donnait une clé unique.
+    /// une clé « vide » en ferait disparaître un. Chacun reçoit donc
+    /// une clé unique.
     private func deduplicated(_ items: [BaseItemDto], keys: [String: String]) -> [BaseItemDto] {
         var seen: Set<String> = []
 

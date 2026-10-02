@@ -100,7 +100,7 @@ private struct SeasonsRail: View {
 
 /// La carte « + » en fin de rail : la série n'est pas entière sur le serveur.
 ///
-/// Reprise du front media-rating (carte « see-more ») : affiche de la série floutée,
+/// Reprise du front web (carte « see-more ») : affiche de la série floutée,
 /// un `+` au centre. Elle ouvre la même feuille, mais sur les saisons **TMDB**, où
 /// le suivi « vu » passe par le plugin comme pour une série de découverte.
 private struct CompletionCard: View {

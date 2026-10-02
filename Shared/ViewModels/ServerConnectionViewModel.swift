@@ -52,7 +52,6 @@ final class ServerConnectionViewModel: ViewModel {
             id: UUID().uuidString,
             name: "",
             url: server.effectiveServerURL.normalizedServerConnectionURL ?? server.effectiveServerURL,
-            interface: .any,
             priority: connections.count
         )
     }

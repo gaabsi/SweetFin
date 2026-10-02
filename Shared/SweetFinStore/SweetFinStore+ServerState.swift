@@ -149,7 +149,6 @@ extension ServerState {
                 id: UUID().uuidString,
                 name: url == currentURL ? L10n.currentURL : normalizedURL.absoluteString,
                 url: normalizedURL,
-                interface: .any,
                 priority: index
             )
         }

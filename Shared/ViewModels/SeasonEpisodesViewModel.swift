@@ -261,7 +261,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
                 number: season.indexNumber ?? 0,
                 name: season.displayTitle,
                 // En points : `imageURL` multiplie par la densité d'écran. Jellyfin
-                // redimensionne sur le Pi, chaque pixel demandé en trop se paie.
+                // redimensionne sur le serveur, chaque pixel demandé en trop se paie.
                 poster: season.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 120)),
                 episodeCount: count,
                 watchedCount: max(0, (count ?? 0) - unplayed),
@@ -303,7 +303,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     /// Complète les durées que Jellyfin n'a pas, par celles de TMDB.
     ///
     /// ⚠️ Certains items n'ont pas de durée côté Jellyfin
-    /// (`runTimeTicks` vide) (vécu sur Frieren). Un seul appel au plugin, pour la
+    /// (`runTimeTicks` vide). Un seul appel au plugin, pour la
     /// saison entière, et seulement s'il manque quelque chose. Correspondance par
     /// numéro d'épisode ; un échec laisse les durées telles quelles.
     ///

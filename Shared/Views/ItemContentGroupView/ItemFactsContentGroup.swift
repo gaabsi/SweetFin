@@ -78,7 +78,7 @@ struct ItemFacts {
 
 /// SweetFin : le bloc « infos » d'une fiche.
 ///
-/// Repris de la fiche web de media-rating : une carte, une ligne par information,
+/// Repris de la fiche du front web : une carte, une ligne par information,
 /// les notes en pied. Il remplace les sections natives Genres et Studios, dont les
 /// pastilles ne s'accordaient pas au reste de la fiche. Les studios ne sont pas
 /// repris, jugés superflus sur une fiche.
