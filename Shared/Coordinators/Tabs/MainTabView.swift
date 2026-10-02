@@ -94,8 +94,11 @@ struct MainTabView: View {
                     // SweetFin : icônes seules sur iPhone — la barre reste compacte avec
                     // « Téléchargements », trop long. Le titre reste annoncé par VoiceOver.
                     // tvOS garde ses libellés (barre latérale lue à distance).
+                    // Variante imposée par le nom : iOS remplirait `arrow.down.app`, voulu en
+                    // contour ; une icône pleine l'écrit elle-même (`house.fill`).
                     Image(systemName: tab.item.systemImage)
                         .symbolRenderingMode(.monochrome)
+                        .environment(\.symbolVariants, .none)
                         .accessibilityLabel(tab.item.displayTitle)
                     #else
                     Label(
