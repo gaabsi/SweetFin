@@ -40,7 +40,9 @@ final class SyncPlayManager: ObservableObject {
 
     // Seuils de jellyfin-web (`PlaybackCore`), en secondes.
     private static let driftCheckInterval: TimeInterval = 1.5
-    private static let minDelaySpeedToSync: TimeInterval = 0.06
+    /// 60 ms chez jellyfin-web : un écho s'entend dès ~20 ms quand deux appareils sont dans
+    /// la même pièce. Plancher = bruit de mesure (horloges + position VLC, ~10-15 ms).
+    private static let minDelaySpeedToSync: TimeInterval = 0.02
     private static let maxDelaySpeedToSync: TimeInterval = 3
     private static let speedToSyncDuration: TimeInterval = 1
     /// Vitesse plancher d'un rattrapage en avance : en dessous, on allonge la correction.
@@ -544,7 +546,7 @@ final class SyncPlayManager: ObservableObject {
         }
     }
 
-    /// Toutes les 1,5 s : écart de 60 ms à 3 s → vitesse `1 + écart / 1 s` pendant 1 s ;
+    /// Toutes les 1,5 s : écart de 20 ms à 3 s → vitesse `1 + écart / 1 s` pendant 1 s ;
     /// au-delà de 3 s → seek vers la position du groupe.
     private func checkDrift(position: Duration, at date: Date) {
         guard date >= driftCheckResumesAt,
