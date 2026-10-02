@@ -376,6 +376,8 @@ private struct SeasonEpisodesSheet: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                // SweetFin : le style système écrit en blanc, illisible sur un accent clair.
+                .foregroundStyle(appearance.tokens.accent.overlayColor)
                 .disabled(changes.toMark.isEmpty && changes.toUnmark.isEmpty)
             } else {
                 Spacer()
