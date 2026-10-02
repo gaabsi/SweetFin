@@ -56,7 +56,7 @@ struct DownloadButton: View {
                 Menu {
                     removeButton(DownloadStrings.cancelDownload, itemID: itemID, userID: userSession.user.id)
                 } label: {
-                    Label(DownloadStrings.downloading(progress), systemImage: "arrow.down.circle.dotted")
+                    Label(DownloadStrings.downloading(progress), systemImage: "arrow.down.app.dashed")
                 }
             case .done:
                 Menu {
