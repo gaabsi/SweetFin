@@ -97,6 +97,14 @@ extension Defaults.Keys {
         UserKey("userAppearance", default: .standard)
     }
 
+    /// SweetFin : le plugin EnhancedFin est-il installé sur le serveur de cet
+    /// utilisateur ? `nil` = jamais vérifié. Mémorisé pour que l'interface ne change
+    /// pas à chaque lancement ; lu `== true`, pour ne jamais montrer d'écran du plugin
+    /// cassé. Écrit par `UserSession.refreshEnhancedFinAvailability()`.
+    static var enhancedFinAvailable: Key<Bool?> {
+        UserKey("enhancedFinAvailable", default: nil)
+    }
+
     enum Customization {
 
         static var tabBarPlacement: Key<TabBarPlacement> {

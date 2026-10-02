@@ -73,7 +73,7 @@ final class EnhancedFinItemState: ObservableObject {
 
         // Pas de session : on ne mémorise rien, pour que l'appel suivant réessaie
         // une fois la session établie.
-        guard let client = userSession?.enhancedFinClient else { return }
+        guard EnhancedFinClient.isAvailable, let client = userSession?.enhancedFinClient else { return }
 
         let task = Task { [weak self] in
             await self?.fetch(with: client)

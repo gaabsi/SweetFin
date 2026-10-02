@@ -181,6 +181,11 @@ final class UserSessionManager: ObservableObject {
             await refreshServerInformationIfNeeded(reason: .stale)
         }
 
+        // SweetFin : le plugin a pu être installé ou retiré entre-temps.
+        Task {
+            await currentSession?.refreshEnhancedFinAvailability()
+        }
+
         guard currentSession != nil else { return }
         guard !hasActivePlayback else { return }
 

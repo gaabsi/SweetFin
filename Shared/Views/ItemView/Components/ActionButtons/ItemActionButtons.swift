@@ -84,11 +84,12 @@ struct ItemActionButtons: View {
             provider.item.canEditMetadata
         #endif
         case .enhancedFinRating, .enhancedFinWatchlist:
-            provider.item.enhancedFinMediaKey != nil
+            // La clé vient de TMDB, un film natif l'a aussi : il faut le plugin en plus.
+            EnhancedFinClient.isAvailable && provider.item.enhancedFinMediaKey != nil
         case .enhancedFinFollow:
             // Films compris : le plugin enregistre la date de sortie d'un film au
             // calendrier, comme une série y enregistre ses épisodes.
-            provider.item.enhancedFinMediaKey != nil
+            EnhancedFinClient.isAvailable && provider.item.enhancedFinMediaKey != nil
         #if os(iOS)
         case .download:
             // V1 : un fichier = un film ou un épisode. Un item synthétique n'a pas de

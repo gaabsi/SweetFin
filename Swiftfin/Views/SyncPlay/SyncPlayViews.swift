@@ -107,8 +107,11 @@ struct SyncPlaySheet: View {
         }
 
         Section {
-            NavigationLink(SyncPlayStrings.invite) {
-                SyncPlayInviteList(manager: manager)
+            // L'invitation passe par le plugin ; rejoindre et lire ensemble, non.
+            if EnhancedFinClient.isAvailable {
+                NavigationLink(SyncPlayStrings.invite) {
+                    SyncPlayInviteList(manager: manager)
+                }
             }
 
             Button(SyncPlayStrings.leave, role: .destructive) {

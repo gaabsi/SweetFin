@@ -309,6 +309,11 @@ private struct BaseItemDtoPosterContextMenu: View {
         isSynthetic || [.movie, .series, .episode].contains(item.type)
     }
 
+    /// Les actions du plugin (watchlist, masquer) : il faut qu'il soit installé.
+    private var hasPluginActions: Bool {
+        EnhancedFinClient.isAvailable && hasMediaKey
+    }
+
     var body: some View {
         if let itemID = representsSeries ? item.seriesID : item.id {
             Button(L10n.goToItem, systemImage: "info.circle") {
@@ -333,7 +338,7 @@ private struct BaseItemDtoPosterContextMenu: View {
             }
         }
 
-        if hasMediaKey, !isInContinueWatching {
+        if hasPluginActions, !isInContinueWatching {
             Button(HomeStrings.watchlist, systemImage: ItemActionButton.enhancedFinWatchlist.secondarySystemImage) {
                 Task {
                     await addToWatchlist()
@@ -349,7 +354,7 @@ private struct BaseItemDtoPosterContextMenu: View {
         }
         #endif
 
-        if isInContinueWatching, hasMediaKey {
+        if isInContinueWatching, hasPluginActions {
             Button(HomeStrings.hide, systemImage: "eye.slash") {
                 Task {
                     await hide()

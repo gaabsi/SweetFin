@@ -6,6 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import Defaults
 import Foundation
 import Get
 
@@ -173,6 +174,25 @@ final class EnhancedFinClient {
 
     func removeFromWatchlist(_ mediaKey: String) async throws {
         try await send(Request(path: "me/watchlist/\(escaped(mediaKey))", method: .delete))
+    }
+
+    // MARK: - Présence
+
+    /// Le plugin est-il installé sur ce serveur ? Appelle `GET me`, sa route la plus
+    /// légère : Jellyfin répond `404` à une route inconnue.
+    ///
+    /// Output :
+    /// - available (Bool?) : `true` s'il répond, `false` s'il est absent, `nil` si on
+    ///   ne peut pas savoir (pas de réseau, serveur en erreur)
+    func checkAvailability() async -> Bool? {
+        do {
+            try await send(Request<Void>(path: "me"))
+            return true
+        } catch let problem as EnhancedFinProblem where problem.status == 404 {
+            return false
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - Reprise
@@ -507,4 +527,16 @@ private extension CharacterSet {
     /// Ce qu'une clé média bien formée contient, et rien de plus : lettres, chiffres
     /// et le `:` séparateur. Tout le reste est encodé.
     static let enhancedFinMediaKey = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ":"))
+}
+
+// MARK: - Présence mémorisée
+
+extension EnhancedFinClient {
+
+    /// SweetFin : le plugin est-il installé sur le serveur de l'utilisateur ? Lit le
+    /// résultat mémorisé de ``checkAvailability()`` ; `false` tant qu'on ne sait pas.
+    /// Une fonction du plugin ne s'affiche que si c'est `true`.
+    static var isAvailable: Bool {
+        Defaults[.enhancedFinAvailable] == true
+    }
 }

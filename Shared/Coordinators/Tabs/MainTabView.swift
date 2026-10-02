@@ -30,6 +30,18 @@ struct MainTabView: View {
     @StateObject
     private var tabCoordinator: TabCoordinator
 
+    // Observée : un changement redessine la barre (lue par `EnhancedFinClient.isAvailable`).
+    @Default(.enhancedFinAvailable)
+    private var enhancedFinAvailable
+
+    /// SweetFin : les onglets à afficher selon le plugin. Tous sont créés une fois,
+    /// chacun garde sa navigation pendant qu'il est masqué.
+    private var visibleTabs: [TabCoordinator.TabData] {
+        tabCoordinator.tabs.filter {
+            $0.item.availability.isVisible(pluginAvailable: EnhancedFinClient.isAvailable)
+        }
+    }
+
     init() {
         _tabCoordinator = StateObject(wrappedValue: Self.defaultTabCoordinator)
     }
@@ -40,21 +52,22 @@ struct MainTabView: View {
             // SweetFin : Accueil du fork — carrousel, bibliothèques, reprise
             // fusionnée, ajouts récents — avec le fond que son thème demande (backdrop de la media bar).
             TabItem.home
-            // SweetFin : pas d'onglet Recherche, l'Explorer porte la recherche
-            // (référentiel + TMDB + bibliothèque).
+            // SweetFin : l'Explorer porte la recherche (référentiel + TMDB +
+            // bibliothèque) ; sans le plugin, la Recherche native prend sa place.
             TabItem.media
+            TabItem.search
             TabItem.calendar
             // SweetFin : iPhone seulement — une TV ne part pas en voyage.
             TabItem.downloads
         }
         #else
         // SweetFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
-        // profil en haut à droite qui les ouvre sur iOS. Séries, Films et Recherche
-        // d'upstream retirés pour les mêmes raisons que sur iOS (« Mes médias » sur
-        // l'Accueil, l'Explorer porte la recherche).
+        // profil en haut à droite qui les ouvre sur iOS. Séries et Films d'upstream
+        // retirés pour les mêmes raisons que sur iOS (« Mes médias » sur l'Accueil).
         TabCoordinator {
             TabItem.contentGroup(provider: HomeContentGroupProvider())
             TabItem.media
+            TabItem.search
             TabItem.calendar
             TabItem.settings
         }
@@ -73,7 +86,7 @@ struct MainTabView: View {
     @ViewBuilder
     private func tabView() -> some View {
         TabView(selection: $tabCoordinator.selectedTabID) {
-            ForEach(tabCoordinator.tabs, id: \.item.id) { tab in
+            ForEach(visibleTabs, id: \.item.id) { tab in
                 Tab(value: tab.item.id) {
                     NavigationInjectionView(
                         coordinator: tab.coordinator
@@ -130,6 +143,12 @@ struct MainTabView: View {
 
     var body: some View {
         tabContent()
+            // SweetFin : l'onglet affiché vient de disparaître (plugin installé ou
+            // retiré) : retour au premier, l'Accueil.
+            .onChange(of: enhancedFinAvailable) {
+                guard !visibleTabs.contains(where: { $0.item.id == tabCoordinator.selectedTabID }) else { return }
+                tabCoordinator.selectedTabID = visibleTabs.first?.item.id
+            }
             .onChange(of: userSessionManager.pendingDeepLink) {
                 routePendingDeepLink(userSessionManager.consumePendingDeepLink())
             }
