@@ -29,6 +29,10 @@ struct PosterIndicatorsOverlay: View {
             item.userData?.isPlayed != true
     }
 
+    private var isInContinueWatching: Bool {
+        viewContext.contains(.isInContinueWatching)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
@@ -53,11 +57,39 @@ struct PosterIndicatorsOverlay: View {
                     // barre suffit à dire où on en est.
                     title: viewContext.contains(.isInResume) ? nil : item.progressLabel,
                     progress: item.progressPercentage ?? 0,
-                    posterDisplayType: posterDisplayType
+                    posterDisplayType: posterDisplayType,
+                    barColor: isInContinueWatching ? .white : nil
                 )
                 .zIndex(5)
             }
         }
+        // SweetFin : dans « Continuer de regarder », toucher la tuile lance la lecture
+        // (sauf reprise externe, qui ouvre sa fiche). Centré sur toute la tuile, barre ou
+        // non : le rond est au même endroit sur un épisode entamé et sur le suivant.
+        .overlay {
+            if isInContinueWatching, !EnhancedFinSyntheticItem.isSynthetic(item.id) {
+                ResumePlayIndicator()
+            }
+        }
+    }
+}
+
+/// SweetFin : rond de lecture translucide, lisible sur une image claire comme sombre.
+private struct ResumePlayIndicator: View {
+
+    var body: some View {
+        Image(systemName: "play.fill")
+            .font(.system(size: 16, weight: .bold))
+            .foregroundStyle(.white.opacity(0.9))
+            // Le triangle est plus lourd à gauche : décalé pour paraître centré.
+            .offset(x: 1.5)
+            .frame(width: 40, height: 40)
+            .background(.black.opacity(0.35), in: .circle)
+            .overlay {
+                Circle()
+                    .strokeBorder(.white.opacity(0.3), lineWidth: 1)
+            }
+            .accessibilityHidden(true)
     }
 }
 
