@@ -47,6 +47,9 @@ struct ThemeTokens {
     /// 33 %, invisible sur un fond sombre.
     let posterShadow: (color: Color, radius: CGFloat, y: CGFloat)
 
+    /// Contour en surbrillance des affiches, tracé à l'intérieur de leur bord.
+    let posterBorder: (color: Color, width: CGFloat)
+
     /// Alignement du titre sous une affiche, natif comme EnhancedFin.
     let posterLabelAlignment: HorizontalAlignment
 
@@ -106,6 +109,9 @@ extension AppAppearance {
             // donnaient des coins presque droits, que rien d'autre ne rappelait.
             posterCornerRatio: (landscape: 1 / 16, portrait: 0.065),
             posterShadow: (color: .black.opacity(0.5), radius: 8, y: 4),
+            // Choisi sur maquettes (2026-10-02) : détache la tuile du fond sombre sans
+            // l'encadrer. ❌ 10 % (upstream) : invisible ; ❌ 18 % : trop discret.
+            posterBorder: (color: .white.opacity(0.28), width: 1),
             // Titres centrés partout : le fork centrait déjà les siens, et aligner
             // les tuiles natives à gauche donnait deux styles selon l'écran.
             posterLabelAlignment: .center,

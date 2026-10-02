@@ -75,8 +75,9 @@ struct PosterIndicatorsOverlay: View {
 }
 
 /// SweetFin : habillage d'une tuile de « Continuer de regarder », neutre quel que soit
-/// le thème — barre gris clair sur une ombre courte, rond de lecture centré sur toute la
-/// tuile (même place, barre ou non) et contour en surbrillance.
+/// le thème — barre gris clair sur une ombre courte et rond de lecture centré sur toute
+/// la tuile (même place, barre ou non). Le contour est celui de toutes les affiches
+/// (`themePosterBorder`).
 private struct ResumeTileOverlay: View {
 
     /// Avancement, `nil` = pas de barre (épisode suivant).
@@ -92,11 +93,9 @@ private struct ResumeTileOverlay: View {
             if showsPlay {
                 ResumePlayIndicator()
             }
-
-            ContainerRelativeShape()
-                .inset(by: 0.5)
-                .stroke(.white.opacity(0.28), lineWidth: 1)
         }
+        // Toute la tuile, barre ou non : sinon, sans barre, le calque se réduit au rond.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

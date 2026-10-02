@@ -280,6 +280,11 @@ private struct MediaBarSlide: View {
             // seul élément carré d'un écran qui ne l'est nulle part ailleurs.
             // `clipShape` remplace `clipped()`, qui rognait au rectangle.
             .clipShape(.rect(cornerRadius: 20))
+            // Le contour des affiches, sur la même forme : la carte ne se fond plus
+            // dans le fond sombre, comme les tuiles en dessous. La forme se déclare
+            // **après** le contour : elle ne s'applique qu'à ce qu'elle englobe.
+            .themePosterBorder()
+            .containerShape(.rect(cornerRadius: 20))
             .overlay(alignment: .bottom) {
                 VStack(spacing: 16) {
                     logo
