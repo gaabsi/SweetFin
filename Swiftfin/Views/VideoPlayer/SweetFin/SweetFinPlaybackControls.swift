@@ -181,7 +181,33 @@ struct SweetFinPlaybackControls: View {
     // MARK: - Bas
 
     private var buttonRow: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 8) {
+            transportButtons
+
+            Spacer()
+
+            episodesButton
+
+            if let playbackItem = manager.playbackItem {
+                SettingsMenu(playbackItem: playbackItem)
+            }
+        }
+        .labelStyle(.iconOnly)
+        // Symboles pleins : ❌ contours (`backward`, `play`…), ils sonnent faux.
+        .font(.body)
+        .foregroundStyle(.white)
+        .buttonStyle(PlayerRowButtonStyle())
+        .edgePadding(.horizontal)
+        .background {
+            EmptyHitTestView()
+        }
+    }
+
+    /// Précédent · recul · lecture · avance · suivant, sur le modèle du web Jellyfin : petites
+    /// icônes fines, la pause seule marquée. ❌ `.body` partout et pause en `.title` : icônes
+    /// massives, ⏪ ⏩ deux fois plus larges que sur le web.
+    private var transportButtons: some View {
+        HStack(spacing: 6) {
             if let queue = manager.queue {
                 QueueButton(queue: queue, direction: .previous)
             }
@@ -203,25 +229,8 @@ struct SweetFinPlaybackControls: View {
             if let queue = manager.queue {
                 QueueButton(queue: queue, direction: .next)
             }
-
-            Spacer()
-
-            episodesButton
-
-            if let playbackItem = manager.playbackItem {
-                SettingsMenu(playbackItem: playbackItem)
-            }
         }
-        .labelStyle(.iconOnly)
-        // Symboles pleins, petits (`.body`) : la pause seule est grande, comme ElegantFin
-        // (×2 sur le web). ❌ Contours (`backward`, `play`…) : ils sonnent faux.
-        .font(.body)
-        .foregroundStyle(.white)
-        .buttonStyle(.plain)
-        .edgePadding(.horizontal)
-        .background {
-            EmptyHitTestView()
-        }
+        .font(.system(size: 14))
     }
 
     private var playButton: some View {
@@ -240,9 +249,9 @@ struct SweetFinPlaybackControls: View {
                 Label(L10n.play, systemImage: "play.fill")
             }
         }
-        // Nettement au-dessus des autres : c'est le repère de la rangée.
-        .font(.title)
-        .frame(width: 44)
+        // Le repère de la rangée, et un carré plus large : plus d'air autour, comme le web.
+        .font(.system(size: 24))
+        .frame(width: 60)
     }
 
     /// La pile : ouvre les épisodes, seul panneau du lecteur iOS (voir
@@ -445,7 +454,23 @@ private struct SettingsMenu: View {
             // un choix (activer ou couper les sous-titres).
             .disabled(visibleSubtitleStreams.isEmpty)
         } label: {
+            // Un `Menu` ne prend pas `PlayerRowButtonStyle` : même zone de tap, posée ici.
             Label(PlayerStrings.settings, systemImage: "gearshape")
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(.rect)
         }
+    }
+}
+
+/// Zone de tap de 44 × 44 pt (minimum d'Apple) autour d'une icône de la rangée, sans
+/// changer son dessin. ❌ `.plain` seul : la zone = l'icône (~14 pt), un tap à côté passait au
+/// geste du conteneur (double tap ±15 s) — d'où les flèches « qui ne marchent pas toujours ».
+private struct PlayerRowButtonStyle: ButtonStyle {
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(.rect)
+            .opacity(configuration.isPressed ? 0.6 : 1)
     }
 }
