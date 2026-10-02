@@ -18,11 +18,14 @@ struct ProgressIndicator: View {
     let title: String?
     let progress: Double
     let posterDisplayType: PosterDisplayType
+    /// SweetFin : couleur de la barre, `nil` = l'accent. Blanche dans « Continuer de
+    /// regarder », où la tuile reste neutre quel que soit le thème.
+    var barColor: Color? = nil
 
     @ViewBuilder
     private var compactView: some View {
         Rectangle()
-            .fill(accentColor)
+            .fill(barColor ?? accentColor)
             .scaleEffect(x: progress, y: 1, anchor: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 6)
@@ -40,7 +43,7 @@ struct ProgressIndicator: View {
 
             ProgressView(value: progress)
                 .progressViewStyle(.playback)
-                .foregroundStyle(accentColor)
+                .foregroundStyle(barColor ?? accentColor)
                 .frame(height: 6)
         }
         .padding(.bottom, 5)
