@@ -268,9 +268,10 @@ struct SyncPlayInviteBanner: ViewModifier {
         else { return }
 
         let window = BannerWindow(windowScene: scene)
-        let host = UIHostingController(rootView: SyncPlayInviteBannerView(manager: manager) { [weak window] frame in
+        let host = BannerHostingController(rootView: SyncPlayInviteBannerView(manager: manager) { [weak window] frame in
             window?.bannerFrame = frame
         })
+        host.appWindow = appWindow
         host.view.backgroundColor = .clear
 
         window.rootViewController = host
@@ -279,6 +280,39 @@ struct SyncPlayInviteBanner: ViewModifier {
         window.tintColor = appWindow.tintColor
         window.isHidden = false
         self.window = window
+    }
+}
+
+/// Contrôleur du bandeau : il recopie l'orientation et la barre d'état de l'écran au
+/// premier plan de l'app.
+///
+/// Plein écran et au-dessus de l'app, la fenêtre du bandeau pilote la barre d'état : avec
+/// un `UIHostingController` ordinaire (toutes orientations), la barre d'état passait en
+/// paysage quand on tournait le téléphone, l'app restant en portrait.
+private final class BannerHostingController<Content: View>: UIHostingController<Content> {
+
+    weak var appWindow: UIWindow?
+
+    /// L'écran au premier plan de l'app : le lecteur s'il est ouvert (paysage permis),
+    /// sinon la racine (portrait sur iPhone).
+    private var appTopController: UIViewController? {
+        var controller = appWindow?.rootViewController
+        while let presented = controller?.presentedViewController {
+            controller = presented
+        }
+        return controller
+    }
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        appTopController?.supportedInterfaceOrientations ?? .portrait
+    }
+
+    override var prefersStatusBarHidden: Bool {
+        appTopController?.prefersStatusBarHidden ?? false
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        appTopController?.preferredStatusBarStyle ?? .default
     }
 }
 
