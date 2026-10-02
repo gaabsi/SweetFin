@@ -85,7 +85,7 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             "bell.fill"
         #if os(iOS)
         case .download:
-            "arrow.down.circle.fill"
+            "arrow.down.app.fill"
         #endif
         }
     }
@@ -100,7 +100,7 @@ enum ItemActionButton: String, CaseIterable, Displayable, Equatable, Identifiabl
             "bell"
         #if os(iOS)
         case .download:
-            "arrow.down.circle"
+            "arrow.down.app"
         #endif
         default:
             systemImage
