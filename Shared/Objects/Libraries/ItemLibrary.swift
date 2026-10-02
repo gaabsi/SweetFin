@@ -226,10 +226,12 @@ private struct ItemLibraryBody<Content: View>: View {
         content
             .letterPickerBar(filterViewModel: filterViewModel)
             .onReceive(
+                // SweetFin : plus d'attente d'1 s (`debounce`). Elle groupait les clics du
+                // tiroir de filtres, supprimé au lot 4 ; seule reste la lettre (un tap), qui
+                // attendait 1 s pour rien avant sa requête.
                 filterViewModel.$currentFilters
                     .dropFirst()
                     .removeDuplicates()
-                    .debounce(for: 1, scheduler: RunLoop.main)
             ) { filters in
                 viewModel.environment.filters = filters
             }
