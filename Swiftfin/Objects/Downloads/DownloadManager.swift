@@ -36,7 +36,7 @@ extension Container {
 final class DownloadManager: NSObject, ObservableObject {
 
     /// Nom sous lequel iOS retrouve la session quand il relance l'app.
-    static let sessionIdentifier = "com.gaabsi.enhancedfin.downloads"
+    static let sessionIdentifier = "com.gaabsi.sweetfin.downloads"
 
     private static let metadataFileName = "item.json"
     private static let posterFileName = "poster.jpg"
@@ -52,7 +52,7 @@ final class DownloadManager: NSObject, ObservableObject {
     var backgroundCompletionHandler: (() -> Void)?
 
     private let logger = Logger.swiftfin()
-    private let root = URL.applicationSupportDirectory.appending(path: "Downloads", directoryHint: .isDirectory)
+    private let root = URL.downloadsDirectory
 
     private lazy var session: URLSession = {
         let configuration = URLSessionConfiguration.background(withIdentifier: Self.sessionIdentifier)
@@ -190,7 +190,7 @@ final class DownloadManager: NSObject, ObservableObject {
               let index = stream.index, let codec = stream.codec
         else { return stream }
 
-        let file = folder.appending(path: subtitlesFolderName).appending(path: "\(index).\(codec)")
+        let file = folder.appending(path: subtitlesFolderName).appending(path: subtitleFileName(index: index, codec: codec))
         guard FileManager.default.fileExists(atPath: file.path(percentEncoded: false)) else { return stream }
 
         var stream = stream
@@ -444,7 +444,7 @@ final class DownloadManager: NSObject, ObservableObject {
             guard let index = stream.index, let codec = stream.codec else { continue }
             let request = Request<Data>(path: "/Videos/\(downloaded.id)/\(sourceID)/Subtitles/\(index)/Stream.\(codec)")
             if let data = try? await client.send(request).value {
-                try? data.write(to: subtitles.appending(path: "\(index).\(codec)"))
+                try? data.write(to: subtitles.appending(path: Self.subtitleFileName(index: index, codec: codec)))
             }
         }
     }
@@ -462,14 +462,33 @@ final class DownloadManager: NSObject, ObservableObject {
     // MARK: - Utilitaires
 
     private static func key(_ userID: String, _ itemID: String) -> String {
-        "\(userID)/\(itemID)"
+        "\(pathComponent(userID))/\(pathComponent(itemID))"
+    }
+
+    /// Les identifiants et les codecs viennent du serveur et finissent dans un chemin :
+    /// on ne garde que lettres ASCII, chiffres et tirets, pour qu'un `..` ou un `/` ne
+    /// fasse jamais sortir du dossier des téléchargements. Vide après filtrage = `_`,
+    /// sinon la clé désignerait le dossier du compte entier.
+    ///
+    /// Parametres :
+    /// - value (String) : valeur reçue du serveur
+    ///
+    /// Output :
+    /// - component (String) : nom de fichier ou de dossier sans danger
+    private static func pathComponent(_ value: String) -> String {
+        let safe = value.filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }
+        return safe.isEmpty ? "_" : safe
+    }
+
+    private static func subtitleFileName(index: Int, codec: String) -> String {
+        "\(index).\(pathComponent(codec))"
     }
 
     /// Garde l'extension du fichier d'origine : VLC sonde le contenu, mais une extension
     /// juste évite toute hésitation sur le conteneur.
     private static func fileName(for source: MediaSourceInfo) -> String {
         let fileExtension = source.path.map { URL(fileURLWithPath: $0).pathExtension } ?? ""
-        return fileExtension.isEmpty ? "media" : "media.\(fileExtension)"
+        return fileExtension.isEmpty ? "media" : "media.\(pathComponent(fileExtension))"
     }
 
     private static func readProgress(_ file: URL) -> DownloadProgress? {

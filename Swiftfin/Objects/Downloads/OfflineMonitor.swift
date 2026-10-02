@@ -41,6 +41,6 @@ final class OfflineMonitor: ObservableObject {
                 self.isOffline = isOffline
             }
         }
-        monitor.start(queue: DispatchQueue(label: "EnhancedFin.OfflineMonitor"))
+        monitor.start(queue: DispatchQueue(label: "SweetFin.OfflineMonitor"))
     }
 }

@@ -20,9 +20,14 @@ extension MediaStream {
         guard let deliveryURL else { return nil }
 
         // SweetFin : sous-titre téléchargé — le lien est déjà un fichier local, pas
-        // un chemin à coller derrière l'adresse du serveur.
+        // un chemin à coller derrière l'adresse du serveur. Seulement sous le dossier
+        // des téléchargements : un serveur ne doit pas pouvoir faire ouvrir un autre
+        // fichier de l'app au lecteur.
         if deliveryURL.hasPrefix("file://") {
-            return URL(string: deliveryURL)
+            guard let url = URL(string: deliveryURL)?.standardizedFileURL,
+                  url.path.hasPrefix(URL.downloadsDirectory.standardizedFileURL.path + "/")
+            else { return nil }
+            return url
         }
 
         let deliveryPath = deliveryURL.removingFirst(if: client.configuration.url.absoluteString.last == "/")

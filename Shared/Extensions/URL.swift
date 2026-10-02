@@ -27,6 +27,10 @@ extension URL {
 
     static let jellyfinDocsManagingUsers: URL = URL(string: "https://jellyfin.org/docs/general/server/users/adding-managing-users")!
 
+    /// SweetFin : racine des téléchargements hors connexion, seul dossier local que le
+    /// lecteur a le droit d'ouvrir.
+    static let downloadsDirectory = URL.applicationSupportDirectory.appending(path: "Downloads", directoryHint: .isDirectory)
+
     func isDirectoryAndReachable() throws -> Bool {
         guard try resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
             return false
