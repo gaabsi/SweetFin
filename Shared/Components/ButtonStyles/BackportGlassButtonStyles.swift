@@ -6,6 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import Defaults
 import SwiftUI
 
 extension BackportButtonStyle where Self == BackportGlassButtonStyle {
@@ -67,6 +68,10 @@ private struct BackportGlassButtonStyleBody: View {
         case prominent
     }
 
+    // SweetFin : l'accent du thème, pas `Color.accentColor` (couleur fixe du projet).
+    @Default(.accentColor)
+    private var accentColor
+
     @Environment(\.controlSize)
     private var controlSize
 
@@ -96,7 +101,10 @@ private struct BackportGlassButtonStyleBody: View {
                     .buttonStyle(.glass)
                 #endif
         case .prominent:
+            // SweetFin : le style système écrit toujours en blanc, illisible sur un
+            // accent clair ; même couleur de texte que le chemin d'avant iOS 26.
             nativeButton
+                .foregroundStyle(prominentTint.overlayColor)
                 .buttonStyle(.glassProminent)
         }
     }
@@ -177,7 +185,7 @@ private struct BackportGlassButtonStyleBody: View {
         case .destructive, .cancel:
             .red
         default:
-            .accentColor
+            accentColor
         }
     }
 }

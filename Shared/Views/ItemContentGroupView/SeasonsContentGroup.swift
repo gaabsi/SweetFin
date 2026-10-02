@@ -434,6 +434,9 @@ private struct EpisodeRowView: View {
     let downloadableID: String?
     let isDownloaded: Bool
 
+    @Default(.accentColor)
+    private var accentColor
+
     /// « 24m », « 1h05 » : plus court que le format système (« 24 min »), la
     /// pastille tient dans le coin de la vignette.
     private var runtimeLabel: String? {
@@ -506,7 +509,7 @@ private struct EpisodeRowView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.body)
                         .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .tint)
+                        .foregroundStyle(accentColor.overlayColor, .tint)
                         .padding(4)
                         .accessibilityLabel(L10n.played)
                 }
@@ -518,7 +521,7 @@ private struct EpisodeRowView: View {
                     Image(systemName: "arrow.down.circle.fill")
                         .font(.body)
                         .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .tint)
+                        .foregroundStyle(accentColor.overlayColor, .tint)
                         .padding(4)
                         .accessibilityLabel(DownloadStrings.downloaded)
                 }

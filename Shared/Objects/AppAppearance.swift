@@ -26,13 +26,18 @@ enum AppAppearance: String, CaseIterable, Displayable, Storable {
     /// backdrop flouté de la media bar.
     case standard
 
-    /// **Dark** : Default sur fond noir pur.
+    /// **Default - Purple** : Default avec l'accent violet de Jellyfin `#AA5CC3`.
+    case standardPurple
+
+    /// **Dark** : fond noir pur, accent blanc.
     case dark
 
     var displayTitle: String {
         switch self {
         case .standard:
             "Default"
+        case .standardPurple:
+            "Default - Purple"
         case .dark:
             "Dark"
         }

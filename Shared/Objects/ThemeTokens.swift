@@ -27,7 +27,8 @@ struct ThemeTokens {
     let style: UIUserInterfaceStyle
 
     /// ⚠️ Écrase la couleur d'accent de l'app. Le réglage utilisateur a été retiré
-    /// pour cette raison — voir `RootCoordinator.applyAccentColor`.
+    /// pour cette raison — voir `RootCoordinator.applyAccentColor`. Ce qui se pose
+    /// dessus prend `overlayColor` (blanc sur un accent sombre, noir sur un clair).
     let accent: Color
 
     /// Peint par `themeContainerBackground(_:)` et par ``RootView``.
@@ -77,25 +78,28 @@ extension AppAppearance {
     var tokens: ThemeTokens {
         switch self {
         case .standard:
-            Self.tokens(background: Color(uiColor: .standardBackground))
+            Self.tokens(background: Color(uiColor: .standardBackground), accent: Color(uiColor: .standardAccent))
+        case .standardPurple:
+            Self.tokens(background: Color(uiColor: .standardBackground), accent: Color(uiColor: .purpleAccent))
         case .dark:
-            Self.tokens(background: .black)
+            Self.tokens(background: .black, accent: Color(uiColor: .whiteAccent))
         }
     }
 
-    /// Tout ce que les thèmes partagent : ils ne diffèrent que par le fond.
+    /// Tout ce que les thèmes partagent : ils ne diffèrent que par le fond et l'accent.
     ///
     /// Parametres :
     /// - background (Color) : fond de l'app
+    /// - accent (Color) : couleur d'accent
     ///
     /// Output :
     /// - tokens (ThemeTokens) : les valeurs du thème
-    private static func tokens(background: Color) -> ThemeTokens {
+    private static func tokens(background: Color, accent: Color) -> ThemeTokens {
         ThemeTokens(
             // Thème sombre : les couleurs de texte supposent un fond foncé, et le
             // laisser suivre le système le rendrait illisible.
             style: .dark,
-            accent: Color(uiColor: .standardAccent),
+            accent: accent,
             background: background,
             // Arrondis repris d'ElegantFin (`--smallRadius`, `--largeRadius`) et
             // des cartes du front web. Les valeurs upstream (1/30 et 0,0375)
@@ -143,6 +147,12 @@ private extension UIColor {
 
     /// `hsl(243, 75%, 62%)`
     static let standardAccent = UIColor(red: 93 / 255, green: 85 / 255, blue: 231 / 255, alpha: 1)
+
+    /// `#F2F2F7` : un blanc cassé, moins dur qu'un blanc pur sur les grandes surfaces.
+    static let whiteAccent = UIColor(red: 242 / 255, green: 242 / 255, blue: 247 / 255, alpha: 1)
+
+    /// `#AA5CC3`, le violet de Jellyfin.
+    static let purpleAccent = UIColor(red: 170 / 255, green: 92 / 255, blue: 195 / 255, alpha: 1)
 
     /// `#111827`
     static let standardBackground = UIColor(red: 17 / 255, green: 24 / 255, blue: 39 / 255, alpha: 1)
