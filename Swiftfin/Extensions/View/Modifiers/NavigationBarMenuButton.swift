@@ -36,9 +36,9 @@ struct NavigationBarMenuButtonModifier<MenuContent: View>: ViewModifier {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
 
-                    if isLoading {
-                        ProgressView()
-                    }
+                    // SweetFin : plus de roue pendant `isLoading` (paramètre gardé pour ne
+                    // pas toucher les appels upstream). Dans ce groupe, iOS 26 étirait la
+                    // pastille du menu pour l'y loger ; hors du groupe, elle n'apparaissait pas.
 
 //                    if !isHidden, collectedMenuGroups.isNotEmpty {
                     if !isHidden {
