@@ -13,21 +13,39 @@ import SwiftUI
 @MainActor
 struct TabItem: Displayable, @MainActor Identifiable, @MainActor Hashable {
 
+    /// SweetFin : quand l'onglet s'affiche, selon la présence du plugin EnhancedFin.
+    enum Availability {
+        case always
+        case withPlugin
+        case withoutPlugin
+
+        func isVisible(pluginAvailable: Bool) -> Bool {
+            switch self {
+            case .always: true
+            case .withPlugin: pluginAvailable
+            case .withoutPlugin: !pluginAvailable
+            }
+        }
+    }
+
     let content: AnyView
     let displayTitle: String
     let id: String
     let systemImage: String
+    let availability: Availability
 
     init(
         id: String,
         title: String,
         systemImage: String,
+        availability: Availability = .always,
         @ViewBuilder content: () -> some View
     ) {
         self.content = AnyView(content())
         self.id = id
         self.displayTitle = title
         self.systemImage = systemImage
+        self.availability = availability
     }
 
     func hash(into hasher: inout Hasher) {
@@ -110,10 +128,27 @@ extension TabItem {
             title: ExplorerStrings.explore,
             // SweetFin : la loupe. L'Explorer *est* la recherche de ce fork —
             // référentiel, TMDB et bibliothèque —, d'où le retrait de l'onglet
-            // Recherche natif dans `MainTabView` pour éviter deux loupes.
-            systemImage: "magnifyingglass"
+            // Recherche natif quand le plugin est là, pour éviter deux loupes.
+            systemImage: "magnifyingglass",
+            availability: .withPlugin
         ) {
             ExplorerView()
+                .if(UIDevice.isTV) { view in
+                    view.toolbar(.hidden, for: .navigationBar)
+                }
+        }
+    }
+
+    /// Recherche native de Jellyfin. SweetFin : seulement sans le plugin, l'Explorer
+    /// porte la recherche quand il est là.
+    static var search: TabItem {
+        TabItem(
+            id: "search",
+            title: L10n.search,
+            systemImage: "magnifyingglass",
+            availability: .withoutPlugin
+        ) {
+            SearchView()
                 .if(UIDevice.isTV) { view in
                     view.toolbar(.hidden, for: .navigationBar)
                 }
@@ -125,7 +160,8 @@ extension TabItem {
         TabItem(
             id: "enhancedfin-calendar",
             title: CalendarStrings.calendar,
-            systemImage: "calendar"
+            systemImage: "calendar",
+            availability: .withPlugin
         ) {
             CalendarView()
                 .if(UIDevice.isTV) { view in

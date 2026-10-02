@@ -6,6 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import Defaults
 import Foundation
 import JellyfinAPI
 import Pulse
@@ -57,6 +58,22 @@ final class UserSession {
         for service in services {
             await service.willStart(userSession: self)
         }
+
+        // SweetFin : première connexion à ce serveur, on attend la réponse (2 s au plus)
+        // pour que la barre d'onglets soit juste dès son affichage ; sinon la valeur
+        // mémorisée suffit et la vérification part en tâche de fond.
+        if Defaults[.enhancedFinAvailable] == nil {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.refreshEnhancedFinAvailability() }
+                group.addTask { try? await Task.sleep(for: .seconds(2)) }
+                await group.next()
+                group.cancelAll()
+            }
+        } else {
+            Task {
+                await refreshEnhancedFinAvailability()
+            }
+        }
     }
 
     @MainActor
@@ -64,6 +81,16 @@ final class UserSession {
         for service in services {
             service.didStart(userSession: self)
         }
+    }
+
+    /// SweetFin : détecte le plugin EnhancedFin et mémorise la réponse. Une réponse
+    /// incertaine (pas de réseau, serveur en erreur) garde la dernière connue : couper
+    /// le Wi-Fi ne doit pas faire disparaître l'Explorer.
+    @MainActor
+    func refreshEnhancedFinAvailability() async {
+        guard let available = await enhancedFinClient.checkAvailability() else { return }
+
+        Defaults[.enhancedFinAvailable] = available
     }
 
     @MainActor
