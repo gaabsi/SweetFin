@@ -332,6 +332,14 @@ extension View {
         }
     }
 
+    /// SweetFin : contour en surbrillance des affiches, lu sur le thème. Remplace
+    /// ``posterBorder()`` dans ``posterStyle(_:contentMode:showsBorder:)`` (10 %, à moitié rogné :
+    /// invisible) ; celui-ci reste pour les avatars et les aperçus.
+    @ViewBuilder
+    func themePosterBorder() -> some View {
+        modifier(PosterBorderModifier())
+    }
+
     // SweetFin : valeurs lues sur le thème, voir `ThemeTokens`.
     @ViewBuilder
     func posterCornerRadius(
@@ -374,25 +382,28 @@ extension View {
     @ViewBuilder
     func posterStyle(
         _ type: PosterDisplayType,
-        contentMode: ContentMode = .fill
+        contentMode: ContentMode = .fill,
+        // SweetFin : sans contour pour une image recouverte d'un calque qui le porte
+        // (tuiles de `PosterButton`), sinon il est tracé deux fois.
+        showsBorder: Bool = true
     ) -> some View {
         switch type {
         case .landscape:
             posterAspectRatio(type, contentMode: contentMode)
                 #if !os(tvOS)
-                    .posterBorder()
+                    .if(showsBorder) { $0.themePosterBorder() }
                     .posterCornerRadius(type)
                 #endif
         case .portrait:
             posterAspectRatio(type, contentMode: contentMode)
                 #if !os(tvOS)
-                    .posterBorder()
+                    .if(showsBorder) { $0.themePosterBorder() }
                     .posterCornerRadius(type)
                 #endif
         case .square:
             posterAspectRatio(type, contentMode: contentMode)
                 #if os(iOS)
-                    .posterBorder()
+                    .if(showsBorder) { $0.themePosterBorder() }
                     .posterCornerRadius(type)
                 #endif
         }
@@ -525,6 +536,22 @@ private struct PosterCornerRadiusModifier: ViewModifier {
 }
 
 /// Voir ``PosterCornerRadiusModifier`` pour le choix du `ViewModifier`.
+private struct PosterBorderModifier: ViewModifier {
+
+    @Default(.appearance)
+    private var appearance
+
+    func body(content: Content) -> some View {
+        let border = appearance.tokens.posterBorder
+
+        // À l'intérieur du bord (`strokeBorder`) : un trait centré serait à moitié rogné.
+        return content.overlay {
+            ContainerRelativeShape()
+                .strokeBorder(border.color, lineWidth: border.width)
+        }
+    }
+}
+
 private struct PosterShadowModifier: ViewModifier {
 
     @Default(.appearance)

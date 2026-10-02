@@ -19,6 +19,8 @@ struct PosterImage<Element: Poster>: View {
     private let contentMode: ContentMode
     private let element: Element
     private var pipeline: ImagePipeline
+    // SweetFin : voir `showsBorder(_:)`.
+    private var showsBorder = true
     private let size: PosterDisplayType.Size
     private let displayType: PosterDisplayType
 
@@ -80,7 +82,8 @@ struct PosterImage<Element: Poster>: View {
         }
         .posterStyle(
             displayType,
-            contentMode: contentMode
+            contentMode: contentMode,
+            showsBorder: showsBorder
         )
         // SweetFin : voir `EnvironmentValues.isPersonPoster`.
         .environment(\.isPersonPoster, element is BaseItemPerson)
@@ -91,5 +94,11 @@ extension PosterImage {
 
     func pipeline(_ pipeline: ImagePipeline) -> Self {
         copy(modifying: \.pipeline, with: pipeline)
+    }
+
+    /// SweetFin : sans contour quand un calque posé dessus le porte (tuiles de
+    /// `PosterButton`), pour qu'il reste au-dessus de ce calque.
+    func showsBorder(_ isVisible: Bool) -> Self {
+        copy(modifying: \.showsBorder, with: isVisible)
     }
 }

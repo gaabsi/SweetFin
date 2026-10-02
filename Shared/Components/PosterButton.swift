@@ -58,11 +58,15 @@ struct PosterButton<Item: Poster>: View {
 
     @ViewBuilder
     private func posterImage(overlay: some View) -> some View {
+        // SweetFin : le contour est porté par le calque des indicateurs, posé sur
+        // l'image : tout en haut, l'ombre de la barre de reprise ne le masque pas ; et
+        // une seule fois (image et calque l'avaient chacun, tracé en double).
         PosterImage(
             item: item,
             type: displayType,
             size: size
         )
+        .showsBorder(false)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay { overlay.posterStyle(displayType) }
         .contentShape(.contextMenuPreview, Rectangle())
