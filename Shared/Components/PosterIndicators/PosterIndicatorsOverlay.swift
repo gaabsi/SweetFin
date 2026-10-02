@@ -29,11 +29,20 @@ struct PosterIndicatorsOverlay: View {
             item.userData?.isPlayed != true
     }
 
-    private var isInContinueWatching: Bool {
-        viewContext.contains(.isInContinueWatching)
+    var body: some View {
+        // SweetFin : les tuiles de « Continuer de regarder » ont leur propre habillage.
+        if viewContext.contains(.isInContinueWatching) {
+            ResumeTileOverlay(
+                progress: showsProgressIndicator ? item.progressPercentage ?? 0 : nil,
+                // Toucher la tuile lance la lecture, sauf reprise externe (fiche).
+                showsPlay: !EnhancedFinSyntheticItem.isSynthetic(item.id)
+            )
+        } else {
+            standardOverlay
+        }
     }
 
-    var body: some View {
+    private var standardOverlay: some View {
         VStack(spacing: 0) {
             ZStack {
                 HStack(spacing: 5) {
@@ -57,24 +66,70 @@ struct PosterIndicatorsOverlay: View {
                     // barre suffit à dire où on en est.
                     title: viewContext.contains(.isInResume) ? nil : item.progressLabel,
                     progress: item.progressPercentage ?? 0,
-                    posterDisplayType: posterDisplayType,
-                    barColor: isInContinueWatching ? .white : nil
+                    posterDisplayType: posterDisplayType
                 )
                 .zIndex(5)
-            }
-        }
-        // SweetFin : dans « Continuer de regarder », toucher la tuile lance la lecture
-        // (sauf reprise externe, qui ouvre sa fiche). Centré sur toute la tuile, barre ou
-        // non : le rond est au même endroit sur un épisode entamé et sur le suivant.
-        .overlay {
-            if isInContinueWatching, !EnhancedFinSyntheticItem.isSynthetic(item.id) {
-                ResumePlayIndicator()
             }
         }
     }
 }
 
-/// SweetFin : rond de lecture translucide, lisible sur une image claire comme sombre.
+/// SweetFin : habillage d'une tuile de « Continuer de regarder », neutre quel que soit
+/// le thème — barre gris clair sur une ombre courte, rond de lecture centré sur toute la
+/// tuile (même place, barre ou non) et contour en surbrillance.
+private struct ResumeTileOverlay: View {
+
+    /// Avancement, `nil` = pas de barre (épisode suivant).
+    let progress: Double?
+    let showsPlay: Bool
+
+    var body: some View {
+        ZStack {
+            if let progress {
+                ResumeProgressBar(progress: progress)
+            }
+
+            if showsPlay {
+                ResumePlayIndicator()
+            }
+
+            ContainerRelativeShape()
+                .inset(by: 0.5)
+                .stroke(.white.opacity(0.28), lineWidth: 1)
+        }
+    }
+}
+
+/// Barre fine cernée de sombre, sur une ombre courte qui la détache de l'image.
+private struct ResumeProgressBar: View {
+
+    let progress: Double
+
+    /// `#D1D1D6` : neutre comme le blanc, moins vif.
+    private let fill = Color(red: 209 / 255, green: 209 / 255, blue: 214 / 255)
+
+    var body: some View {
+        Capsule()
+            .fill(.white.opacity(0.35))
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    Capsule()
+                        .fill(fill)
+                        .frame(width: proxy.size.width * clamp(progress, min: 0, max: 1))
+                }
+            }
+            .frame(height: 5)
+            .padding(1)
+            .background(.black.opacity(0.35), in: .capsule)
+            .padding([.horizontal, .bottom], 5)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .background(alignment: .bottom) {
+                LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .bottom, endPoint: .top)
+                    .frame(height: 14)
+            }
+    }
+}
+
 private struct ResumePlayIndicator: View {
 
     var body: some View {
