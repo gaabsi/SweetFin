@@ -33,8 +33,6 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -42,8 +40,6 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>SweetFin uses the local network to connect to your Jellyfin server.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>SweetFin uses your location to identify the current Wi-Fi network.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>NotoSansCJK-Regular.ttc</string>
@@ -59,8 +55,6 @@
 	<array>
 		<string>audio</string>
 	</array>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

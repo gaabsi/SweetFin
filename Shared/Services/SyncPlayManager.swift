@@ -449,7 +449,7 @@ final class SyncPlayManager: ObservableObject {
         send(Paths.syncPlaySetNewQueue(request))
     }
 
-    // B1 : l'action locale s'applique tout de suite, le serveur aligne les autres.
+    // L'action locale s'applique tout de suite, le serveur aligne les autres.
     private func player(_ manager: MediaPlayerManager, didChangeTo status: MediaPlayerManager.PlaybackRequestStatus) {
         guard startPhase == .idle,
               let groupStatus, status != groupStatus,

@@ -21,7 +21,7 @@ extension Container {
 /// SweetFin : « l'appareil n'a aucun réseau » (mode avion, ni Wi-Fi ni cellulaire).
 ///
 /// **Seulement ça** : une 4G/5G compte comme « en ligne », même si le serveur ne répond
-/// pas — le streaming habituel reste la règle dès qu'il y a du réseau (choix de Gabriel).
+/// pas — le streaming habituel reste la règle dès qu'il y a du réseau.
 /// D'où l'absence de sonde du serveur : la surveillance réseau d'iOS suffit, et elle
 /// répond sans délai.
 final class OfflineMonitor: ObservableObject {

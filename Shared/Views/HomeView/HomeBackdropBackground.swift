@@ -104,7 +104,7 @@ private struct MediaBarBackdropBackground: View {
 /// que les textes restent lisibles, et fondu vers le suivant quand le média change.
 ///
 /// Image demandée en **basse résolution** : floutée, une grande image n'apporterait
-/// rien, et le Pi redimensionne à la volée.
+/// rien, et le serveur redimensionne à la volée.
 struct BlurredBackdropBackground: View {
 
     let item: BaseItemDto?

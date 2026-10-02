@@ -263,7 +263,7 @@ struct EnhancedFinFollow: Decodable, Hashable, Identifiable {
 /// ⚠️ **Cette route ne voit PAS ce que Jellyfin sait.** Elle lit la seule table
 /// `playback` du plugin, alimentée par `PUT /me/progress`, que rien n'appelle
 /// aujourd'hui — elle ne contient donc que l'historique migré des **sources
-/// externes** (source externe, source externe). La reprise côté serveur vient, elle, des
+/// externes**. La reprise côté serveur vient, elle, des
 /// routes Jellyfin natives.
 ///
 /// C'est pour ça que l'Accueil fusionne trois sources plutôt qu'une, et que la
@@ -481,7 +481,7 @@ struct EnhancedFinSeerr: Decodable, Hashable {
     static let processing = 3
     /// 4 : partiellement disponible.
     static let partiallyAvailable = 4
-    /// 5 : entièrement disponible. Méthode du front media-rating.
+    /// 5 : entièrement disponible.
     static let available = 5
 
     /// Nul : Seerr ne suit pas le média.

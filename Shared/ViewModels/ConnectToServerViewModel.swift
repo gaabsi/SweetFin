@@ -159,7 +159,6 @@ final class ConnectToServerViewModel: ObservableObject {
                 id: UUID().uuidString,
                 name: normalizedURL.absoluteString,
                 url: normalizedURL,
-                interface: .any,
                 priority: connections.count
             )
             connections.append(connection)

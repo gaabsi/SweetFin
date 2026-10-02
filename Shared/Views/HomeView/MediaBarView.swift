@@ -71,8 +71,7 @@ struct MediaBarView: View {
     /// ⚠️ `TabView` n'expose aucun événement de balayage : la seule façon de savoir
     /// qui a changé de diapo est de comparer avec ce qu'on venait de poser soi-même.
     /// Sans ça, la rotation s'arrête d'elle-même dès le premier pas — elle déclenche
-    /// son propre `onChange` et croit à un balayage. (Vécu : trois captures à 13 s
-    /// d'intervalle, identiques au bit près.)
+    /// son propre `onChange` et croit à un balayage.
     @State
     private var lastAutoPosition: Int?
 
