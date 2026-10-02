@@ -14,31 +14,34 @@ import Foundation
 /// fichiers de traduction upstream, qui entreraient en conflit à chaque rebase.
 enum PlayerStrings {
 
-    static let jumpBackward = "Reculer"
-    static let jumpForward = "Avancer"
+    static let jumpBackward = String(localized: "Jump Back", table: "SweetFin")
+    static let jumpForward = String(localized: "Jump Forward", table: "SweetFin")
 
     /// L'icône pile : ouvre le panneau des épisodes.
-    static let episodes = "Épisodes"
-    static let settings = "Réglages"
+    static let episodes = String(localized: "Episodes", table: "SweetFin")
+    static let settings = String(localized: "Settings", table: "SweetFin")
     /// La piste audio, dans l'engrenage.
-    static let language = "Langue"
+    static let language = String(localized: "Language", table: "SweetFin")
 
     // Réglages du lecteur
-    static let audioAndSubtitles = "Audio & Sous-titres"
-    static let preferredAudioLanguage = "Langue audio préférée"
-    static let preferredSubtitleLanguage = "Langue des sous-titres préférée"
-    static let extraSubtitleLanguages = "Autres langues de sous-titres"
-    static let showSDH = "Sous-titres SDH"
-    static let showAudioDescription = "Audiodescription"
-    static let accessibilityFooter = """
-    SDH : sous-titres pour sourds et malentendants, qui décrivent aussi les bruits, la \
-    musique et qui parle. Audiodescription : une voix décrit l'action pour les \
-    malvoyants. Les sous-titres forcés de vos langues sont toujours proposés.
-    """
+    static let audioAndSubtitles = String(localized: "Audio & Subtitles", table: "SweetFin")
+    static let preferredAudioLanguage = String(localized: "Preferred Audio Language", table: "SweetFin")
+    static let preferredSubtitleLanguage = String(localized: "Preferred Subtitle Language", table: "SweetFin")
+    static let extraSubtitleLanguages = String(localized: "Other Subtitle Languages", table: "SweetFin")
+    static let showSDH = String(localized: "SDH Subtitles", table: "SweetFin")
+    static let showAudioDescription = String(localized: "Audio Description", table: "SweetFin")
+    static let accessibilityFooter = String(
+        localized: """
+        SDH: subtitles for the deaf and hard of hearing, which also describe sounds, music \
+        and who is speaking. Audio description: a voice describes the action for the \
+        visually impaired. Forced subtitles in your languages are always offered.
+        """,
+        table: "SweetFin"
+    )
 
     // Pistes de l'engrenage (`MediaTrackFilter`)
     static func forcedTrack(_ language: String) -> String {
-        "\(language) (forcé)"
+        String(localized: "\(language) (Forced)", table: "SweetFin")
     }
 
     static func sdhTrack(_ language: String) -> String {
@@ -46,25 +49,27 @@ enum PlayerStrings {
     }
 
     static func audioDescriptionTrack(_ language: String) -> String {
-        "\(language) (audiodescription)"
+        String(localized: "\(language) (Audio Description)", table: "SweetFin")
     }
 
     /// Une piste sans langue connue : « Audio 2 », « Piste 3 ».
     static func untitledTrack(isAudio: Bool, position: Int) -> String {
-        "\(isAudio ? "Audio" : "Piste") \(position)"
+        isAudio
+            ? String(localized: "Audio \(position)", table: "SweetFin")
+            : String(localized: "Track \(position)", table: "SweetFin")
     }
 
     // Segments (`SkipSegmentButton`)
-    static let skipIntro = "Passer l'intro"
-    static let skipRecap = "Passer le résumé"
-    static let skipCredits = "Passer le générique"
-    static let nextEpisode = "Épisode suivant"
-    static let skip = "Passer"
+    static let skipIntro = String(localized: "Skip Intro", table: "SweetFin")
+    static let skipRecap = String(localized: "Skip Recap", table: "SweetFin")
+    static let skipCredits = String(localized: "Skip Credits", table: "SweetFin")
+    static let nextEpisode = String(localized: "Next Episode", table: "SweetFin")
+    static let skip = String(localized: "Skip", table: "SweetFin")
 
     // Écran de pause
-    static let endsAt = "Se termine à"
+    static let endsAt = String(localized: "Ends at", table: "SweetFin")
 
     static func watched(percent: Int) -> String {
-        "\(percent) % regardé"
+        String(localized: "\(percent)% watched", table: "SweetFin")
     }
 }

@@ -13,26 +13,27 @@ import Foundation
 /// Hors de `L10n`, pour la même raison qu'`ExplorerStrings` et `CalendarStrings` :
 /// celui-ci est généré par SwiftGen depuis les fichiers de traduction upstream, qu'il
 /// faudrait modifier dans les vingt langues — et qui entreraient en conflit à chaque
-/// rebase.
+/// rebase. Les traductions (anglais, français) vivent dans `Translations/SweetFin.xcstrings`,
+/// la clé étant le texte anglais.
 enum HomeStrings {
 
-    static let myMedia = "Mes médias"
-    static let continueWatching = "Continuer de regarder"
-    static let recentlyAdded = "Ajoutés récemment"
-    static let recentlyAddedDays = "Ajoutés depuis"
+    static let myMedia = String(localized: "My Media", table: "SweetFin")
+    static let continueWatching = String(localized: "Continue Watching", table: "SweetFin")
+    static let recentlyAdded = String(localized: "Recently Added", table: "SweetFin")
+    static let recentlyAddedDays = String(localized: "Added in the last", table: "SweetFin")
 
     static func days(_ count: Int) -> String {
-        "\(count) jours"
+        String(localized: "\(count) days", table: "SweetFin")
     }
-    static let hide = "Masquer"
+    static let hide = String(localized: "Hide", table: "SweetFin")
 
     /// « Ajouter à ma watchlist » passait sur deux lignes dans le menu d'appui long ;
     /// l'icône (signet +) porte déjà l'action.
-    static let watchlist = "Watchlist"
+    static let watchlist = String(localized: "Watchlist", table: "SweetFin")
 
     /// Libellé d'accessibilité du carrousel. Il n'est pas affiché : les diapos portent
     /// déjà le logo du média, et un titre au-dessus ferait doublon.
-    static let mediaBar = "À l'affiche"
+    static let mediaBar = String(localized: "Featured", table: "SweetFin")
     /// Bouton de la vitrine tvOS qui ouvre la fiche.
-    static let info = "Infos"
+    static let info = String(localized: "Info", table: "SweetFin")
 }

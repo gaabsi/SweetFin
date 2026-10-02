@@ -15,32 +15,32 @@ import Foundation
 /// les vingt langues — et qui entreraient en conflit à chaque rebase.
 enum CalendarStrings {
 
-    static let calendar = "Calendrier"
-    static let today = "Aujourd'hui"
+    static let calendar = String(localized: "Calendar", table: "SweetFin")
+    static let today = String(localized: "Today", table: "SweetFin")
 
-    static let emptyTitle = "Aucune sortie"
-    static let emptyMessage = "Suis des séries depuis leur fiche pour voir leurs prochains épisodes ici."
+    static let emptyTitle = String(localized: "No Releases", table: "SweetFin")
+    static let emptyMessage = String(localized: "Follow shows from their page to see their upcoming episodes here.", table: "SweetFin")
 
-    static let unavailableTitle = "Calendrier indisponible"
-    static let unavailableMessage = "Le plugin EnhancedFin n'a pas répondu. Vérifie qu'il est installé sur ce serveur."
+    static let unavailableTitle = String(localized: "Calendar Unavailable", table: "SweetFin")
+    static let unavailableMessage = String(localized: "The EnhancedFin plugin did not respond. Check that it is installed on this server.", table: "SweetFin")
 
-    static let previousPeriod = "Période précédente"
-    static let nextPeriod = "Période suivante"
+    static let previousPeriod = String(localized: "Previous Period", table: "SweetFin")
+    static let nextPeriod = String(localized: "Next Period", table: "SweetFin")
 
     // MARK: - Mes suivis
 
-    static let myFollows = "Mes suivis"
-    static let unfollow = "Ne plus suivre"
+    static let myFollows = String(localized: "Following", table: "SweetFin")
+    static let unfollow = String(localized: "Unfollow", table: "SweetFin")
 
     /// Une série terminée, ou dont la suite n'est pas encore annoncée.
-    static let noNextAirDate = "Aucune date annoncée"
+    static let noNextAirDate = String(localized: "No Date Announced", table: "SweetFin")
 
     /// Prochaine diffusion connue.
     ///
     /// Parametres :
     /// - date (String) : date déjà formatée pour la langue de l'appareil
     static func nextAir(_ date: String) -> String {
-        "Prochain : \(date)"
+        String(localized: "Next: \(date)", table: "SweetFin")
     }
 
     // MARK: - Grille

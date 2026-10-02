@@ -13,58 +13,59 @@ import Foundation
 /// Volontairement hors de `L10n` : celui-ci est généré par SwiftGen depuis les
 /// fichiers de traduction upstream, qu'il faudrait modifier dans les vingt langues
 /// — et qui entreraient en conflit à chaque rebase sur `upstream/main`. Les
-/// libellés qui n'existent que dans ce fork vivent donc ici.
+/// libellés qui n'existent que dans ce fork vivent donc ici, traduits (anglais, français)
+/// dans `Translations/SweetFin.xcstrings`, la clé étant le texte anglais.
 enum ExplorerStrings {
 
-    static let explore = "Explorer"
-    static let toRate = "À noter"
+    static let explore = String(localized: "Explore", table: "SweetFin")
+    static let toRate = String(localized: "To Rate", table: "SweetFin")
     /// Titre de la section de l'Explorer.
-    static let watchlistSection = "Ma watchlist"
+    static let watchlistSection = String(localized: "My Watchlist", table: "SweetFin")
 
     /// Libellé du bouton de la barre d'actions. Distinct du titre de section :
     /// « Ma watchlist » se lit comme un lieu, pas comme une action à déclencher.
-    static let watchlistButton = "Watchlist"
-    static let myRatings = "Mes notes"
+    static let watchlistButton = String(localized: "Watchlist", table: "SweetFin")
+    static let myRatings = String(localized: "My Ratings", table: "SweetFin")
 
-    static let emptyTitle = "Rien à explorer"
-    static let emptyMessage = "Note un média ou ajoute-le à ta watchlist pour le voir apparaître ici."
+    static let emptyTitle = String(localized: "Nothing to Explore", table: "SweetFin")
+    static let emptyMessage = String(localized: "Rate a title or add it to your watchlist to see it here.", table: "SweetFin")
 
-    static let unavailableTitle = "EnhancedFin indisponible"
-    static let unavailableMessage = "Le plugin EnhancedFin n'a pas répondu. Vérifie qu'il est installé sur ce serveur."
+    static let unavailableTitle = String(localized: "EnhancedFin Unavailable", table: "SweetFin")
+    static let unavailableMessage = String(localized: "The EnhancedFin plugin did not respond. Check that it is installed on this server.", table: "SweetFin")
 
-    static let rate = "Noter"
-    static let disliked = "Pas pour moi"
-    static let liked = "J'aime bien"
-    static let loved = "J'adore !"
+    static let rate = String(localized: "Rate", table: "SweetFin")
+    static let disliked = String(localized: "Not for Me", table: "SweetFin")
+    static let liked = String(localized: "Liked It", table: "SweetFin")
+    static let loved = String(localized: "Loved It!", table: "SweetFin")
 
-    static let addToWatchlist = "Ajouter à ma watchlist"
-    static let removeFromWatchlist = "Retirer de ma watchlist"
+    static let addToWatchlist = String(localized: "Add to Watchlist", table: "SweetFin")
+    static let removeFromWatchlist = String(localized: "Remove from Watchlist", table: "SweetFin")
 
-    static let follow = "Suivre"
-    static let unfollow = "Ne plus suivre"
+    static let follow = String(localized: "Follow", table: "SweetFin")
+    static let unfollow = String(localized: "Unfollow", table: "SweetFin")
 
     /// Pendant de `L10n.seeMore`, qui n'a pas d'équivalent inverse en amont.
-    static let seeLess = "Voir moins"
+    static let seeLess = String(localized: "See Less", table: "SweetFin")
 
     /// Catégories de la watchlist et filtres des tendances partagent leurs
     /// libellés avec la filmographie (`allTypes`, `moviesOnly`, `seriesOnly`) :
     /// ce sont les mêmes mots pour les mêmes choses. Seuls les animés s'y ajoutent.
-    static let animesOnly = "Animés"
+    static let animesOnly = String(localized: "Anime", table: "SweetFin")
 
-    static let trending = "Tendances"
+    static let trending = String(localized: "Trending", table: "SweetFin")
 
     /// Titre de l'écran ouvert depuis une tuile de catégorie.
     ///
     /// Parametres :
     /// - category (String) : libellé de la catégorie
     static func watchlistCategory(_ category: String) -> String {
-        "Ma watchlist · \(category)"
+        String(localized: "My Watchlist · \(category)", table: "SweetFin")
     }
 
-    static let filmography = "Filmographie"
-    static let sortByPopularity = "Popularité"
-    static let sortByDate = "Date"
-    static let allTypes = "Tout"
-    static let moviesOnly = "Films"
-    static let seriesOnly = "Séries"
+    static let filmography = String(localized: "Filmography", table: "SweetFin")
+    static let sortByPopularity = String(localized: "Popularity", table: "SweetFin")
+    static let sortByDate = String(localized: "Date", table: "SweetFin")
+    static let allTypes = String(localized: "All", table: "SweetFin")
+    static let moviesOnly = String(localized: "Movies", table: "SweetFin")
+    static let seriesOnly = String(localized: "Shows", table: "SweetFin")
 }

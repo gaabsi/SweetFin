@@ -12,27 +12,27 @@ import Foundation
 enum SyncPlayStrings {
 
     static let title = "SyncPlay"
-    static let join = "Rejoindre"
-    static let decline = "Refuser"
-    static let createGroup = "Créer un groupe"
-    static let groups = "Groupes en cours"
-    static let noGroups = "Aucun groupe en cours"
-    static let participants = "Participants"
-    static let invite = "Inviter"
-    static let leave = "Quitter le groupe"
-    static let offline = "Pas connecté"
-    static let noUsers = "Personne d'autre à inviter"
-    static let close = "Fermer"
+    static let join = String(localized: "Join", table: "SweetFin")
+    static let decline = String(localized: "Decline", table: "SweetFin")
+    static let createGroup = String(localized: "Create a Group", table: "SweetFin")
+    static let groups = String(localized: "Active Groups", table: "SweetFin")
+    static let noGroups = String(localized: "No Active Groups", table: "SweetFin")
+    static let participants = String(localized: "Participants", table: "SweetFin")
+    static let invite = String(localized: "Invite", table: "SweetFin")
+    static let leave = String(localized: "Leave Group", table: "SweetFin")
+    static let offline = String(localized: "Offline", table: "SweetFin")
+    static let noUsers = String(localized: "No One Else to Invite", table: "SweetFin")
+    static let close = String(localized: "Close", table: "SweetFin")
 
     static func invited(by name: String) -> String {
-        "\(name) t'invite à regarder ensemble"
+        String(localized: "\(name) invites you to watch together", table: "SweetFin")
     }
 
     static func groupName(of user: String) -> String {
-        "Groupe de \(user)"
+        String(localized: "\(user)'s Group", table: "SweetFin")
     }
 
     static func members(_ count: Int) -> String {
-        count > 1 ? "\(count) participants" : "1 participant"
+        String(localized: "\(count) participants", table: "SweetFin")
     }
 }
