@@ -18,21 +18,21 @@ enum ItemStrings {
 
     /// Remplace `L10n.castAndCrew`, traduit « Distribution des rôles & équipe
     /// technique » : trop long pour un titre de rail.
-    static let cast = "Casting"
+    static let cast = String(localized: "Cast", table: "SweetFin")
 
     // Bloc « infos » (`ItemFactsContentGroup`).
-    static let facts = "Infos"
-    static let releaseDate = "Date de sortie"
-    static let firstAired = "Première diffusion"
-    static let directedBy = "Réalisation"
-    static let createdBy = "Création"
-    static let ratings = "Notes"
+    static let facts = String(localized: "Info", table: "SweetFin")
+    static let releaseDate = String(localized: "Release Date", table: "SweetFin")
+    static let firstAired = String(localized: "First Aired", table: "SweetFin")
+    static let directedBy = String(localized: "Directed By", table: "SweetFin")
+    static let createdBy = String(localized: "Created By", table: "SweetFin")
+    static let ratings = String(localized: "Ratings", table: "SweetFin")
 
     // Saisons et épisodes (`SeasonsContentGroup`).
-    static let markAsWatched = "Marquer comme vu"
-    static let validate = "Valider"
+    static let markAsWatched = String(localized: "Mark as Watched", table: "SweetFin")
+    static let validate = String(localized: "Confirm", table: "SweetFin")
 
     static func watchedCount(_ watched: Int, of total: Int) -> String {
-        "\(watched)/\(total) vus"
+        String(localized: "\(watched)/\(total) watched", table: "SweetFin")
     }
 }

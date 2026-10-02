@@ -1,0 +1,1306 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ (Audio Description)": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (audiodescription)"
+          }
+        }
+      }
+    },
+    "%@ (Forced)": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (forcé)"
+          }
+        }
+      }
+    },
+    "%@ invites you to watch together": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ t'invite à regarder ensemble"
+          }
+        }
+      }
+    },
+    "%@ used on this device": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ utilisés sur cet appareil"
+          }
+        }
+      }
+    },
+    "%@'s Group": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groupe de %@"
+          }
+        }
+      }
+    },
+    "%lld days": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld jour"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld jours"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld ep.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ép."
+          }
+        }
+      }
+    },
+    "%lld episodes · %@": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld episode · %@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld episodes · %@"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld épisode · %@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld épisodes · %@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld participants": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld participant"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld participants"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld participant"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld participants"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld%% watched": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld %% regardé"
+          }
+        }
+      }
+    },
+    "%lld/%lld watched": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld vus"
+          }
+        }
+      }
+    },
+    "Active Groups": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groupes en cours"
+          }
+        }
+      }
+    },
+    "Add to Watchlist": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter à ma watchlist"
+          }
+        }
+      }
+    },
+    "Added in the last": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutés depuis"
+          }
+        }
+      }
+    },
+    "All": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout"
+          }
+        }
+      }
+    },
+    "Anime": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Animés"
+          }
+        }
+      }
+    },
+    "Audio %lld": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio %lld"
+          }
+        }
+      }
+    },
+    "Audio & Subtitles": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio & Sous-titres"
+          }
+        }
+      }
+    },
+    "Audio Description": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audiodescription"
+          }
+        }
+      }
+    },
+    "Available": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disponible"
+          }
+        }
+      }
+    },
+    "Calendar": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendrier"
+          }
+        }
+      }
+    },
+    "Calendar Unavailable": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendrier indisponible"
+          }
+        }
+      }
+    },
+    "Cancel Download": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler le téléchargement"
+          }
+        }
+      }
+    },
+    "Cast": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Casting"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer"
+          }
+        }
+      }
+    },
+    "Confirm": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valider"
+          }
+        }
+      }
+    },
+    "Continue Watching": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer de regarder"
+          }
+        }
+      }
+    },
+    "Create a Group": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un groupe"
+          }
+        }
+      }
+    },
+    "Created By": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Création"
+          }
+        }
+      }
+    },
+    "Date": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        }
+      }
+    },
+    "Decline": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refuser"
+          }
+        }
+      }
+    },
+    "Delete Download": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le téléchargement"
+          }
+        }
+      }
+    },
+    "Directed By": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réalisation"
+          }
+        }
+      }
+    },
+    "Download": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger"
+          }
+        }
+      }
+    },
+    "Download Failed": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec du téléchargement"
+          }
+        }
+      }
+    },
+    "Download Rest of Season": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger la suite de la saison"
+          }
+        }
+      }
+    },
+    "Downloaded": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargé"
+          }
+        }
+      }
+    },
+    "Downloading %lld%%": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargement %lld %%"
+          }
+        }
+      }
+    },
+    "Downloads": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargements"
+          }
+        }
+      }
+    },
+    "Ends at": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se termine à"
+          }
+        }
+      }
+    },
+    "EnhancedFin Unavailable": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EnhancedFin indisponible"
+          }
+        }
+      }
+    },
+    "Episodes": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épisodes"
+          }
+        }
+      }
+    },
+    "Explore": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorer"
+          }
+        }
+      }
+    },
+    "Featured": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À l'affiche"
+          }
+        }
+      }
+    },
+    "Filmography": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filmographie"
+          }
+        }
+      }
+    },
+    "First Aired": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Première diffusion"
+          }
+        }
+      }
+    },
+    "Follow": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre"
+          }
+        }
+      }
+    },
+    "Follow shows from their page to see their upcoming episodes here.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suis des séries depuis leur fiche pour voir leurs prochains épisodes ici."
+          }
+        }
+      }
+    },
+    "Following": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes suivis"
+          }
+        }
+      }
+    },
+    "Hide": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer"
+          }
+        }
+      }
+    },
+    "Info": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Infos"
+          }
+        }
+      }
+    },
+    "Invite": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviter"
+          }
+        }
+      }
+    },
+    "Join": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejoindre"
+          }
+        }
+      }
+    },
+    "Jump Back": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reculer"
+          }
+        }
+      }
+    },
+    "Jump Forward": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avancer"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue"
+          }
+        }
+      }
+    },
+    "Leave Group": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter le groupe"
+          }
+        }
+      }
+    },
+    "Liked It": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J'aime bien"
+          }
+        }
+      }
+    },
+    "Loved It!": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J'adore !"
+          }
+        }
+      }
+    },
+    "Mark as Watched": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marquer comme vu"
+          }
+        }
+      }
+    },
+    "Movies": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Films"
+          }
+        }
+      }
+    },
+    "My Media": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes médias"
+          }
+        }
+      }
+    },
+    "My Ratings": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes notes"
+          }
+        }
+      }
+    },
+    "My Watchlist": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ma watchlist"
+          }
+        }
+      }
+    },
+    "My Watchlist · %@": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ma watchlist · %@"
+          }
+        }
+      }
+    },
+    "Next Episode": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épisode suivant"
+          }
+        }
+      }
+    },
+    "Next Period": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Période suivante"
+          }
+        }
+      }
+    },
+    "Next: %@": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prochain : %@"
+          }
+        }
+      }
+    },
+    "No Active Groups": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun groupe en cours"
+          }
+        }
+      }
+    },
+    "No Date Announced": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune date annoncée"
+          }
+        }
+      }
+    },
+    "No Downloads": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun téléchargement"
+          }
+        }
+      }
+    },
+    "No file to download for this item.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun fichier à télécharger pour ce média."
+          }
+        }
+      }
+    },
+    "No One Else to Invite": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personne d'autre à inviter"
+          }
+        }
+      }
+    },
+    "No Releases": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune sortie"
+          }
+        }
+      }
+    },
+    "Not enough space: %@ needed, %@ available.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas assez d'espace : %1$@ nécessaires, %2$@ disponibles."
+          }
+        }
+      }
+    },
+    "Not for Me": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas pour moi"
+          }
+        }
+      }
+    },
+    "Not Requested": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non demandée"
+          }
+        }
+      }
+    },
+    "Nothing to download: you've watched everything, or the rest of the season is already downloaded.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien à télécharger : tu as tout vu, ou la suite de la saison est déjà téléchargée."
+          }
+        }
+      }
+    },
+    "Nothing to Explore": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien à explorer"
+          }
+        }
+      }
+    },
+    "Offline": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas connecté"
+          }
+        }
+      }
+    },
+    "Offline — only your downloads are available.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hors connexion — seuls tes téléchargements sont disponibles."
+          }
+        }
+      }
+    },
+    "Open a movie or an episode, then ⋯ → Download. It will stay playable offline.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre un film ou un épisode, puis ⋯ → Télécharger. Il restera lisible sans connexion."
+          }
+        }
+      }
+    },
+    "Other Subtitle Languages": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres langues de sous-titres"
+          }
+        }
+      }
+    },
+    "Partially Available": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partielle"
+          }
+        }
+      }
+    },
+    "Participants": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participants"
+          }
+        }
+      }
+    },
+    "Pending": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente"
+          }
+        }
+      }
+    },
+    "Popularity": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popularité"
+          }
+        }
+      }
+    },
+    "Preferred Audio Language": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue audio préférée"
+          }
+        }
+      }
+    },
+    "Preferred Subtitle Language": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue des sous-titres préférée"
+          }
+        }
+      }
+    },
+    "Previous Period": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Période précédente"
+          }
+        }
+      }
+    },
+    "Rate": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noter"
+          }
+        }
+      }
+    },
+    "Rate a title or add it to your watchlist to see it here.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note un média ou ajoute-le à ta watchlist pour le voir apparaître ici."
+          }
+        }
+      }
+    },
+    "Ratings": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        }
+      }
+    },
+    "Recently Added": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutés récemment"
+          }
+        }
+      }
+    },
+    "Release Date": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date de sortie"
+          }
+        }
+      }
+    },
+    "Remove from Watchlist": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer de ma watchlist"
+          }
+        }
+      }
+    },
+    "Request": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander"
+          }
+        }
+      }
+    },
+    "Request a Movie": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander un film"
+          }
+        }
+      }
+    },
+    "Request a Show": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander une série"
+          }
+        }
+      }
+    },
+    "Request on Seerr": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander sur Seerr"
+          }
+        }
+      }
+    },
+    "Retry Download": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer le téléchargement"
+          }
+        }
+      }
+    },
+    "SDH Subtitles": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sous-titres SDH"
+          }
+        }
+      }
+    },
+    "SDH: subtitles for the deaf and hard of hearing, which also describe sounds, music and who is speaking. Audio description: a voice describes the action for the visually impaired. Forced subtitles in your languages are always offered.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SDH : sous-titres pour sourds et malentendants, qui décrivent aussi les bruits, la musique et qui parle. Audiodescription : une voix décrit l'action pour les malvoyants. Les sous-titres forcés de vos langues sont toujours proposés."
+          }
+        }
+      }
+    },
+    "Season %lld": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saison %lld"
+          }
+        }
+      }
+    },
+    "Seasons": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisons"
+          }
+        }
+      }
+    },
+    "See Less": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir moins"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout sélectionner"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        }
+      }
+    },
+    "Shows": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Séries"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer"
+          }
+        }
+      }
+    },
+    "Skip Credits": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer le générique"
+          }
+        }
+      }
+    },
+    "Skip Intro": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer l'intro"
+          }
+        }
+      }
+    },
+    "Skip Recap": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer le résumé"
+          }
+        }
+      }
+    },
+    "The EnhancedFin plugin did not respond. Check that it is installed on this server.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le plugin EnhancedFin n'a pas répondu. Vérifie qu'il est installé sur ce serveur."
+          }
+        }
+      }
+    },
+    "To Rate": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À noter"
+          }
+        }
+      }
+    },
+    "Today": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd'hui"
+          }
+        }
+      }
+    },
+    "Track %lld": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piste %lld"
+          }
+        }
+      }
+    },
+    "Trending": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendances"
+          }
+        }
+      }
+    },
+    "Unfollow": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne plus suivre"
+          }
+        }
+      }
+    },
+    "Watchlist": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watchlist"
+          }
+        }
+      }
+    },
+    "“%@” will be requested on Seerr under your name.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %@ » sera demandé sur Seerr, à ton nom."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
