@@ -18,7 +18,7 @@ extension TabItem {
         TabItem(
             id: "enhancedfin-downloads",
             title: DownloadStrings.downloads,
-            systemImage: "arrow.down.circle"
+            systemImage: "arrow.down.app"
         ) {
             DownloadsView()
         }
@@ -93,7 +93,7 @@ struct DownloadsView: View {
         if downloads.isEmpty {
             ContentUnavailableView(
                 DownloadStrings.emptyTitle,
-                systemImage: "arrow.down.circle",
+                systemImage: "arrow.down.app",
                 description: Text(DownloadStrings.emptyMessage)
             )
         } else {
