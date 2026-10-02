@@ -42,35 +42,43 @@ extension TabItem {
             systemImage: "house.fill"
         ) {
             ContentGroupView(provider: provider)
-                .homeBackground()
+                .pageBackground { base in
+                    MediaBarBackdropBackground(base: base)
+                }
         }
     }
 }
 
-private extension View {
+extension View {
 
-    /// Fond de l'Accueil selon le thème : rien à faire pour un fond uni (la pile de
-    /// navigation le peint déjà), le backdrop de la media bar si le thème le demande.
-    func homeBackground() -> some View {
-        modifier(HomeBackgroundModifier())
+    /// SweetFin : fond d'une page (Accueil, fiche) selon le thème. Rien à faire pour un
+    /// fond uni (la pile de navigation le peint déjà) ; sinon le backdrop flouté que la
+    /// page fournit, à partir du fond du thème.
+    ///
+    /// Parametres :
+    /// - backdrop ((Color) -> Backdrop) : le fond flouté, construit sur la couleur du thème
+    func pageBackground(@ViewBuilder _ backdrop: @escaping (Color) -> some View) -> some View {
+        modifier(PageBackgroundModifier(backdrop: backdrop))
     }
 }
 
-private struct HomeBackgroundModifier: ViewModifier {
+private struct PageBackgroundModifier<Backdrop: View>: ViewModifier {
+
+    let backdrop: (Color) -> Backdrop
 
     @Default(.appearance)
     private var appearance
 
     func body(content: Content) -> some View {
-        switch appearance.tokens.homeBackground {
+        switch appearance.tokens.pageBackground {
         case .solid:
             content
-        case .mediaBarBackdrop:
+        case .blurredBackdrop:
             #if os(iOS)
             // Même API que le fond uni (`themeContainerBackground`) : peint dans la passe
-            // de layout du conteneur, donc sans image noire à l'ouverture de l'onglet.
+            // de layout du conteneur, donc sans image noire à l'ouverture de la page.
             content.containerBackground(for: .navigation) {
-                MediaBarBackdropBackground(base: appearance.tokens.background)
+                backdrop(appearance.tokens.background)
             }
             #else
             content
@@ -79,11 +87,7 @@ private struct HomeBackgroundModifier: ViewModifier {
     }
 }
 
-/// Le backdrop de la diapo affichée, en verre dépoli : fortement flouté, assombri pour
-/// que les textes restent lisibles, et fondu vers le suivant au changement de diapo.
-///
-/// Image demandée en **basse résolution** : floutée, une grande image n'apporterait
-/// rien, et le Pi redimensionne à la volée.
+/// Le backdrop de la diapo affichée, suivi en temps réel.
 private struct MediaBarBackdropBackground: View {
 
     let base: Color
@@ -92,16 +96,31 @@ private struct MediaBarBackdropBackground: View {
     private var backdrop = Container.shared.homeBackdrop()
 
     var body: some View {
+        BlurredBackdropBackground(item: backdrop.item, base: base)
+    }
+}
+
+/// SweetFin : le backdrop d'un média en verre dépoli — fortement flouté, assombri pour
+/// que les textes restent lisibles, et fondu vers le suivant quand le média change.
+///
+/// Image demandée en **basse résolution** : floutée, une grande image n'apporterait
+/// rien, et le Pi redimensionne à la volée.
+struct BlurredBackdropBackground: View {
+
+    let item: BaseItemDto?
+    let base: Color
+
+    var body: some View {
         ZStack {
             base
 
-            if let item = backdrop.item {
+            if let item {
                 ImageView(item.imageSource(.backdrop, environment: ImageSourceOptions(maxWidth: 320)))
                     .failure { Color.clear }
                     .aspectRatio(contentMode: .fill)
                     .blur(radius: 60)
                     .opacity(0.55)
-                    // Une image par média : le changement de diapo se fait en fondu.
+                    // Une image par média : le changement se fait en fondu.
                     .id(item.id)
                     .transition(.opacity)
             }
@@ -112,7 +131,7 @@ private struct MediaBarBackdropBackground: View {
                 endPoint: .bottom
             )
         }
-        .animation(.easeInOut(duration: 1.2), value: backdrop.item?.id)
+        .animation(.easeInOut(duration: 1.2), value: item?.id)
         .ignoresSafeArea()
     }
 }
