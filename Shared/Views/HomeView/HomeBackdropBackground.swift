@@ -115,9 +115,16 @@ struct BlurredBackdropBackground: View {
             base
 
             if let item {
-                ImageView(item.imageSource(.backdrop, environment: ImageSourceOptions(maxWidth: 320)))
-                    .failure { Color.clear }
-                    .aspectRatio(contentMode: .fill)
+                // L'image remplit un calque de la taille du fond, sans jamais le dépasser :
+                // posée seule en `.fill`, elle agrandissait toute la pile selon ses
+                // proportions, et le fond virait au noir (images du serveur de démo).
+                Color.clear
+                    .overlay {
+                        ImageView(item.imageSource(.backdrop, environment: ImageSourceOptions(maxWidth: 320)))
+                            .failure { Color.clear }
+                            .aspectRatio(contentMode: .fill)
+                    }
+                    .clipped()
                     .blur(radius: 60)
                     .opacity(0.55)
                     // Une image par média : le changement se fait en fondu.
