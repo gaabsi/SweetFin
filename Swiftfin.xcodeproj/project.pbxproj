@@ -1337,10 +1337,10 @@
 		};
 		E1BD95B02FBE8E44001CDA57 /* XCRemoteSwiftPackageReference "jellyfin-sdk-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/gaabsi/jellyfin-sdk-swift.git";
+			repositoryURL = "https://github.com/jellyfin/jellyfin-sdk-swift.git";
 			requirement = {
 				kind = revision;
-				revision = a8e88c2f0a51b40f71ee3caa116a9f6b6027d248;
+				revision = 8ce10a167ad0b4145b2bc005acf8bebcfe6ebe46;
 			};
 		};
 		E1DC9812296DC06200982F06 /* XCRemoteSwiftPackageReference "PulseLogHandler" */ = {
