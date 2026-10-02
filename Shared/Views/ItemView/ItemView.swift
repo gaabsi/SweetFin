@@ -133,6 +133,10 @@ struct ItemView: View {
             }
         }
         .trackingSize($contentSize)
+        // SweetFin : le fond flouté de l'Accueil, avec le backdrop du média de la fiche.
+        .pageBackground { base in
+            BlurredBackdropBackground(item: provider.item, base: base)
+        }
         .animation(.linear(duration: 0.2), value: viewModel.state)
         .animation(.linear(duration: 0.2), value: viewModel.background.states)
         .toolbarTitleDisplayMode(.inline)

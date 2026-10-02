@@ -83,31 +83,7 @@ extension ItemView {
                         ItemView.Description(item: provider.item)
                     }
                     .edgePadding(.bottom)
-                    .background(
-                        alignment: .bottom,
-                        extendedBy: .init(
-                            vertical: 25,
-                            horizontal: EdgeInsets.edgePadding
-                        )
-                    ) {
-                        Rectangle()
-                            .fill(Material.ultraThin)
-                            .mask(gradient: .eased(.easeOut)) {
-                                (location: 0, opacity: 0)
-                                (location: 0.2, opacity: 1)
-                            }
-                    }
                     .zIndex(9)
-                }
-            }
-
-            private func resolveColor(from image: UIImage, binding: Binding<Color>) {
-                Task.detached(priority: .utility) {
-                    guard let color = image.interestingColor() else { return }
-
-                    await MainActor.run {
-                        binding.wrappedValue = color
-                    }
                 }
             }
 
@@ -117,28 +93,25 @@ extension ItemView {
                     .frame(maxWidth: .infinity)
                     .colorScheme(.dark)
                     .backgroundParallaxHeader(multiplier: 0.3) {
-                        StateAdapter(initialValue: Color.secondarySystemFill) { resolvedColor in
-                            MirrorExtensionView(edges: .top) {
-                                AlternateLayoutView {
-                                    Color.clear
-                                } content: {
-                                    ImageView(provider.item.imageSource(
-                                        .backdrop,
-                                        environment: ImageSourceOptions(maxWidth: 1320)
-                                    ))
-                                    .image { (image: UIImage) in
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .onAppear {
-                                                resolveColor(from: image, binding: resolvedColor)
-                                            }
-                                    }
-                                }
-                                .aspectRatio(headerAspectRatio, contentMode: .fit)
-                                .accessibilityHidden(true)
+                        // SweetFin : le backdrop s'efface vers le bas sur le fond de la page
+                        // (flouté, voir `pageBackground`), au lieu d'un aplat de couleur
+                        // extraite qui coupait la fiche à la fin du synopsis.
+                        MirrorExtensionView(edges: .top) {
+                            AlternateLayoutView {
+                                Color.clear
+                            } content: {
+                                ImageView(provider.item.imageSource(
+                                    .backdrop,
+                                    environment: ImageSourceOptions(maxWidth: 1320)
+                                ))
+                                .aspectRatio(contentMode: .fill)
                             }
-                            .bottomEdgeGradient(bottomColor: resolvedColor.wrappedValue)
+                            .aspectRatio(headerAspectRatio, contentMode: .fit)
+                            .mask(gradient: .eased(.easeOut)) {
+                                (location: 0.5, opacity: 1)
+                                (location: 1, opacity: 0)
+                            }
+                            .accessibilityHidden(true)
                         }
                     }
             }

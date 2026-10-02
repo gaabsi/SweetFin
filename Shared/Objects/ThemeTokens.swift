@@ -52,8 +52,9 @@ struct ThemeTokens {
     /// Forme des photos du casting.
     let personPosterShape: PersonPosterShape
 
-    /// Fond de l'Accueil : uni (``background``) ou le backdrop de la media bar, en flou.
-    var homeBackground: HomeBackground = .solid
+    /// Fond de l'Accueil et des fiches : uni (``background``) ou le backdrop du média
+    /// affiché (diapo de la media bar, média de la fiche), en flou.
+    var pageBackground: PageBackground = .solid
 
     /// L'équivalent `TextAlignment` de ``posterLabelAlignment``, pour les titres qui
     /// passent à la ligne. Dérivé plutôt que déclaré : deux champs à tenir d'accord
@@ -107,18 +108,18 @@ extension AppAppearance {
             // Casting en ronds, comme le front web d'ElegantFin
             // (`#castCollapsible .cardScalable { border-radius: 50% }`).
             personPosterShape: .circle,
-            homeBackground: .mediaBarBackdrop
+            pageBackground: .blurredBackdrop
         )
     }
 }
 
-/// Fond de l'Accueil, voir ``ThemeTokens/homeBackground``.
-enum HomeBackground {
+/// Fond de l'Accueil et des fiches, voir ``ThemeTokens/pageBackground``.
+enum PageBackground {
 
     /// Le fond du thème, uni.
     case solid
-    /// Le backdrop de la diapo affichée par la media bar, flouté et assombri.
-    case mediaBarBackdrop
+    /// Le backdrop du média affiché, flouté et assombri.
+    case blurredBackdrop
 }
 
 /// Forme des photos du casting, voir ``ThemeTokens/personPosterShape``.
