@@ -166,12 +166,26 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         }
     }
 
-    /// SweetFin : attend la résolution `playable` en cours.
+    /// SweetFin : ce qu'il faut pour lire l'item, **sans construire la fiche** — pour
+    /// `Router.play` (media bar, « Continuer de regarder »).
     ///
-    /// Pour `Router.play`, qui lance la lecture sans ouvrir la fiche et doit donc
-    /// attendre le lecteur que la fiche, elle, recevra plus tard.
-    func waitForPlayable() async {
-        await playableTask?.value
+    /// Même ordre que la fiche : ce que Jellyfin propose d'abord (une série se lance sur
+    /// son épisode à suivre), puis l'item lisible désigné par le plugin. Ni détail
+    /// TMDB, ni backdrop, ni groupes : rien de ce qui ne sert qu'à l'affichage.
+    ///
+    /// Output :
+    /// - provider (MediaPlayerItemProvider?) : `nil` si rien n'est lisible
+    func resolvePlayback() async -> MediaPlayerItemProvider? {
+        guard let userSession = try? requireUserSession(),
+              let fullItem = try? await item.getFullItem(userSession: userSession)
+        else { return nil }
+
+        if let provider = try? await resolveMediaPlayerItemProvider(for: fullItem, userSession: userSession) {
+            return provider
+        }
+
+        await usePlayableItem(await fetchPlayableItemID(fullItem.enhancedFinMediaKey), userSession: userSession)
+        return mediaPlayerItemProvider
     }
 
     /// SweetFin : l'item que le serveur désigne comme lisible pour ce média.

@@ -27,8 +27,8 @@ extension TabItem {
 
 /// SweetFin : les téléchargements du compte connecté.
 ///
-/// Tout vient du disque (`DownloadManager.downloads(of:)`) : l'écran fonctionne sans
-/// serveur. Se redessine à chaque changement d'état publié par le gestionnaire
+/// Tout vient du disque, via le cache de `DownloadManager.downloads(of:)` : l'écran
+/// fonctionne sans serveur. Se redessine à chaque changement d'état publié par le gestionnaire
 /// (progression, fin, suppression). Cartes au style du bloc « Infos » des fiches.
 struct DownloadsView: View {
 
@@ -109,7 +109,7 @@ struct DownloadsView: View {
                         DownloadCard(
                             download: download,
                             state: state,
-                            posterURL: manager.posterURL(of: download.id, userID: userID)
+                            poster: manager.poster(of: download.id, userID: userID)
                         ) {
                             manager.remove(itemID: download.id, userID: userID)
                         }
@@ -135,12 +135,12 @@ private struct DownloadCard: View {
 
     let download: DownloadedItem
     let state: DownloadState
-    let posterURL: URL?
+    let poster: UIImage?
     let onRemove: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
-            poster
+            posterView
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
@@ -221,11 +221,9 @@ private struct DownloadCard: View {
 
     /// Affiche lue sur le disque, sans réseau ; icône de repli si elle manque.
     @ViewBuilder
-    private var poster: some View {
-        let image = posterURL.flatMap { UIImage(contentsOfFile: $0.path(percentEncoded: false)) }
-
+    private var posterView: some View {
         Group {
-            if let image {
+            if let image = poster {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
