@@ -262,7 +262,7 @@ final class DownloadManager: NSObject, ObservableObject {
     /// - userID (String) : compte propriétaire du téléchargement
     func saveOfflineProgress(_ seconds: Duration, itemID: String, userID: String) {
         let progress = DownloadProgress(positionTicks: seconds.ticks, date: .now)
-        let file = folder(Self.key(userID, itemID)).appending(path: Self.progressFileName)
+        let file = progressFile(of: itemID, userID: userID)
         try? JSONEncoder().encode(progress).write(to: file)
     }
 
@@ -280,7 +280,7 @@ final class DownloadManager: NSObject, ObservableObject {
         var didSync = false
 
         for download in downloads(of: userID) {
-            let file = folder(Self.key(userID, download.id)).appending(path: Self.progressFileName)
+            let file = progressFile(of: download.id, userID: userID)
             guard let progress = Self.readProgress(file) else { continue }
 
             let runtime = download.item.runTimeTicks ?? 0
@@ -315,7 +315,7 @@ final class DownloadManager: NSObject, ObservableObject {
 
         for download in downloads(of: userID) {
             let folder = folder(Self.key(userID, download.id))
-            guard Self.readProgress(folder.appending(path: Self.progressFileName)) == nil,
+            guard Self.readProgress(progressFile(of: download.id, userID: userID)) == nil,
                   let userData = try? await userSession.client
                   .send(Paths.getItemUserData(itemID: download.id, userID: userID)).value
             else { continue }
@@ -509,6 +509,11 @@ final class DownloadManager: NSObject, ObservableObject {
 
     private func folder(_ key: String) -> URL {
         root.appending(path: key, directoryHint: .isDirectory)
+    }
+
+    /// Position notée hors connexion, en attente d'envoi.
+    private func progressFile(of itemID: String, userID: String) -> URL {
+        folder(Self.key(userID, itemID)).appending(path: Self.progressFileName)
     }
 
     private func publish(_ state: DownloadState, for key: String) {

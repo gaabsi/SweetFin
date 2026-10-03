@@ -563,3 +563,19 @@ private struct PosterShadowModifier: ViewModifier {
         return content.shadow(color: shadow.color, radius: shadow.radius, y: shadow.y)
     }
 }
+
+extension View {
+
+    /// SweetFin : la carte du bloc « Infos » des fiches — fond blanc à peine teinté,
+    /// liseré, coins de 12 pt. Reprise par l'onglet Téléchargements.
+    func infoCardStyle() -> some View {
+        background {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.white.opacity(0.04))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.white.opacity(0.1), lineWidth: 1)
+        }
+    }
+}

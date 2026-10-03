@@ -193,9 +193,9 @@ struct SeerrRequestView: View {
 
                 Spacer()
 
-                Text(Self.statusLabel(season.status))
+                Text(season.status.label)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(season.status == EnhancedFinSeerr.available ? .green : .secondary)
+                    .foregroundStyle(season.status == .available ? .green : .secondary)
             }
         }
         .disabled(season.isLocked)
@@ -207,16 +207,6 @@ struct SeerrRequestView: View {
         return [year, SeerrStrings.episodes(season.episodeCount)]
             .compactMap(\.self)
             .joined(separator: " · ")
-    }
-
-    /// Le statut Seerr d'une saison, comme dans la modale web.
-    private static func statusLabel(_ status: Int) -> String {
-        switch status {
-        case EnhancedFinSeerr.available: SeerrStrings.available
-        case EnhancedFinSeerr.partiallyAvailable: SeerrStrings.partiallyAvailable
-        case EnhancedFinSeerr.pending, EnhancedFinSeerr.processing: SeerrStrings.pending
-        default: SeerrStrings.notRequested
-        }
     }
 
     // MARK: - Réseau
@@ -249,6 +239,19 @@ struct SeerrRequestView: View {
             router.dismiss()
         } catch {
             self.error = error
+        }
+    }
+}
+
+private extension SeerrStatus {
+
+    /// Le statut d'une saison, comme dans la modale web.
+    var label: String {
+        switch self {
+        case .available: SeerrStrings.available
+        case .partiallyAvailable: SeerrStrings.partiallyAvailable
+        case .pending, .processing: SeerrStrings.pending
+        case .unknown: SeerrStrings.notRequested
         }
     }
 }

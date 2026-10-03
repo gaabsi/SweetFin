@@ -424,7 +424,7 @@ struct EnhancedFinMedia: Decodable, Hashable {
     /// Série à laquelle il manque des épisodes sortis, selon Seerr (carte « + »).
     /// Faux si Seerr n'a pas répondu : pas de carte à tort.
     var isIncompleteSeries: Bool {
-        seerr.map { $0.status != EnhancedFinSeerr.available } ?? false
+        seerr.map { $0.status != .available } ?? false
     }
 
     /// SweetFin : « Demander sur Seerr » a un sens pour ce média.
@@ -445,38 +445,45 @@ struct EnhancedFinMedia: Decodable, Hashable {
 
         if mediaType == EnhancedFinMediaType.tv.rawValue {
             return isNative
-                ? seerr.status == EnhancedFinSeerr.partiallyAvailable
-                : seerr.status != EnhancedFinSeerr.available
+                ? seerr.status == .partiallyAvailable
+                : seerr.status != .available
         }
 
-        return !isNative && (seerr.status == nil || seerr.status == EnhancedFinSeerr.unknown)
+        return !isNative && (seerr.status ?? .unknown) == .unknown
     }
 }
 
-/// Disponibilité d'un média selon Seerr (`mediaInfo.status`) : 1 inconnu, 2 en
-/// attente, 3 en cours, 4 partiellement disponible, 5 disponible.
+/// Disponibilité d'un média selon Seerr (`mediaInfo.status`).
+///
+/// Une valeur inconnue (Jellyseerr ajoute « blacklisté », « supprimé »…) se lit
+/// ``unknown`` : un statut nouveau ne doit pas faire échouer le décodage de la fiche.
+enum SeerrStatus: Int, Decodable {
+
+    /// Jamais demandé.
+    case unknown = 1
+    /// Demandé, en attente d'approbation.
+    case pending = 2
+    /// Approuvé, en cours de téléchargement.
+    case processing = 3
+    case partiallyAvailable = 4
+    case available = 5
+
+    init(from decoder: any Decoder) throws {
+        self = try Self(rawValue: decoder.singleValueContainer().decode(Int.self)) ?? .unknown
+    }
+}
+
 struct EnhancedFinSeerr: Decodable, Hashable {
 
-    /// 1 : jamais demandé.
-    static let unknown = 1
-    /// 2 : demandé, en attente d'approbation.
-    static let pending = 2
-    /// 3 : approuvé, en cours de téléchargement.
-    static let processing = 3
-    /// 4 : partiellement disponible.
-    static let partiallyAvailable = 4
-    /// 5 : entièrement disponible.
-    static let available = 5
-
     /// Nul : Seerr ne suit pas le média.
-    let status: Int?
+    let status: SeerrStatus?
 }
 
 /// Statut Seerr détaillé — `GET /seerr/{mediaKey}` : de quoi remplir la fenêtre de
 /// demande.
 struct EnhancedFinSeerrDetail: Decodable {
 
-    let status: Int?
+    let status: SeerrStatus?
     /// Vide pour un film. Sans les spéciaux (saison 0), que Seerr ne demande pas.
     let seasons: [EnhancedFinSeerrSeason]
 }
@@ -488,13 +495,13 @@ struct EnhancedFinSeerrSeason: Decodable, Identifiable {
     let episodeCount: Int
     /// `AAAA-MM-JJ`.
     let airDate: String?
-    let status: Int
+    let status: SeerrStatus
 
     var id: Int { number }
 
     /// Déjà disponible, en attente ou en cours : rien à demander.
     var isLocked: Bool {
-        status != EnhancedFinSeerr.unknown
+        status != .unknown
     }
 }
 

@@ -73,14 +73,7 @@ struct DownloadsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.white.opacity(0.04))
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.white.opacity(0.1), lineWidth: 1)
-            }
+            .infoCardStyle()
             .edgePadding(.horizontal)
             .padding(.top, 8)
     }
@@ -176,14 +169,7 @@ private struct DownloadCard: View {
             }
         }
         .padding(12)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.white.opacity(0.04))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.white.opacity(0.1), lineWidth: 1)
-        }
+        .infoCardStyle()
     }
 
     /// Film : son nom. Épisode : la série, le nom de l'épisode passant en sous-titre.
