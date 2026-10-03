@@ -12,9 +12,7 @@ import JellyfinAPI
 import SwiftUI
 
 // ⚠️ **iOS uniquement.** `PageTabViewStyle` et `PageIndexViewStyle` n'existent pas sur
-// tvOS, qui a déjà son propre carrousel piloté par le focus
-// (`CinematicSelectionContentGroup`). Sans cette garde, la cible tvOS ne compile plus —
-// et son SDK n'étant pas installé ici, l'erreur ne se verrait qu'ailleurs.
+// tvOS, qui a son propre carrousel piloté par le focus (`CinematicMediaBarContentGroup`).
 #if os(iOS)
 
 /// Le carrousel d'accueil : une affiche pleine largeur, son logo, et de quoi lancer
@@ -24,7 +22,7 @@ import SwiftUI
 /// les réinventer n'aurait rien apporté.
 struct MediaBarView: View {
 
-    /// Durée d'une diapo. 12 s : le temps de lire un titre sans s'impatienter.
+    /// Durée d'une diapo : le temps de lire un titre sans s'impatienter.
     private static let rotation: Duration = .seconds(15)
 
     /// Proportion de l'affiche. Plus haute que l'en-tête d'une fiche (1.6) : ici
@@ -385,8 +383,8 @@ private struct MediaBarSlide: View {
 /// de la recopier : une copie ne produirait aucune erreur de compilation en divergeant,
 /// juste un bouton qui lance le mauvais épisode.
 ///
-/// ⚠️ **Résolu au tap, pas à chaque diapo.** Précharger demanderait une requête toutes
-/// les douze secondes, pour une lecture qu'on ne lancera presque jamais.
+/// ⚠️ **Résolu au tap, pas à chaque diapo.** Précharger demanderait une requête à chaque
+/// diapo, pour une lecture qu'on ne lancera presque jamais.
 private struct MediaBarPlayButton: View {
 
     @Default(.accentColor)

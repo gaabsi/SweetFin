@@ -238,13 +238,4 @@ extension NavigationRoute {
             ItemRefreshView(viewModel: viewModel)
         }
     }
-
-    static func itemOverview(item: BaseItemDto) -> NavigationRoute {
-        NavigationRoute(
-            id: "itemOverview",
-            style: .sheet
-        ) {
-            ItemOverviewView(item: item)
-        }
-    }
 }

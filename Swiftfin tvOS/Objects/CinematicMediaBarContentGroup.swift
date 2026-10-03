@@ -63,7 +63,7 @@ private struct MediaBarShowcase: View {
     }
 
     /// Même durée que la media bar iOS.
-    private static let rotation: Duration = .seconds(12)
+    private static let rotation: Duration = .seconds(15)
 
     private static let cornerRadius: CGFloat = 36
 

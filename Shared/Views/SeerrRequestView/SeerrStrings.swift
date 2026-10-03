@@ -8,10 +8,8 @@
 
 import Foundation
 
-/// Libellés des demandes Seerr (menu « … » de la fiche, fenêtre de demande).
-///
-/// Hors de `L10n`, pour la même raison que `HomeStrings` : `L10n` est généré depuis les
-/// fichiers de traduction upstream, qui entreraient en conflit à chaque rebase.
+/// Libellés des demandes Seerr (menu « … » de la fiche, fenêtre de demande), hors de
+/// `L10n` comme tous ceux du fork (voir `ExplorerStrings`).
 enum SeerrStrings {
 
     static let requestOnSeerr = String(localized: "Request on Seerr", table: "SweetFin")

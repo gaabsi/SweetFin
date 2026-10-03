@@ -11,8 +11,8 @@ import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
-/// SweetFin : Réglages → Avancé → Lecteur vidéo, à la place de
-/// `VideoPlayerSettingsView` (upstream, gardé pour tvOS).
+/// SweetFin : Réglages → Avancé → Lecteur vidéo, à la place du
+/// `VideoPlayerSettingsView` d'upstream.
 ///
 /// Seulement ce que l'utilisateur règle vraiment : la longueur des sauts, et ses
 /// langues préférées. Le reste (moteur, aperçus, gestes…) est imposé par
@@ -96,8 +96,7 @@ struct PlayerSettingsView: View {
         return names.isEmpty ? L10n.none : names.joined(separator: ", ")
     }
 
-    /// Un champ de la configuration serveur de l'utilisateur, lu et écrit comme le fait
-    /// `VideoPlayerSettingsView`.
+    /// Un champ de la configuration serveur de l'utilisateur, lu et écrit.
     ///
     /// Parametres :
     /// - keyPath (WritableKeyPath<UserConfiguration, Value?>) : le champ

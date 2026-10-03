@@ -131,14 +131,6 @@ struct EnhancedFinSearchItem: Decodable, Hashable, Identifiable {
     let backdropUrl: String?
     let genreIds: [Int]?
 
-    /// Présent dans mon référentiel (noté, vu, en watchlist…).
-    ///
-    /// Indépendant de ``inLibrary`` : un film noté peut avoir quitté la
-    /// bibliothèque, un film présent peut n'avoir jamais été touché.
-    ///
-    /// Optionnel pour la même raison que ``tmdbId`` : aucun écran ne le lit.
-    let known: Bool?
-
     /// Le fichier est sur ce serveur, donc lisible immédiatement.
     let inLibrary: Bool
     let jellyfinId: String?
@@ -319,11 +311,6 @@ struct EnhancedFinHiddenItem: Decodable {
 /// troisième fois pour tvOS.
 struct EnhancedFinCalendar: Decodable {
 
-    /// La plage réellement couverte, renvoyée en écho. Le client qui pagine sait ainsi
-    /// ce qu'il a obtenu sans recalculer ses bornes.
-    let from: String
-    let to: String
-
     let days: [EnhancedFinCalendarDay]
 }
 
@@ -424,9 +411,6 @@ struct EnhancedFinMedia: Decodable, Hashable {
     /// pas un 0 qui se lirait comme un mauvais film.
     let voteAverage: Double?
 
-    /// Nombre de votes TMDB, qui qualifie ``voteAverage`` — un 9,2 sur douze votes
-    /// ne vaut pas un 8,1 sur quarante mille. Décodé sans être encore affiché.
-    let voteCount: Int?
     let me: EnhancedFinMediaMe
     let detail: EnhancedFinMediaDetail?
 

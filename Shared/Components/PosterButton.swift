@@ -44,7 +44,7 @@ struct PosterButton<Item: Poster>: View {
 
     // SweetFin : même règle que `PosterCornerRadiusModifier` (casting en ronds).
     private var isCirclePerson: Bool {
-        item is BaseItemPerson && displayType == .square && appearance.tokens.personPosterShape == .circle
+        item is BaseItemPerson && displayType == .square
     }
 
     @ViewBuilder
@@ -106,7 +106,7 @@ struct PosterButton<Item: Poster>: View {
         .foregroundStyle(.primary, .secondary)
         .buttonStyle(.borderless)
         // SweetFin : sur tvOS, le style de bouton découpe l'image à sa forme et
-        // écrasait le rond du casting (`ThemeTokens.personPosterShape`).
+        // écrasait le rond du casting.
         .buttonBorderShape(isCirclePerson ? .circle : .roundedRectangle)
         #if os(tvOS)
         .focusedValue(\.focusedPoster, AnyPoster(item))

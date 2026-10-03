@@ -12,8 +12,8 @@ import SwiftUI
 /// « Mes médias » : les bibliothèques du serveur, en rail.
 ///
 /// Rebranche ``UserViewLibrary``, resté **intact mais orphelin** depuis que l'onglet
-/// Médias est devenu Explorer. Il gère déjà les exclusions `myMediaExcludes`, l'entrée
-/// Favoris, les vignettes à image aléatoire et la navigation vers chaque bibliothèque :
+/// Médias est devenu Explorer. Il gère déjà les exclusions `myMediaExcludes`, les
+/// vignettes à image aléatoire et la navigation vers chaque bibliothèque :
 /// il n'y avait rien à réécrire, seulement un appelant à lui rendre.
 ///
 /// ⚠️ **``UserViewLibraryElement`` ne conforme pas à `Poster`**, donc ni `PosterGroup`

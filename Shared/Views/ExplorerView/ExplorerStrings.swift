@@ -10,11 +10,10 @@ import Foundation
 
 /// Libellés propres à l'Explorer.
 ///
-/// Volontairement hors de `L10n` : celui-ci est généré par SwiftGen depuis les
-/// fichiers de traduction upstream, qu'il faudrait modifier dans les vingt langues
-/// — et qui entreraient en conflit à chaque rebase sur `upstream/main`. Les
-/// libellés qui n'existent que dans ce fork vivent donc ici, traduits (anglais, français)
-/// dans `Translations/SweetFin.xcstrings`, la clé étant le texte anglais.
+/// Les libellés du fork sont hors de `L10n` : celui-ci est généré par SwiftGen depuis
+/// les traductions upstream, une quarantaine de langues que le fork ne maintient pas.
+/// Ils sont traduits (anglais, français) dans `Translations/SweetFin.xcstrings`, la clé
+/// étant le texte anglais. Même règle pour tous les `*Strings` du fork.
 enum ExplorerStrings {
 
     static let explore = String(localized: "Explore", table: "SweetFin")

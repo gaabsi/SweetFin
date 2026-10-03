@@ -8,10 +8,7 @@
 
 import Foundation
 
-/// Libellés propres au lecteur du fork.
-///
-/// Hors de `L10n`, pour la même raison que `HomeStrings` : `L10n` est généré depuis les
-/// fichiers de traduction upstream, qui entreraient en conflit à chaque rebase.
+/// Libellés propres au lecteur, hors de `L10n` comme tous ceux du fork (voir `ExplorerStrings`).
 enum PlayerStrings {
 
     static let jumpBackward = String(localized: "Jump Back", table: "SweetFin")

@@ -145,8 +145,8 @@ struct CalendarView: View {
         }
     }
 
-    /// ⚠️ `LazyVGrid` dans un `VStack`, sans défilement : les seize cases tiennent à
-    /// l'écran. Un `ScrollView` ici entrerait en conflit avec le geste de la feuille.
+    /// `LazyVGrid` sans défilement propre : les seize cases tiennent dans la largeur,
+    /// c'est la page entière qui défile.
     @ViewBuilder
     private var grid: some View {
         LazyVGrid(
