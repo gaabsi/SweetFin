@@ -131,7 +131,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     /// Output :
     /// - media (EnhancedFinMedia?) : fiche, `nil` sans clé ou si le plugin échoue
     func fetchEnhancedFinMedia(_ mediaKey: String?) async -> EnhancedFinMedia? {
-        guard EnhancedFinClient.isAvailable, let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
+        guard let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
 
         do {
             return try await client.media(mediaKey, detail: true, enrich: true)
@@ -186,7 +186,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     /// Output :
     /// - itemID (String?) : identifiant de l'item à lancer, `nil` si rien n'est lisible
     func fetchPlayableItemID(_ mediaKey: String?) async -> String? {
-        guard EnhancedFinClient.isAvailable, let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
+        guard let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
 
         do {
             return try await client.playable(mediaKey).itemId

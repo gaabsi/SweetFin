@@ -26,9 +26,17 @@ final class UserSession {
     )
 
     /// Client du plugin EnhancedFin (données utilisateur : notes, watchlist,
-    /// reprise, suivis). API distincte du `JellyfinClient` ci-dessus, sur le
-    /// même hôte et avec le même jeton.
-    lazy var enhancedFinClient = EnhancedFinClient(
+    /// reprise, suivis), **`nil` si le serveur n'a pas le plugin**. API distincte du
+    /// `JellyfinClient` ci-dessus, sur le même hôte et avec le même jeton.
+    ///
+    /// Seul accès au plugin : le garde est dans le type, aucun appel ne peut l'oublier
+    /// et produire des 404 sur un Jellyfin sans EnhancedFin.
+    var enhancedFinClient: EnhancedFinClient? {
+        EnhancedFinClient.isAvailable ? pluginClient : nil
+    }
+
+    /// Construit même sans plugin : c'est lui qui vérifie sa présence.
+    private lazy var pluginClient = EnhancedFinClient(
         serverURL: server.effectiveServerURL,
         accessToken: user.accessToken
     )
@@ -88,7 +96,7 @@ final class UserSession {
     /// le Wi-Fi ne doit pas faire disparaître l'Explorer.
     @MainActor
     func refreshEnhancedFinAvailability() async {
-        guard let available = await enhancedFinClient.checkAvailability() else { return }
+        guard let available = await pluginClient.checkAvailability() else { return }
 
         Defaults[.enhancedFinAvailable] = available
     }

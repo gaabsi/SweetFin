@@ -45,7 +45,7 @@ struct ItemFacts {
     init(media: EnhancedFinMedia) {
         self.genres = media.genreNames ?? []
         self.directors = media.detail?.directors?.components(separatedBy: ", ").filter(\.isNotEmpty) ?? []
-        self.releaseDate = media.detail?.releaseDate.flatMap(EnhancedFinSyntheticItem.day)
+        self.releaseDate = media.detail?.releaseDate.flatMap(DateFormatter.calendarDay.date(from:))
         self.isSeries = EnhancedFinMediaType(mediaKey: media.mediaKey) == .tv
         self.tmdbRating = media.voteAverage
         self.rtCritics = media.scores?.rtCritics

@@ -59,7 +59,7 @@ struct DownloadsView: View {
             .onAppear {
                 guard !offlineMonitor.isOffline, let userSession else { return }
                 Task {
-                    await manager.refreshStoredProgress(userSession: userSession)
+                    await manager.syncWithServer(userSession: userSession)
                 }
             }
     }

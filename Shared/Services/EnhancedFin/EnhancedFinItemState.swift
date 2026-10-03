@@ -73,7 +73,7 @@ final class EnhancedFinItemState: ObservableObject {
 
         // Pas de session : on ne mémorise rien, pour que l'appel suivant réessaie
         // une fois la session établie.
-        guard EnhancedFinClient.isAvailable, let client = userSession?.enhancedFinClient else { return }
+        guard let client = userSession?.enhancedFinClient else { return }
 
         let task = Task { [weak self] in
             await self?.fetch(with: client)
@@ -127,6 +127,18 @@ final class EnhancedFinItemState: ObservableObject {
             } else {
                 try await client.addToWatchlist(self.mediaKey)
             }
+        }
+    }
+
+    /// Ajout seul, pour le menu d'appui long : il ne connaît pas l'état, et ajouter
+    /// deux fois ne crée pas de doublon. Passer par ici plutôt que par le client met
+    /// à jour une fiche déjà ouverte et donne le même retour haptique qu'ailleurs.
+    func addToWatchlist() async {
+        let previous = isInWatchlist
+        isInWatchlist = true
+
+        await perform(revert: { self.isInWatchlist = previous }) { client in
+            try await client.addToWatchlist(self.mediaKey)
         }
     }
 

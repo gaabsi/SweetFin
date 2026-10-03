@@ -191,19 +191,10 @@ struct MainTabView: View {
     }
 
     #if os(iOS)
-    /// SweetFin : envoie à Jellyfin les positions des téléchargements lus sans réseau,
-    /// **puis** recopie en local celles qu'il connaît (dans cet ordre, pour ne pas écraser
-    /// ce qu'on vient d'envoyer).
-    ///
-    /// Output :
-    /// - didSync (Bool) : vrai si au moins une position a été envoyée
     @discardableResult
     private func syncOfflineProgress() async -> Bool {
         guard let session = userSessionManager.currentSession else { return false }
-        let manager = Container.shared.downloadManager()
-        let didSync = await manager.syncOfflineProgress(userSession: session)
-        await manager.refreshStoredProgress(userSession: session)
-        return didSync
+        return await Container.shared.downloadManager().syncWithServer(userSession: session)
     }
     #endif
 }

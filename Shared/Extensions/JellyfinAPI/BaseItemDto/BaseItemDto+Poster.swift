@@ -363,27 +363,29 @@ private struct BaseItemDtoPosterContextMenu: View {
         }
     }
 
-    /// Ajoute le média à la watchlist du plugin.
+    /// Ajoute le média à la watchlist du plugin, via l'état partagé des fiches.
     ///
     /// Ajout seul, sans « Retirer » : connaître l'état demanderait d'interroger le
-    /// plugin à chaque ouverture du menu. Ajouter deux fois ne crée pas de doublon.
+    /// plugin à chaque ouverture du menu.
     private func addToWatchlist() async {
         guard let userSession = Container.shared.currentUserSession(),
+              userSession.enhancedFinClient != nil,
               let mediaKey = await resolvedMediaKey(userSession: userSession)
         else { return }
 
-        try? await userSession.enhancedFinClient.addToWatchlist(mediaKey)
+        await EnhancedFinItemStateStore.shared.state(for: mediaKey).addToWatchlist()
     }
 
     /// Masque le média de « Continuer de regarder », dans le plugin. Il revient de
     /// lui-même dès qu'on le relit (`ContinueWatchingLibrary`).
     private func hide() async {
         guard let userSession = Container.shared.currentUserSession(),
+              let client = userSession.enhancedFinClient,
               let mediaKey = await resolvedMediaKey(userSession: userSession)
         else { return }
 
         // Échec silencieux : la tuile reste, ce qui dit déjà que rien n'a changé.
-        guard (try? await userSession.enhancedFinClient.hide(mediaKey)) != nil else { return }
+        guard (try? await client.hide(mediaKey)) != nil else { return }
 
         Notifications[.didHideContinueWatchingItem].post(mediaKey)
     }

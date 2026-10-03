@@ -41,10 +41,6 @@ final class ExplorerPersonProvider: ItemContentGroupProvider {
         // personne inintéressante : il reste son état civil et son portrait. Un écran
         // d'erreur, lui, remplaçait la seule page que l'utilisateur pouvait atteindre.
         //
-        // C'est ce qui arrivait sur un serveur **sans** le plugin : le garde de
-        // `BaseItemPerson.libraryDidSelectElement` est censé y renvoyer vers la page
-        // native, mais il ne sait pas détecter son absence (`enhancedFinClient` se
-        // construit toujours). L'absence ne se voit qu'ici, quand l'appel échoue.
         // L'identifiant TMDB se résout **ici** et pas au moment du tap : pour une
         // personne venue d'une fiche native il demande une requête, et la faire avant
         // de naviguer laissait une à trois secondes sans le moindre retour visuel — le

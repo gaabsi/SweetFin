@@ -39,6 +39,10 @@ struct SeerrRequestView: View {
     private var isSending = false
     @State
     private var error: Error?
+    /// Chargement des saisons en échec : un bouton « Réessayer » remplace la roue,
+    /// qui sinon tournerait sans fin sous l'alerte d'erreur.
+    @State
+    private var didFailLoading = false
 
     private var isSeries: Bool {
         media.mediaType == EnhancedFinMediaType.tv.rawValue
@@ -150,8 +154,15 @@ struct SeerrRequestView: View {
             }
         } else {
             Section {
-                ProgressView()
+                if didFailLoading {
+                    Button(L10n.retry) {
+                        Task { await loadSeasons() }
+                    }
                     .frame(maxWidth: .infinity)
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                }
             }
         }
     }
@@ -214,10 +225,12 @@ struct SeerrRequestView: View {
     private func loadSeasons() async {
         guard let client = userSession?.enhancedFinClient else { return }
 
+        didFailLoading = false
         do {
             detail = try await client.seerr(media.mediaKey)
         } catch {
             self.error = error
+            didFailLoading = true
         }
     }
 
