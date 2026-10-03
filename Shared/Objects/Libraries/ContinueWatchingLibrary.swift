@@ -123,9 +123,8 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     /// `PlayButton` se grise tout seul faute de `mediaPlayerItemProvider`. C'est
     /// assumé : savoir où on en est vaut mieux que ne pas voir le média du tout.
     private func externalItems(_ pageState: LibraryPageState) async -> [BaseItemDto] {
-        guard EnhancedFinClient.isAvailable else { return [] }
+        guard let client = pageState.userSession.enhancedFinClient else { return [] }
 
-        let client = pageState.userSession.enhancedFinClient
         let entries = (try? await client.continueWatching(limit: Self.externalLimit).items) ?? []
 
         return entries.map(syntheticItem(for:))
@@ -145,9 +144,9 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     /// Output :
     /// - hidden ([String: Date]) : clé média → date de masquage
     private func hiddenDates(_ pageState: LibraryPageState) async -> [String: Date] {
-        guard EnhancedFinClient.isAvailable else { return [:] }
+        guard let client = pageState.userSession.enhancedFinClient else { return [:] }
 
-        let entries = (try? await pageState.userSession.enhancedFinClient.hidden().items) ?? []
+        let entries = (try? await client.hidden().items) ?? []
 
         return entries.reduce(into: [:]) { dates, entry in
             dates[entry.mediaKey] = Self.date(fromISO: entry.hiddenAt)

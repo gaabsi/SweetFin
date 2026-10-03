@@ -391,7 +391,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
                 name: episode.name,
                 overview: episode.overview,
                 thumbnail: URL.enhancedFinImage(episode.stillUrl).map { ImageSource(url: $0) },
-                airDate: episode.airDate.flatMap(EnhancedFinSyntheticItem.day),
+                airDate: episode.airDate.flatMap(DateFormatter.calendarDay.date(from:)),
                 runtime: episode.runtime.map { .seconds($0 * 60) },
                 isWatched: episode.watched == true,
                 jellyfinID: nil

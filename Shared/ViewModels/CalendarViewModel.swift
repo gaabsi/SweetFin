@@ -49,25 +49,6 @@ final class CalendarViewModel: ViewModel {
         return calendar
     }()
 
-    /// Convertit une date en clé de jour, au format du serveur.
-    ///
-    /// ⚠️ `locale` en `en_US_POSIX` : sans lui, un format fixe est interprété selon les
-    /// réglages de l'appareil, et un calendrier bouddhiste ou japonais produirait
-    /// « 2569-09-20 ». Aucune sortie ne serait alors trouvée, sans la moindre erreur.
-    ///
-    /// ⚠️ Le fuseau est celui de l'appareil, **et doit l'être** : les dates du serveur
-    /// sont des jours calendaires sans heure. Les lire en UTC alors que la grille est
-    /// construite en heure locale décalerait les sorties d'une case pour quiconque vit
-    /// à l'ouest de Greenwich.
-    private static let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = .current
-        formatter.dateFormat = "yyyy-MM-dd"
-
-        return formatter
-    }()
-
     /// Sorties du jour, indexées par clé de jour.
     @Published
     private(set) var releasesByDay: [String: [EnhancedFinRelease]] = [:]
@@ -225,7 +206,7 @@ final class CalendarViewModel: ViewModel {
     // MARK: - Dates
 
     static func key(for day: Date) -> String {
-        dayFormatter.string(from: day)
+        DateFormatter.calendarDay.string(from: day)
     }
 
     /// L'inverse de ``key(for:)`` : une clé de jour du serveur vers une date.
@@ -239,7 +220,7 @@ final class CalendarViewModel: ViewModel {
     /// Output :
     /// - date (Date?) : nil si la chaîne n'est pas au format attendu
     static func date(fromKey key: String) -> Date? {
-        dayFormatter.date(from: key)
+        DateFormatter.calendarDay.date(from: key)
     }
 
     /// Le lundi de la semaine d'une date.

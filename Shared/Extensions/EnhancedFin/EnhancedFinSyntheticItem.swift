@@ -248,8 +248,8 @@ extension EnhancedFinSyntheticItem {
         // Pour une personne, Jellyfin range la date de naissance dans `premiereDate`
         // et la mort dans `endDate` — `birthday` et `deathday` n'en sont que des
         // lectures conditionnées par `type == .person`.
-        item.premiereDate = person.birthday.flatMap(EnhancedFinSyntheticItem.day)
-        item.endDate = person.deathday.flatMap(EnhancedFinSyntheticItem.day)
+        item.premiereDate = person.birthday.flatMap(DateFormatter.calendarDay.date(from:))
+        item.endDate = person.deathday.flatMap(DateFormatter.calendarDay.date(from:))
         item.productionLocations = person.placeOfBirth.map { [$0] }
 
         if person.profileUrl != nil {
@@ -279,15 +279,5 @@ extension EnhancedFinSyntheticItem {
         item.type = .person
 
         return item
-    }
-
-    /// TMDB rend les dates en `AAAA-MM-JJ`, sans heure ni fuseau.
-    static func day(_ string: String) -> Date? {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: string)
     }
 }

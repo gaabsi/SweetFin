@@ -147,8 +147,8 @@ final class SyncPlayManager: ObservableObject {
     /// Output :
     /// - delivered (Bool) : faux si la personne n'a aucun appareil connecté
     func sendInvite(to userID: String) async throws -> Bool {
-        guard let userSession, let groupID else { return false }
-        return try await userSession.enhancedFinClient.inviteToSyncPlay(groupID: groupID, userID: userID)
+        guard let client = userSession?.enhancedFinClient, let groupID else { return false }
+        return try await client.inviteToSyncPlay(groupID: groupID, userID: userID)
     }
 
     /// Ce média est déjà dans le lecteur : le groupe ne doit pas le rouvrir. Seule décision,

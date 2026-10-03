@@ -51,6 +51,9 @@ final class DownloadManager: NSObject, ObservableObject {
     /// événements traités, pour qu'il puisse rendormir l'app.
     var backgroundCompletionHandler: (() -> Void)?
 
+    /// Synchro en cours avec le serveur, partagée par tous ceux qui la demandent.
+    private var syncTask: Task<Bool, Never>?
+
     private let logger = Logger.swiftfin()
     private let root = URL.downloadsDirectory
 
@@ -201,6 +204,35 @@ final class DownloadManager: NSObject, ObservableObject {
 
     // MARK: - Progression hors connexion
 
+    /// Envoie à Jellyfin les positions notées hors connexion, **puis** recopie en local
+    /// celles qu'il connaît : dans cet ordre, pour ne pas écraser ce qu'on vient
+    /// d'envoyer.
+    ///
+    /// **Un seul passage à la fois** : le lancement, le retour du réseau et l'onglet
+    /// Téléchargements peuvent la demander ensemble. Un second appel attend le passage
+    /// en cours au lieu d'en lancer un autre, qui enverrait deux fois la même position.
+    ///
+    /// Parametres :
+    /// - userSession (UserSession) : compte connecté
+    ///
+    /// Output :
+    /// - didSync (Bool) : vrai si au moins une position a été envoyée
+    @MainActor
+    @discardableResult
+    func syncWithServer(userSession: UserSession) async -> Bool {
+        if let syncTask { return await syncTask.value }
+
+        let task = Task {
+            let didSync = await syncOfflineProgress(userSession: userSession)
+            await refreshStoredProgress(userSession: userSession)
+            return didSync
+        }
+        syncTask = task
+        defer { syncTask = nil }
+
+        return await task.value
+    }
+
     /// Note la position atteinte sans réseau ; écrase la précédente.
     ///
     /// Parametres :
@@ -222,7 +254,7 @@ final class DownloadManager: NSObject, ObservableObject {
     ///
     /// Output :
     /// - didSync (Bool) : vrai si au moins une position a été envoyée
-    func syncOfflineProgress(userSession: UserSession) async -> Bool {
+    private func syncOfflineProgress(userSession: UserSession) async -> Bool {
         let userID = userSession.user.id
         var didSync = false
 
@@ -257,7 +289,7 @@ final class DownloadManager: NSObject, ObservableObject {
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
-    func refreshStoredProgress(userSession: UserSession) async {
+    private func refreshStoredProgress(userSession: UserSession) async {
         let userID = userSession.user.id
 
         for download in downloads(of: userID) {
