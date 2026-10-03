@@ -121,9 +121,8 @@ extension NavigationRoute {
     /// Fiche d'une personne, avec sa filmographie complète.
     ///
     /// L'identifiant TMDB n'est pas résolu ici : il demande parfois une requête, et
-    /// la route doit partir sans attendre. `ExplorerPersonProvider` s'en charge, et
-    /// affiche l'échec s'il y en a un — y compris « pas d'identifiant TMDB », qui
-    /// n'a donc plus besoin de sa route dédiée.
+    /// la route doit partir sans attendre. `ExplorerPersonProvider` s'en charge ; sans
+    /// identifiant TMDB, il retombe sur l'état civil seul.
     @MainActor
     static func explorerPerson(person: BaseItemPerson) -> NavigationRoute {
         let provider = ExplorerPersonProvider(person: person)

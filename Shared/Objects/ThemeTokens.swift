@@ -12,9 +12,8 @@ import SwiftUI
 ///
 /// ⚠️ **C'est ici qu'on ajoute une valeur de thème, et nulle part ailleurs.** Ces
 /// réglages vivaient en dur dans cinq fichiers upstream (`PosterButton`,
-/// `BaseItemDto+Poster`, `ViewExtensions`…) : cinq conflits de rebase garantis pour du
-/// cosmétique, et un second thème qui n'aurait pu changer ni les arrondis ni les
-/// ombres, faute d'un endroit où les déclarer.
+/// `BaseItemDto+Poster`, `ViewExtensions`…) : un second thème n'aurait pu changer ni
+/// les arrondis ni les ombres, faute d'un endroit où les déclarer.
 ///
 /// Un `struct` et non un fichier de données : le compilateur refuse alors un thème
 /// incomplet, et attrape une faute de frappe sur un nom de champ. Un JSON ne
@@ -52,13 +51,6 @@ struct ThemeTokens {
 
     /// Alignement du titre sous une affiche, natif comme EnhancedFin.
     let posterLabelAlignment: HorizontalAlignment
-
-    /// Forme des photos du casting.
-    let personPosterShape: PersonPosterShape
-
-    /// Fond de l'Accueil et des fiches : uni (``background``) ou le backdrop du média
-    /// affiché (diapo de la media bar, média de la fiche), en flou.
-    var pageBackground: PageBackground = .solid
 
     /// L'équivalent `TextAlignment` de ``posterLabelAlignment``, pour les titres qui
     /// passent à la ligne. Dérivé plutôt que déclaré : deux champs à tenir d'accord
@@ -114,38 +106,8 @@ extension AppAppearance {
             posterBorder: (color: .white.opacity(0.28), width: 1),
             // Titres centrés partout : le fork centrait déjà les siens, et aligner
             // les tuiles natives à gauche donnait deux styles selon l'écran.
-            posterLabelAlignment: .center,
-            // Casting en ronds, comme le front web d'ElegantFin
-            // (`#castCollapsible .cardScalable { border-radius: 50% }`).
-            personPosterShape: .circle,
-            pageBackground: .blurredBackdrop
+            posterLabelAlignment: .center
         )
-    }
-}
-
-/// Fond de l'Accueil et des fiches, voir ``ThemeTokens/pageBackground``.
-enum PageBackground {
-
-    /// Le fond du thème, uni.
-    case solid
-    /// Le backdrop du média affiché, flouté et assombri.
-    case blurredBackdrop
-}
-
-/// Forme des photos du casting, voir ``ThemeTokens/personPosterShape``.
-enum PersonPosterShape {
-
-    /// Rond, recadré sur le visage.
-    case circle
-    /// Affiche portrait, comme un média.
-    case poster
-
-    /// Le type d'affiche à demander au rail : un rond ne se découpe que dans un carré.
-    var displayType: PosterDisplayType {
-        switch self {
-        case .circle: .square
-        case .poster: .portrait
-        }
     }
 }
 

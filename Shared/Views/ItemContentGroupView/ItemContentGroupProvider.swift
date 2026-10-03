@@ -390,8 +390,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
                     id: "cast-and-crew",
                     elements: castAndCrew
                 ),
-                // SweetFin : forme décidée par le thème (ronds par défaut).
-                posterDisplayType: Defaults[.appearance].tokens.personPosterShape.displayType,
+                // SweetFin : carré, que `PosterCornerRadiusModifier` découpe en rond.
+                posterDisplayType: .square,
                 posterSize: .small
             )
         }
@@ -405,15 +405,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
         }
 
-        // Fork : « À propos » ne s'affiche nulle part. Sa carte de description
-        // répétait le synopsis déjà en en-tête, et les informations de fichier
-        // (codecs, pistes) seront exposées ailleurs — pas sur la fiche.
-        //
-        // `AboutItemGroup` reste en place, simplement plus émis — et avec lui
-        // `ItemOverview` et la route `.itemOverview`, dont il était le seul
-        // appelant : le synopsis se déplie maintenant sur place dans
-        // `ItemView.Description`. Les trois sont donc du code mort côté fork,
-        // laissés intacts pour que le rebase sur l'upstream reste indolore.
+        // Fork : pas de section « À propos ». Sa carte répétait le synopsis, qui se
+        // déplie maintenant sur place dans `ItemView.Description`.
     }
 
     func toggleIsPlayed() async {

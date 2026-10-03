@@ -12,9 +12,6 @@ import Foundation
 import SwiftUI
 import UIKit
 
-// TODO: organize
-// TODO: all user settings could be moved to `StoredValues`?
-
 // Note: Only use Defaults for basic single-value settings.
 //       For larger data types and collections, use `StoredValue` instead.
 
@@ -183,11 +180,6 @@ extension Defaults.Keys {
 // MARK: Debug
 
 #if DEBUG
-
-extension UserDefaults {
-
-    static let debugSuite = UserDefaults(suiteName: "sweetfinstore-debug-defaults")!
-}
 
 extension Defaults.Keys {
 

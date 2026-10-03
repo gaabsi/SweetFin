@@ -19,9 +19,8 @@ import JellyfinAPI
 /// | 3 | Continuer de regarder | reprise + épisode suivant + sources externes |
 /// | 4 | Ajoutés récemment | toutes bibliothèques confondues |
 ///
-/// Remplace `DefaultContentGroupProvider`, **laissé intact** : c'est un fichier
-/// upstream, et le remplacer plutôt que le modifier évite une neuvième retouche à
-/// reporter à chaque rebase. Le branchement tient en un mot dans `MainTabView`.
+/// Remplace le `DefaultContentGroupProvider` d'upstream. Le branchement tient en un
+/// mot dans `MainTabView`.
 ///
 /// Ce que l'Accueil upstream montrait et qu'on ne montre plus : « Next Up » en section
 /// autonome (fusionnée dans la 3), les N rails « Derniers ajouts dans <bibliothèque> »

@@ -160,10 +160,6 @@ final class RootCoordinator: ObservableObject {
     /// s'affichait donc dans l'apparence par défaut, puis tout virait à la couleur du
     /// thème une fois la session ouverte.
     ///
-    /// ⚠️ **À appeler depuis le chemin utilisateur uniquement.** Le placer dans
-    /// `applyAppearance` recopierait aussi le `.dark` que l'écran de sélection impose,
-    /// et écraserait le thème choisi.
-    ///
     /// Parametres :
     /// - appearance (AppAppearance) : l'apparence choisie par l'utilisateur
     @MainActor

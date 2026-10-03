@@ -8,11 +8,7 @@
 
 import Foundation
 
-/// Libellés propres au Calendrier.
-///
-/// Hors de `L10n`, pour la même raison qu'`ExplorerStrings` : celui-ci est généré par
-/// SwiftGen depuis les fichiers de traduction upstream, qu'il faudrait modifier dans
-/// les vingt langues — et qui entreraient en conflit à chaque rebase.
+/// Libellés propres au Calendrier, hors de `L10n` comme tous ceux du fork (voir `ExplorerStrings`).
 enum CalendarStrings {
 
     static let calendar = String(localized: "Calendar", table: "SweetFin")

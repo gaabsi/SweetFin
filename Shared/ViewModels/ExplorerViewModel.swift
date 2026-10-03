@@ -85,12 +85,6 @@ final class ExplorerViewModel: ViewModel {
         feeds[trendingFilter]?.items ?? []
     }
 
-    /// Reste-t-il des pages à charger pour le filtre courant ?
-    var canLoadMoreTrending: Bool {
-        guard let feed = feeds[trendingFilter] else { return true }
-        return feed.cursor != nil || !feed.hasLoaded
-    }
-
     private var searchTask: Task<Void, Never>?
 
     /// Chargement de tendances en cours, mémorisé pour n'en garder **qu'un** en vol.

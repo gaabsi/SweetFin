@@ -70,20 +70,15 @@ private struct PageBackgroundModifier<Backdrop: View>: ViewModifier {
     private var appearance
 
     func body(content: Content) -> some View {
-        switch appearance.tokens.pageBackground {
-        case .solid:
-            content
-        case .blurredBackdrop:
-            #if os(iOS)
-            // Même API que le fond uni (`themeContainerBackground`) : peint dans la passe
-            // de layout du conteneur, donc sans image noire à l'ouverture de la page.
-            content.containerBackground(for: .navigation) {
-                backdrop(appearance.tokens.background)
-            }
-            #else
-            content
-            #endif
+        #if os(iOS)
+        // Même API que le fond uni (`themeContainerBackground`) : peint dans la passe
+        // de layout du conteneur, donc sans image noire à l'ouverture de la page.
+        content.containerBackground(for: .navigation) {
+            backdrop(appearance.tokens.background)
         }
+        #else
+        content
+        #endif
     }
 }
 

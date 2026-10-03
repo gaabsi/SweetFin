@@ -8,13 +8,7 @@
 
 import Foundation
 
-/// Libellés propres à l'Accueil du fork.
-///
-/// Hors de `L10n`, pour la même raison qu'`ExplorerStrings` et `CalendarStrings` :
-/// celui-ci est généré par SwiftGen depuis les fichiers de traduction upstream, qu'il
-/// faudrait modifier dans les vingt langues — et qui entreraient en conflit à chaque
-/// rebase. Les traductions (anglais, français) vivent dans `Translations/SweetFin.xcstrings`,
-/// la clé étant le texte anglais.
+/// Libellés propres à l'Accueil, hors de `L10n` comme tous ceux du fork (voir `ExplorerStrings`).
 enum HomeStrings {
 
     static let myMedia = String(localized: "My Media", table: "SweetFin")

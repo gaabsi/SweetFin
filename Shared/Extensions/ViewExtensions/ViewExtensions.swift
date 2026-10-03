@@ -509,7 +509,7 @@ private struct PosterCornerRadiusModifier: ViewModifier {
     @Default(.appearance)
     private var appearance
 
-    // SweetFin : voir `ThemeTokens.personPosterShape`.
+    // SweetFin : le casting est en ronds, comme le front web d'ElegantFin.
     @Environment(\.isPersonPoster)
     private var isPersonPoster
 
@@ -520,7 +520,7 @@ private struct PosterCornerRadiusModifier: ViewModifier {
 
         // `containerShape` en plus du `clipShape` : la bordure de `posterBorder` trace
         // un `ContainerRelativeShape`, elle devient ainsi ronde elle aussi.
-        if isPersonPoster, type == .square, appearance.tokens.personPosterShape == .circle {
+        if isPersonPoster, type == .square {
             content
                 .clipShape(Circle())
                 .containerShape(Circle())

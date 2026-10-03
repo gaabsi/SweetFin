@@ -20,9 +20,9 @@ import SwiftUI
 
 // MARK: - Protocole commun
 
-/// Ce que les quatre types d'items EnhancedFin ont en commun pour s'afficher.
+/// Ce que les items EnhancedFin ont en commun pour s'afficher.
 ///
-/// Les quatre conformances `Poster` étaient identiques à deux ou trois lignes
+/// Leurs conformances `Poster` étaient identiques à deux ou trois lignes
 /// près : même libellé, même sous-titre, mêmes sources d'images, même pastille de
 /// note. Les regrouper ici laisse à chaque type ce qui le distingue vraiment.
 ///
@@ -181,8 +181,7 @@ extension EnhancedFinLibraryLinkable {
 /// `reservesSpace` garde une hauteur constante d'une tuile à l'autre, sans quoi
 /// une grille de titres courts et longs part en escalier.
 ///
-/// Centré, contrairement au libellé natif d'upstream : c'est ce que fait le front
-/// web (`cardTextCentered`), et l'Explorer en est le miroir.
+/// Centré, comme le front web (`cardTextCentered`) dont l'Explorer est le miroir.
 struct EnhancedFinPosterLabel: View {
 
     let title: String

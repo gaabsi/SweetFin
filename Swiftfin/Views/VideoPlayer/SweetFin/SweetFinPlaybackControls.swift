@@ -13,9 +13,8 @@ import SwiftUI
 
 /// SweetFin : l'overlay du lecteur iOS, sur le modèle du web Jellyfin (ElegantFin).
 ///
-/// Remplace `VideoPlayer.PlaybackControls` (upstream, gardé intact) dans
-/// `VideoPlayer.swift`. Seule l'interface change : moteur, `MediaPlayerManager`, gestes
-/// et sous-titres sont ceux d'upstream.
+/// Remplace `VideoPlayer.PlaybackControls` d'upstream dans `VideoPlayer.swift`, dont il
+/// réutilise la barre de progression.
 ///
 /// - haut : `‹` et « Série - S1:E1 - Titre (année) » ;
 /// - bas : précédent · recul · lecture · avance · suivant, et à droite la pile
