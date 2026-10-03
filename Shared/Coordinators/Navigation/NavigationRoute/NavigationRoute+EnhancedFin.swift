@@ -36,10 +36,9 @@ extension Router.Wrapper {
 
     /// Lance la lecture d'un item depuis une tuile, sans passer par sa fiche.
     ///
-    /// `ItemContentGroupProvider.makeGroups` fait tout le travail : récupère l'item
-    /// complet, résout l'épisode à lire et sa position, et publie
-    /// `mediaPlayerItemProvider`. On jette les groupes, pas le reste. Un épisode part
-    /// avec sa file (précédent / suivant, panneau Épisodes).
+    /// `ItemContentGroupProvider.resolvePlayback` résout l'épisode à lire et sa
+    /// position par le même chemin que la fiche, sans rien construire de la fiche. Un
+    /// épisode part avec sa file (précédent / suivant, panneau Épisodes).
     ///
     /// Partagé par la media bar et « Continuer de regarder ».
     ///
@@ -47,13 +46,7 @@ extension Router.Wrapper {
     /// - item (BaseItemDto) : l'item à lire
     @MainActor
     func play(_ item: BaseItemDto) async {
-        let provider = ItemContentGroupProvider(item: item)
-        _ = try? await provider.makeGroups(environment: .init())
-        // `playable` n'est pas attendu par `makeGroups` (la fiche n'a pas à patienter),
-        // mais ici on lance la lecture : il faut sa réponse.
-        await provider.waitForPlayable()
-
-        guard let playbackProvider = provider.mediaPlayerItemProvider else {
+        guard let playbackProvider = await ItemContentGroupProvider(item: item).resolvePlayback() else {
             // Rien de lisible (un média sans fichier) : la fiche vaut mieux qu'un tap
             // qui ne fait rien.
             route(to: .item(item: item))

@@ -11,6 +11,7 @@ import Foundation
 import Get
 import JellyfinAPI
 import Logging
+import UIKit
 
 extension Container {
 
@@ -54,6 +55,15 @@ final class DownloadManager: NSObject, ObservableObject {
     /// Synchro en cours avec le serveur, partagée par tous ceux qui la demandent.
     private var syncTask: Task<Bool, Never>?
 
+    /// Listes lues sur le disque, par compte. L'onglet se redessine à chaque pour-cent
+    /// d'un téléchargement : relire tous les `item.json` à chaque fois serait du gâchis.
+    /// Vidée quand la liste change vraiment (lancement, suppression, position recopiée) ;
+    /// une progression ne la touche pas. Lue et écrite sur le fil principal.
+    private var cachedDownloads: [String: [DownloadedItem]] = [:]
+
+    /// Affiches décodées, pour la même raison.
+    private let posters = NSCache<NSString, UIImage>()
+
     private let logger = Logger.swiftfin()
     private let root = URL.downloadsDirectory
 
@@ -93,27 +103,38 @@ final class DownloadManager: NSObject, ObservableObject {
     /// Output :
     /// - downloads ([DownloadedItem]) : un élément par dossier d'item lisible
     func downloads(of userID: String) -> [DownloadedItem] {
-        let folders = Self.subfolders(of: root.appending(path: userID, directoryHint: .isDirectory))
+        if let cached = cachedDownloads[userID] { return cached }
+
+        let folders = Self.subfolders(of: root.appending(path: Self.pathComponent(userID), directoryHint: .isDirectory))
         let creation: (URL) -> Date = { folder in
             (try? folder.resourceValues(forKeys: [.creationDateKey]).creationDate) ?? .distantPast
         }
 
-        return folders
+        let downloads = folders
             .sorted { creation($0) > creation($1) }
             .compactMap(Self.read)
+        cachedDownloads[userID] = downloads
+        return downloads
     }
 
-    /// Affiche enregistrée avec l'item, si elle a pu être téléchargée.
+    /// Affiche enregistrée avec l'item, si elle a pu être téléchargée. Gardée en mémoire
+    /// une fois lue ; une absence ne l'est pas, l'affiche arrivant après le lancement.
     ///
     /// Parametres :
     /// - itemID (String) : item Jellyfin
     /// - userID (String) : compte propriétaire du téléchargement
     ///
     /// Output :
-    /// - url (URL?) : fichier local de l'affiche, `nil` s'il n'existe pas
-    func posterURL(of itemID: String, userID: String) -> URL? {
-        let url = folder(Self.key(userID, itemID)).appending(path: Self.posterFileName)
-        return FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) ? url : nil
+    /// - image (UIImage?) : l'affiche, `nil` si elle n'existe pas (encore)
+    func poster(of itemID: String, userID: String) -> UIImage? {
+        let key = Self.key(userID, itemID) as NSString
+        if let image = posters.object(forKey: key) { return image }
+
+        let file = folder(key as String).appending(path: Self.posterFileName)
+        guard let image = UIImage(contentsOfFile: file.path(percentEncoded: false)) else { return nil }
+
+        posters.setObject(image, forKey: key)
+        return image
     }
 
     // MARK: - Lecture locale
@@ -304,6 +325,8 @@ final class DownloadManager: NSObject, ObservableObject {
             let refreshed = DownloadedItem(item: item, mediaSource: download.mediaSource, fileName: download.fileName)
             try? JSONEncoder().encode(refreshed).write(to: folder.appending(path: Self.metadataFileName))
         }
+
+        cachedDownloads[userID] = nil
     }
 
     // MARK: - Actions
@@ -332,6 +355,7 @@ final class DownloadManager: NSObject, ObservableObject {
         let downloaded = DownloadedItem(item: fullItem, mediaSource: source, fileName: Self.fileName(for: source))
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try JSONEncoder().encode(downloaded).write(to: folder.appending(path: Self.metadataFileName))
+        cachedDownloads[userID] = nil
 
         var request = URLRequest(url: url)
         request.setValue("MediaBrowser Token=\"\(userSession.user.accessToken)\"", forHTTPHeaderField: "Authorization")
@@ -404,6 +428,8 @@ final class DownloadManager: NSObject, ObservableObject {
             tasks.first { $0.taskDescription == key }?.cancel()
         }
         try? FileManager.default.removeItem(at: folder(key))
+        cachedDownloads[userID] = nil
+        posters.removeObject(forKey: key as NSString)
         states[key] = nil
     }
 

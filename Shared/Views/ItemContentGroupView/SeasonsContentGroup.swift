@@ -251,11 +251,6 @@ private struct SeasonEpisodesSheet: View {
     @State
     private var selection: Set<String> = []
 
-    #if os(iOS)
-    @ObservedObject
-    private var downloadManager = Container.shared.downloadManager()
-    #endif
-
     /// SweetFin : l'item à télécharger pour un épisode (iPhone, épisode du serveur,
     /// compte autorisé à télécharger) ; `nil` sinon.
     private func downloadableID(_ episode: EpisodeRow) -> String? {
@@ -264,15 +259,6 @@ private struct SeasonEpisodesSheet: View {
         return episode.jellyfinID
         #else
         return nil
-        #endif
-    }
-
-    private func isDownloaded(_ episode: EpisodeRow) -> Bool {
-        #if os(iOS)
-        guard let itemID = episode.jellyfinID, let userID = Container.shared.currentUserSession()?.user.id else { return false }
-        return downloadManager.state(of: itemID, userID: userID) == .done
-        #else
-        return false
         #endif
     }
 
@@ -313,8 +299,7 @@ private struct SeasonEpisodesSheet: View {
                                 isSelected: selection.contains(episode.id),
                                 toggleSelection: { toggleSelection(episode) },
                                 play: { play(episode) },
-                                downloadableID: downloadableID(episode),
-                                isDownloaded: isDownloaded(episode)
+                                downloadableID: downloadableID(episode)
                             )
 
                             Divider()
@@ -434,7 +419,6 @@ private struct EpisodeRowView: View {
     let play: () -> Void
     /// SweetFin : item à proposer au téléchargement (appui long), `nil` = pas de menu.
     let downloadableID: String?
-    let isDownloaded: Bool
 
     @Default(.accentColor)
     private var accentColor
@@ -519,13 +503,8 @@ private struct EpisodeRowView: View {
             #if os(iOS)
             // SweetFin : disponible hors connexion.
             .overlay(alignment: .bottomLeading) {
-                if isDownloaded, !isSelecting {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .font(.body)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(accentColor.overlayColor, .tint)
-                        .padding(4)
-                        .accessibilityLabel(DownloadStrings.downloaded)
+                if let itemID = episode.jellyfinID, !isSelecting {
+                    DownloadedBadge(itemID: itemID)
                 }
             }
             #endif
@@ -549,6 +528,39 @@ private struct EpisodeRowView: View {
 /// ⚠️ Le cadre d'abord, l'image ensuite : avec `posterStyle` puis `.frame(width:)`,
 /// une vignette au format inattendu (4:3 au lieu de 16:9) imposait sa propre taille
 /// et débordait sous le texte voisin.
+#if os(iOS)
+/// SweetFin : pastille « disponible hors connexion » d'un épisode.
+///
+/// Seule à observer le gestionnaire de téléchargements : la feuille entière se
+/// redessinait sinon à chaque pour-cent d'un téléchargement en cours.
+private struct DownloadedBadge: View {
+
+    @Default(.accentColor)
+    private var accentColor
+
+    @ObservedObject
+    private var manager = Container.shared.downloadManager()
+
+    let itemID: String
+
+    private var isDownloaded: Bool {
+        guard let userID = Container.shared.currentUserSession()?.user.id else { return false }
+        return manager.state(of: itemID, userID: userID) == .done
+    }
+
+    var body: some View {
+        if isDownloaded {
+            Image(systemName: "arrow.down.circle.fill")
+                .font(.body)
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(accentColor.overlayColor, .tint)
+                .padding(4)
+                .accessibilityLabel(DownloadStrings.downloaded)
+        }
+    }
+}
+#endif
+
 private struct FixedImage: View {
 
     let source: ImageSource?
