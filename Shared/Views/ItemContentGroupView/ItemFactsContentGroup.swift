@@ -128,14 +128,7 @@ struct ItemFactsContentGroup: ContentGroup {
             }
         }
         .padding(.horizontal, 16)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.white.opacity(0.04))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.white.opacity(0.1), lineWidth: 1)
-        }
+        .infoCardStyle()
         .edgePadding(.horizontal)
     }
 

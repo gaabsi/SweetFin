@@ -262,21 +262,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
             }
         }
 
-        guard seriesToResolve.isNotEmpty else { return keys }
-
-        var parameters = Paths.GetItemsParameters()
-        parameters.ids = Array(seriesToResolve)
-        parameters.fields = [.providerIDs]
-        parameters.enableTotalRecordCount = false
-
-        let request = Paths.getItems(parameters: parameters)
-        let series = (try? await pageState.userSession.client.send(request).value.items) ?? []
-
-        var seriesKeys: [String: String] = [:]
-        for show in series {
-            guard let id = show.id, let key = show.enhancedFinMediaKey else { continue }
-            seriesKeys[id] = key
-        }
+        let seriesKeys = await BaseItemDto.enhancedFinMediaKeys(of: Array(seriesToResolve), userSession: pageState.userSession)
 
         for item in items {
             guard let id = item.id,

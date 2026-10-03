@@ -393,9 +393,8 @@ private struct BaseItemDtoPosterContextMenu: View {
     /// La clé EnhancedFin du **média** : celle de l'item, ou de sa série pour un
     /// épisode.
     ///
-    /// Résolue au tap et non à l'affichage : les requêtes de liste (médiathèques…) ne
-    /// demandent pas les `ProviderIds`, et les y ajouter toucherait du code upstream
-    /// pour un bouton qu'on ne tape presque jamais.
+    /// Résolue au tap et non à l'affichage : un bouton qu'on ne tape presque jamais ne
+    /// vaut pas une requête par tuile.
     ///
     /// Parametres :
     /// - userSession (UserSession) : la session en cours
@@ -407,15 +406,7 @@ private struct BaseItemDtoPosterContextMenu: View {
 
         guard let mediaID = item.type == .episode ? item.seriesID : item.id else { return nil }
 
-        var parameters = Paths.GetItemsParameters()
-        parameters.fields = [.providerIDs]
-        parameters.ids = [mediaID]
-        parameters.userID = userSession.user.id
-
-        let request = Paths.getItems(parameters: parameters)
-        let media = try? await userSession.client.send(request).value.items?.first
-
-        return media?.enhancedFinMediaKey
+        return await BaseItemDto.enhancedFinMediaKeys(of: [mediaID], userSession: userSession)[mediaID]
     }
 
     @MainActor

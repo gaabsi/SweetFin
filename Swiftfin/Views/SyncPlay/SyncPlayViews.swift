@@ -72,6 +72,8 @@ struct SyncPlaySheet: View {
 
     @State
     private var groups: [GroupInfoDto] = []
+    @State
+    private var error: Error?
 
     var body: some View {
         NavigationStack {
@@ -94,6 +96,7 @@ struct SyncPlaySheet: View {
                 guard manager.group == nil else { return }
                 groups = (try? await manager.groups()) ?? []
             }
+            .errorMessage($error)
         }
         .presentationDetents([.medium, .large])
     }
@@ -124,7 +127,13 @@ struct SyncPlaySheet: View {
     private var outOfGroup: some View {
         Section {
             Button(SyncPlayStrings.createGroup, systemImage: "plus") {
-                Task { try? await manager.createGroup() }
+                Task {
+                    do {
+                        try await manager.createGroup()
+                    } catch {
+                        self.error = error
+                    }
+                }
             }
         }
 
@@ -171,6 +180,8 @@ struct SyncPlayInviteList: View {
     private var users: [UserDto] = []
     @State
     private var states: [String: InviteState] = [:]
+    @State
+    private var error: Error?
 
     /// Filtrée à chaque rendu : quelqu'un qui rejoint le groupe disparaît de la liste.
     private var invitableUsers: [UserDto] {
@@ -195,6 +206,7 @@ struct SyncPlayInviteList: View {
         .task {
             users = (try? await manager.users()) ?? []
         }
+        .errorMessage($error)
     }
 
     private func row(_ user: UserDto) -> some View {
@@ -234,8 +246,11 @@ struct SyncPlayInviteList: View {
         guard let userID = user.id else { return }
 
         Task {
-            guard let delivered = try? await manager.sendInvite(to: userID) else { return }
-            states[userID] = delivered ? .sent : .offline
+            do {
+                states[userID] = try await manager.sendInvite(to: userID) ? .sent : .offline
+            } catch {
+                self.error = error
+            }
         }
     }
 }
