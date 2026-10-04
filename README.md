@@ -78,6 +78,8 @@ SweetFin is built on [Swiftfin](https://github.com/jellyfin/Swiftfin), [Jellyfin
 
 SweetFin is an independent project, not affiliated with or endorsed by Jellyfin.
 
+Metadata and images come from [TMDB](https://www.themoviedb.org). This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.
+
 ## ☕ Support
 
 Keeping SweetFin on the App Store costs a yearly Apple developer fee. If you'd like to help, you can [buy me a coffee](https://buymeacoffee.com/gaabsi).
