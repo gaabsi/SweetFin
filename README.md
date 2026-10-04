@@ -18,10 +18,10 @@ Coming soon to the App Store.
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/HomePageTop.jpg" width="22%"/>
-  <img src="docs/screenshots/NativePageTop.jpg" width="22%"/>
-  <img src="docs/screenshots/DiscoverPage.jpg" width="22%"/>
+  <img src="docs/screenshots/HomePage.jpg" width="22%"/>
+  <img src="docs/screenshots/ExplorerPage.jpg" width="22%"/>
   <img src="docs/screenshots/CalendarPage.jpg" width="22%"/>
+  <img src="docs/screenshots/DownloadPage.jpg" width="22%"/>
 </p>
 
 ## ✨ Features
