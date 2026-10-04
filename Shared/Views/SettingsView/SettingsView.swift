@@ -39,6 +39,7 @@ struct SettingsView: View {
             serverSection
             customizeSection
             diagnosticsSection
+            creditsFooter
         }
         #if os(iOS)
         .navigationTitle(L10n.settings)
@@ -135,8 +136,31 @@ struct SettingsView: View {
             }
         } header: {
             Text(L10n.customize)
-        } footer: {
-            Text(L10n.viewsMayRequireRestart)
+        }
+    }
+
+    // MARK: - Credits Footer
+
+    /// SweetFin : l'attribution TMDB (logo + notice) exigée par les conditions de l'API.
+    /// Notice reprise mot pour mot, non traduite ; logo officiel en monochrome (autorisé).
+    private var creditsFooter: some View {
+        Section {} footer: {
+            VStack(spacing: 8) {
+                Image("TMDBLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 7)
+                    .foregroundStyle(.primary)
+
+                Text(
+                    verbatim: "This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB."
+                )
+
+                Text(verbatim: "SweetFin \(UIApplication.appVersion ?? "") (\(UIApplication.bundleVersion ?? ""))")
+            }
+            .font(.caption2)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
         }
     }
 
