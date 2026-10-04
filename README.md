@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/tvOS-26.1+-red"/>
   <img src="https://img.shields.io/badge/Jellyfin-10.11%20%7C%2012-9962be"/>
   <img src="https://img.shields.io/badge/license-MPL--2.0-blue"/>
+  <a href="https://buymeacoffee.com/gaabsi"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buymeacoffee&logoColor=black"/></a>
 </div>
 
 <p align="center">
