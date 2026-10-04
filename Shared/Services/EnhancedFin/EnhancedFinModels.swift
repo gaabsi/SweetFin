@@ -689,9 +689,6 @@ struct EnhancedFinPersonCredit: Decodable, Hashable, Identifiable, EnhancedFinPo
 /// `status` vient toujours de la réponse HTTP ; `title` et `detail` du corps
 /// `ProblemDetails` (RFC 7807) quand le serveur en fournit un — ce qui est le cas
 /// de toutes les erreurs métier, via le helper `problem()` du controller de base.
-///
-/// Les champs `success` et `message` présents sur le fil sont ignorés : ils
-/// n'existent que pour la compatibilité du front JS et sont voués à disparaître.
 struct EnhancedFinProblem: Error, Hashable, LocalizedError {
 
     let status: Int
