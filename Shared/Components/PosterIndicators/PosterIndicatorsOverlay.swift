@@ -32,11 +32,8 @@ struct PosterIndicatorsOverlay: View {
     var body: some View {
         // SweetFin : les tuiles de « Continuer de regarder » ont leur propre habillage.
         if viewContext.contains(.isInContinueWatching) {
-            ResumeTileOverlay(
-                progress: showsProgressIndicator ? item.progressPercentage ?? 0 : nil,
-                // Toucher la tuile lance la lecture, sauf reprise externe (fiche).
-                showsPlay: !EnhancedFinSyntheticItem.isSynthetic(item.id)
-            )
+            // Toucher la tuile lance la lecture, reprise externe comprise.
+            ResumeTileOverlay(progress: showsProgressIndicator ? item.progressPercentage ?? 0 : nil)
         } else {
             standardOverlay
         }
@@ -82,7 +79,6 @@ private struct ResumeTileOverlay: View {
 
     /// Avancement, `nil` = pas de barre (épisode suivant).
     let progress: Double?
-    let showsPlay: Bool
 
     var body: some View {
         ZStack {
@@ -90,9 +86,7 @@ private struct ResumeTileOverlay: View {
                 ResumeProgressBar(progress: progress)
             }
 
-            if showsPlay {
-                ResumePlayIndicator()
-            }
+            ResumePlayIndicator()
         }
         // Toute la tuile, barre ou non : sinon, sans barre, le calque se réduit au rond.
         .frame(maxWidth: .infinity, maxHeight: .infinity)

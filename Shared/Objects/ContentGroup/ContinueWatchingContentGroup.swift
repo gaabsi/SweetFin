@@ -24,7 +24,8 @@ extension Notifications.Key {
 ///
 /// Trois écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
 /// - **un tap lance la lecture** (`Router.play`) au lieu d'ouvrir la fiche : c'est une
-///   liste de choses en cours. Une reprise externe, illisible ici, ouvre sa fiche ;
+///   liste de choses en cours. Une reprise externe passe par `playable` ; rien de
+///   lisible, sa fiche s'ouvre ;
 /// - **toujours affiché**, même vide : un `PosterGroup` vide s'efface de l'Accueil
 ///   (`_shouldBeResolved`), et sur un compte neuf on croyait la section perdue. Des
 ///   emplacements vides tiennent sa place ;
@@ -82,12 +83,8 @@ struct ContinueWatchingContentGroup: ContentGroup {
                 // pour une liste qu'on parcourt.
                 displayType: .landscape,
                 size: .small
-            ) { item, namespace in
-                if EnhancedFinSyntheticItem.isSynthetic(item.id) {
-                    router.route(to: .item(item: item), in: namespace)
-                } else {
-                    Task { await router.play(item) }
-                }
+            ) { item, _ in
+                router.play(item)
             }
             // `isInResume` : barre de progression et libellé « S1E4 » sur les tuiles.
             // `isInContinueWatching` : le menu d'appui long de ce rail.

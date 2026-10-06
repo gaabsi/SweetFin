@@ -23,15 +23,10 @@ extension BaseItemDto {
     /// évite de proposer « noter » sur un épisode isolé, que le référentiel ne sait
     /// pas représenter.
     var enhancedFinMediaKey: String? {
-        if let id, id.hasPrefix(EnhancedFinSyntheticItem.idPrefix) {
-            let key = String(id.dropFirst(EnhancedFinSyntheticItem.idPrefix.count))
-
-            // Valider le préfixe et pas seulement le retirer : les personnes
-            // synthétiques portent `enhancedfin:person:{id}`, qui donnerait la clé
-            // `person:6384`. Les boutons noter, watchlist et suivre apparaîtraient
-            // alors sur la fiche d'un acteur, et enverraient une clé que le serveur
-            // rejette.
-            return EnhancedFinMediaType(mediaKey: key) == nil ? nil : key
+        // Une personne synthétique n'a pas de clé : sans ça, noter, watchlist et suivre
+        // apparaîtraient sur la fiche d'un acteur (voir `mediaKey(from:)`).
+        if EnhancedFinSyntheticItem.isSynthetic(id) {
+            return EnhancedFinSyntheticItem.mediaKey(from: id)
         }
 
         guard let tmdbID = providerIDs?["Tmdb"], Int(tmdbID) != nil else { return nil }

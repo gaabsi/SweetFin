@@ -30,6 +30,16 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
     init(mediaKey: String, item: BaseItemDto) {
         self.mediaKey = mediaKey
         super.init(item: item)
+
+        // Après une lecture, l'item à lancer change (épisode suivant, reprise) : le
+        // bouton Lire redemande au serveur. Le rafraîchissement d'arrière-plan de la
+        // page ne repasse pas par `makeGroups`, d'où cet abonnement.
+        Notifications[.didSendStopReport].publisher
+            .sink { [weak self] in
+                guard let self, let userSession = self.userSession else { return }
+                self.startPlayableResolution(self.mediaKey, userSession: userSession, replacing: true)
+            }
+            .store(in: &cancellables)
     }
 
     /// Construit les groupes à partir de l'item déjà connu, enrichi si possible.
@@ -43,7 +53,7 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
         // SweetFin : non attendu — la fiche s'affiche tout de suite, le bouton Lire
         // montre une roue le temps que le serveur réponde.
         if let userSession {
-            startPlayableResolution(mediaKey, userSession: userSession)
+            startPlayableResolution(mediaKey, userSession: userSession, replacing: true)
         }
 
         // `enrich` : une fiche de découverte n'a ni logo, ni synopsis, ni casting

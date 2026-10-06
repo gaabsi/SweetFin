@@ -153,8 +153,11 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     /// Parametres :
     /// - mediaKey (String?) : clé EnhancedFin, `nil` pour un item sans équivalent
     /// - userSession (UserSession) : session courante
-    func startPlayableResolution(_ mediaKey: String?, userSession: UserSession) {
+    /// - replacing (Bool) : vrai pour oublier le lecteur déjà résolu (fiche de
+    ///   découverte : la réponse change après une lecture, ex. l'épisode suivant)
+    func startPlayableResolution(_ mediaKey: String?, userSession: UserSession, replacing: Bool = false) {
         playableTask?.cancel()
+        if replacing { mediaPlayerItemProvider = nil }
         isResolvingPlayable = mediaPlayerItemProvider == nil && mediaKey != nil
 
         playableTask = Task {
@@ -176,9 +179,17 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     /// Output :
     /// - provider (MediaPlayerItemProvider?) : `nil` si rien n'est lisible
     func resolvePlayback() async -> MediaPlayerItemProvider? {
-        guard let userSession = try? requireUserSession(),
-              let fullItem = try? await item.getFullItem(userSession: userSession)
-        else { return nil }
+        guard let userSession = try? requireUserSession() else { return nil }
+
+        // SweetFin : un item synthétique (reprise hors médiathèque) n'existe pas chez
+        // Jellyfin : le serveur désigne l'item à lancer, pour l'épisode repris.
+        if let mediaKey = EnhancedFinSyntheticItem.mediaKey(from: item.id) {
+            let itemID = await fetchPlayableItemID(mediaKey, season: item.parentIndexNumber, episode: item.indexNumber)
+            await usePlayableItem(itemID, userSession: userSession)
+            return mediaPlayerItemProvider
+        }
+
+        guard let fullItem = try? await item.getFullItem(userSession: userSession) else { return nil }
 
         if let provider = try? await resolveMediaPlayerItemProvider(for: fullItem, userSession: userSession) {
             return provider
@@ -196,14 +207,16 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     ///
     /// Parametres :
     /// - mediaKey (String?) : clé EnhancedFin, `nil` pour un item sans équivalent
+    /// - season (Int?) : saison de l'épisode visé, `nil` pour l'œuvre entière
+    /// - episode (Int?) : numéro de l'épisode visé, toujours avec `season`
     ///
     /// Output :
     /// - itemID (String?) : identifiant de l'item à lancer, `nil` si rien n'est lisible
-    func fetchPlayableItemID(_ mediaKey: String?) async -> String? {
+    func fetchPlayableItemID(_ mediaKey: String?, season: Int? = nil, episode: Int? = nil) async -> String? {
         guard let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
 
         do {
-            return try await client.playable(mediaKey).itemId
+            return try await client.playable(mediaKey, season: season, episode: episode).itemId
         } catch {
             logger.warning("EnhancedFin playable lookup failed: \(error.localizedDescription)")
             return nil

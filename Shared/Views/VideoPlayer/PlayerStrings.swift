@@ -11,6 +11,9 @@ import Foundation
 /// Libellés propres au lecteur, hors de `L10n` comme tous ceux du fork (voir `ExplorerStrings`).
 enum PlayerStrings {
 
+    /// Lecture lancée depuis une tuile, quand le serveur n'a finalement rien à lire.
+    static let nothingToPlay = String(localized: "Nothing to play for this media", table: "SweetFin")
+
     static let jumpBackward = String(localized: "Jump Back", table: "SweetFin")
     static let jumpForward = String(localized: "Jump Forward", table: "SweetFin")
 

@@ -36,28 +36,39 @@ extension Router.Wrapper {
 
     /// Lance la lecture d'un item depuis une tuile, sans passer par sa fiche.
     ///
-    /// `ItemContentGroupProvider.resolvePlayback` résout l'épisode à lire et sa
-    /// position par le même chemin que la fiche, sans rien construire de la fiche. Un
-    /// épisode part avec sa file (précédent / suivant, panneau Épisodes).
+    /// Le lecteur s'ouvre **tout de suite** sur la tuile (titre, fond) et affiche le
+    /// chargement : la résolution se fait dedans, comme une chaîne de TV en direct.
+    /// `ItemContentGroupProvider.resolvePlayback` y trouve l'épisode à lire et sa
+    /// position par le même chemin que la fiche. Un épisode reçoit sa file
+    /// (précédent / suivant, panneau Épisodes) une fois connu.
     ///
     /// Partagé par la media bar et « Continuer de regarder ».
     ///
     /// Parametres :
     /// - item (BaseItemDto) : l'item à lire
     @MainActor
-    func play(_ item: BaseItemDto) async {
-        guard let playbackProvider = await ItemContentGroupProvider(item: item).resolvePlayback() else {
-            // Rien de lisible (un média sans fichier) : la fiche vaut mieux qu'un tap
-            // qui ne fait rien.
-            route(to: .item(item: item))
-            return
+    func play(_ item: BaseItemDto) {
+        play(MediaPlayerItemProvider(item: item) { item, modifyItem in
+            guard let resolved = await ItemContentGroupProvider(item: item).resolvePlayback() else {
+                throw ErrorMessage(PlayerStrings.nothingToPlay)
+            }
+            return try await resolved.modifyingItem { modifyItem?(&$0) }()
+        })
+    }
+
+    /// Ouvre le lecteur tout de suite sur une lecture encore à résoudre. Un épisode
+    /// reçoit sa file une fois résolu.
+    ///
+    /// Partagé par les tuiles (``play(_:)-item``) et la feuille des épisodes.
+    ///
+    /// Parametres :
+    /// - provider (MediaPlayerItemProvider) : lecture à résoudre dans le lecteur
+    @MainActor
+    func play(_ provider: MediaPlayerItemProvider) {
+        let manager = MediaPlayerManager(provider: provider) { resolvedItem in
+            resolvedItem.type == .episode ? EpisodeMediaPlayerQueue(episode: resolvedItem) : nil
         }
-
-        let queue: (any MediaPlayerQueue)? = playbackProvider.item.type == .episode
-            ? EpisodeMediaPlayerQueue(episode: playbackProvider.item)
-            : nil
-
-        route(to: .videoPlayer(provider: playbackProvider, queue: queue))
+        route(to: .videoPlayer(manager: manager))
     }
 }
 

@@ -152,6 +152,11 @@ class MediaProgressObserver: ViewModel, MediaPlayerObserver {
 
             let request = Paths.reportPlaybackStopped(info)
             try await send(request)
+
+            // SweetFin : les pages ouvertes se rafraîchissent au retour (bouton Lire,
+            // reprise). Un item hors médiathèque n'a pas de données Jellyfin, donc pas
+            // de `itemUserDataDidChange` du serveur pour le faire.
+            await MainActor.run { Notifications[.didSendStopReport].post() }
         }
     }
 

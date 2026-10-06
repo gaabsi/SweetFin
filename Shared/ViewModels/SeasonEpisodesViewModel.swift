@@ -176,25 +176,60 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         episode.jellyfinID ?? episode.number.flatMap { playableItemIDs[$0] }
     }
 
-    /// Prépare la lecture d'un épisode, par le même chemin qu'une fiche : fiche
-    /// complète de l'item, puis son lecteur.
+    /// Lecture d'un épisode, rendue **tout de suite** : le lecteur s'ouvre sur son titre
+    /// et résout dedans, par le même chemin qu'une fiche (fiche complète de l'item, puis
+    /// son lecteur). Rien de lisible : le lecteur l'affiche, le tap n'est jamais muet.
     ///
     /// Parametres :
     /// - episode (EpisodeRow) : épisode à lire
     ///
     /// Output :
-    /// - provider (MediaPlayerItemProvider?) : `nil` si l'épisode n'est pas lisible ou
-    ///   si la fiche n'a pas pu être chargée
-    func playbackProvider(for episode: EpisodeRow) async -> MediaPlayerItemProvider? {
-        guard let itemID = playableItemID(for: episode), let userSession else { return nil }
+    /// - provider (MediaPlayerItemProvider) : lecteur à résoudre à l'ouverture
+    func playbackProvider(for episode: EpisodeRow) -> MediaPlayerItemProvider {
+        let season = selectedSeason
 
-        do {
+        // De quoi afficher le lecteur pendant la résolution. Hors serveur, l'id
+        // synthétique de l'épisode : les images ne le demandent pas à Jellyfin.
+        var placeholder = BaseItemDto(
+            id: episode.jellyfinID
+                ?? mediaKey.map { EnhancedFinSyntheticItem.id(for: $0, season: season, episode: episode.number) }
+        )
+        placeholder.name = episode.name
+        placeholder.type = .episode
+        placeholder.parentIndexNumber = season
+        placeholder.indexNumber = episode.number
+
+        return MediaPlayerItemProvider(item: placeholder) { [weak self] _, modifyItem in
+            guard let self,
+                  let userSession = await self.userSession,
+                  let itemID = await self.resolveItemID(for: episode, season: season)
+            else { throw ErrorMessage(PlayerStrings.nothingToPlay) }
+
             let item = try await BaseItemDto(id: itemID).getFullItem(userSession: userSession)
-            return item.getPlaybackItemProvider(userSession: userSession)
-        } catch {
-            logger.warning("Episode playback failed: \(error.localizedDescription)")
-            return nil
+            guard let provider = item.getPlaybackItemProvider(userSession: userSession) else {
+                throw ErrorMessage(PlayerStrings.nothingToPlay)
+            }
+            return try await provider.modifyingItem { modifyItem?(&$0) }()
         }
+    }
+
+    /// L'item à lancer, demandé au serveur pour **cet** épisode s'il n'est pas déjà
+    /// connu (natif, ou réponse de la saison arrivée avant le tap).
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode à lire
+    /// - season (Int?) : saison de l'épisode
+    ///
+    /// Output :
+    /// - itemID (String?) : `nil` si l'épisode n'est pas lisible
+    private func resolveItemID(for episode: EpisodeRow, season: Int?) async -> String? {
+        if let itemID = playableItemID(for: episode) { return itemID }
+
+        guard let mediaKey, let season, let number = episode.number,
+              let client = userSession?.enhancedFinClient
+        else { return nil }
+
+        return try? await client.playable(mediaKey, season: season, episode: number).itemId
     }
 
     // MARK: - Vu / non vu

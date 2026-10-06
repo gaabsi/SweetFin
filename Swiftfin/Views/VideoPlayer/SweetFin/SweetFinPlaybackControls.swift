@@ -72,6 +72,16 @@ struct SweetFinPlaybackControls: View {
                 SweetFinPauseScreen(onClose: closePauseScreen)
                     .transition(.opacity)
             }
+
+            // Le lecteur s'ouvre parfois avant que le flux soit prêt (lecture depuis une
+            // tuile, source distante) : on montre qu'il charge.
+            if manager.state == .loadingItem {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.large)
+                    .tint(.white)
+                    .allowsHitTesting(false)
+            }
         }
         .modifier(VideoPlayer.KeyCommandsModifier())
         .task(id: manager.playbackRequestStatus) {

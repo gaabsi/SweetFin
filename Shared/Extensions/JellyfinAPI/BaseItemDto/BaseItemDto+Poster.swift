@@ -317,9 +317,14 @@ private struct BaseItemDtoPosterContextMenu: View {
     var body: some View {
         if let itemID = representsSeries ? item.seriesID : item.id {
             Button(L10n.goToItem, systemImage: "info.circle") {
-                // Un item synthétique passe par l'item lui-même, comme au tap : son
-                // identifiant enverrait Jellyfin chercher un item qui n'existe pas.
-                router.route(to: isSynthetic ? .item(item: item) : .item(id: itemID))
+                // Un item synthétique ouvre la fiche de l'Explorer, nourrie par le
+                // plugin : la fiche native demanderait à Jellyfin un item qu'il ne
+                // connaît pas (400).
+                if isSynthetic, let mediaKey = item.enhancedFinMediaKey {
+                    router.route(to: .explorerItem(mediaKey: mediaKey, item: item))
+                } else {
+                    router.route(to: .item(id: itemID))
+                }
             }
         }
 
