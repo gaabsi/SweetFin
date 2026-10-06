@@ -24,12 +24,45 @@ enum EnhancedFinSyntheticItem {
     /// empêche toute collision avec un GUID Jellyfin.
     static let idPrefix = "enhancedfin:"
 
-    static func id(for mediaKey: String) -> String {
-        idPrefix + mediaKey
+    /// Identifiant synthétique d'un média, ou d'un de ses épisodes.
+    ///
+    /// Un épisode a le sien (`enhancedfin:tv:95479/s1e3`) : le registre d'images est
+    /// indexé par identifiant, et la vignette de l'épisode ne doit pas remplacer
+    /// l'affiche de la série.
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé '{movie|tv}:{tmdb_id}'
+    /// - season (Int?) : saison de l'épisode, `nil` pour le média
+    /// - episode (Int?) : numéro de l'épisode, toujours avec `season`
+    ///
+    /// Output :
+    /// - id (String) : identifiant synthétique
+    static func id(for mediaKey: String, season: Int? = nil, episode: Int? = nil) -> String {
+        guard let season, let episode else { return idPrefix + mediaKey }
+        return "\(idPrefix)\(mediaKey)/s\(season)e\(episode)"
     }
 
     static func isSynthetic(_ itemID: String?) -> Bool {
         itemID?.hasPrefix(idPrefix) ?? false
+    }
+
+    /// Lecture inverse de ``id(for:season:episode:)`` : la clé du **média**, épisode
+    /// compris.
+    ///
+    /// Le type est validé, pas seulement le préfixe retiré : une personne synthétique
+    /// (`enhancedfin:person:{id}`) donnerait sinon la clé `person:6384`, que le
+    /// serveur rejette.
+    ///
+    /// Parametres :
+    /// - itemID (String?) : identifiant d'un item, synthétique ou non
+    ///
+    /// Output :
+    /// - mediaKey (String?) : clé EnhancedFin, `nil` si l'item n'est pas un média synthétique
+    static func mediaKey(from itemID: String?) -> String? {
+        guard let itemID, isSynthetic(itemID) else { return nil }
+
+        let key = String(itemID.dropFirst(idPrefix.count).prefix { $0 != "/" })
+        return EnhancedFinMediaType(mediaKey: key) == nil ? nil : key
     }
 
     /// Identifiant synthétique d'une personne.
@@ -136,6 +169,56 @@ enum EnhancedFinSyntheticItem {
             )
         }
 
+        return item
+    }
+
+    /// Fabrique l'épisode d'une série hors bibliothèque, rendu comme un épisode du
+    /// serveur (nom de la série, SxEy, nom de l'épisode).
+    ///
+    /// Image : le fond de la série, comme une tuile d'épisode native (et toujours
+    /// présent, contrairement à la vignette d'une sortie récente).
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé de la série
+    /// - seriesTitle (String) : titre de la série
+    /// - season (Int) : saison
+    /// - episode (Int) : numéro de l'épisode
+    /// - name (String?) : nom de l'épisode
+    /// - backdropURL (String?) : fond TMDB de la série
+    ///
+    /// Output :
+    /// - item (BaseItemDto) : épisode synthétique prêt à être affiché
+    static func makeEpisode(
+        mediaKey: String,
+        seriesTitle: String,
+        season: Int,
+        episode: Int,
+        name: String?,
+        backdropURL: String?
+    ) -> BaseItemDto {
+        let itemID = id(for: mediaKey, season: season, episode: episode)
+
+        // Une tuile d'épisode affiche son image principale.
+        var images: [ImageType: URL] = [:]
+        if let backdrop = URL.enhancedFinImage(backdropURL) {
+            images[.primary] = backdrop
+            images[.backdrop] = backdrop
+        }
+
+        EnhancedFinImageRegistry.shared.register(itemID: itemID, images: images)
+
+        var item = BaseItemDto(id: itemID)
+        item.type = .episode
+        item.seriesName = seriesTitle
+        item.name = name ?? seriesTitle
+        item.parentIndexNumber = season
+        item.indexNumber = episode
+        if images[.primary] != nil {
+            item.imageTags = [ImageType.primary.rawValue: itemID]
+        }
+        if images[.backdrop] != nil {
+            item.backdropImageTags = [itemID]
+        }
         return item
     }
 

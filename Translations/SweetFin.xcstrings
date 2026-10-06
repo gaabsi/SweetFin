@@ -1300,6 +1300,16 @@
           }
         }
       }
+    },
+    "Nothing to play for this media": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien à lire pour ce média"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

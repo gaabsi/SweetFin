@@ -285,6 +285,9 @@ struct EnhancedFinContinueWatching: Decodable, Hashable, Identifiable {
     /// inattendu ferait échouer le décodage de **toute** la liste.
     let updatedAt: String
 
+    /// Épisode seulement : son nom (TMDB). Absent sur un serveur plus ancien.
+    let episodeName: String?
+
     var id: String { mediaKey }
 }
 

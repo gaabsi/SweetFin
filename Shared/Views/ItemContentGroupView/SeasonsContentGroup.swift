@@ -217,10 +217,7 @@ private struct SeasonEpisodesSheetModifier: ViewModifier {
         guard let provider = pendingPlayback else { return }
         pendingPlayback = nil
 
-        let queue: (any MediaPlayerQueue)? = provider.item.type == .episode
-            ? EpisodeMediaPlayerQueue(episode: provider.item)
-            : nil
-        router.route(to: .videoPlayer(provider: provider, queue: queue))
+        router.play(provider)
     }
 }
 
@@ -393,15 +390,13 @@ private struct SeasonEpisodesSheet: View {
         }
     }
 
-    /// Lit un épisode s'il est lisible ; sinon le tap ne fait rien.
+    /// Lit un épisode : la feuille se ferme et le lecteur s'ouvre tout de suite, la
+    /// résolution se fait dedans.
     ///
     /// Parametres :
     /// - episode (EpisodeRow) : épisode touché
     private func play(_ episode: EpisodeRow) {
-        Task {
-            guard let provider = await viewModel.playbackProvider(for: episode) else { return }
-            onPlay(provider)
-        }
+        onPlay(viewModel.playbackProvider(for: episode))
     }
 
     private func exitSelection() {

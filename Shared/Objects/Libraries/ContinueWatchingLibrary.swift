@@ -352,13 +352,24 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     /// Réutilise ``EnhancedFinSyntheticItem`` et son registre d'images, qui font déjà
     /// tourner les fiches des médias hors serveur — rien de neuf à écrire.
     private func syntheticItem(for entry: EnhancedFinContinueWatching) -> BaseItemDto {
-        var item = EnhancedFinSyntheticItem.make(
-            mediaKey: entry.mediaKey,
-            title: entry.title,
-            year: entry.year,
-            posterURL: entry.posterUrl,
-            backdropURL: entry.backdropUrl
-        )
+        // Un épisode s'affiche comme un épisode du serveur (SxEy, nom) : la reprise
+        // relance celui-là, par sa saison et son numéro.
+        var item = entry.episode > 0
+            ? EnhancedFinSyntheticItem.makeEpisode(
+                mediaKey: entry.mediaKey,
+                seriesTitle: entry.title,
+                season: entry.season,
+                episode: entry.episode,
+                name: entry.episodeName,
+                backdropURL: entry.backdropUrl
+            )
+            : EnhancedFinSyntheticItem.make(
+                mediaKey: entry.mediaKey,
+                title: entry.title,
+                year: entry.year,
+                posterURL: entry.posterUrl,
+                backdropURL: entry.backdropUrl
+            )
 
         // `lastPlayedDate` sert au tri, et le range au même endroit que pour les
         // items natifs — une seule règle de tri pour les trois sources.

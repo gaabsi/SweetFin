@@ -393,23 +393,15 @@ private struct MediaBarPlayButton: View {
     @Router
     private var router
 
-    @State
-    private var isResolving = false
-
     let item: BaseItemDto
 
     var body: some View {
         Button {
-            guard !isResolving else { return }
-            resolveAndPlay()
+            // Le lecteur s'ouvre aussitôt et affiche lui-même le chargement.
+            router.play(item)
         } label: {
             HStack(spacing: 8) {
-                if isResolving {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                } else {
-                    Image(systemName: "play.fill")
-                }
+                Image(systemName: "play.fill")
 
                 Text(L10n.play)
             }
@@ -421,16 +413,6 @@ private struct MediaBarPlayButton: View {
             .foregroundStyle(accentColor.overlayColor)
         }
         .buttonStyle(.plain)
-        .disabled(isResolving)
-    }
-
-    private func resolveAndPlay() {
-        isResolving = true
-
-        Task { @MainActor in
-            defer { isResolving = false }
-            await router.play(item)
-        }
     }
 }
 

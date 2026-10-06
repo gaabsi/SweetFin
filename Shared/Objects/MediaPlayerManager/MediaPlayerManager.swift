@@ -166,6 +166,11 @@ final class MediaPlayerManager: ViewModel {
 
     private var initialMediaPlayerItemProvider: MediaPlayerItemProvider?
 
+    /// SweetFin : la file, quand elle dépend de l'item **résolu**. Le lecteur s'ouvre
+    /// alors avant de savoir quoi lire (lecture depuis une tuile) : un épisode n'est
+    /// connu qu'au bout de la résolution.
+    private var queueForResolvedItem: (@MainActor (BaseItemDto) -> (any MediaPlayerQueue)?)?
+
     // MARK: init
 
 //    static let empty: MediaPlayerManager = .init()
@@ -178,12 +183,14 @@ final class MediaPlayerManager: ViewModel {
 
     init(
         provider: MediaPlayerItemProvider,
-        queue: (any MediaPlayerQueue)? = nil
+        queue: (any MediaPlayerQueue)? = nil,
+        queueForResolvedItem: (@MainActor (BaseItemDto) -> (any MediaPlayerQueue)?)? = nil
     ) {
         self.item = provider.item
         self.queue = queue.map { AnyMediaPlayerQueue($0) }
         self.state = .loadingItem
         self.initialMediaPlayerItemProvider = provider
+        self.queueForResolvedItem = queueForResolvedItem
         super.init()
 
         self.queue?.manager = self
@@ -333,7 +340,14 @@ final class MediaPlayerManager: ViewModel {
             return
         }
         self.initialMediaPlayerItemProvider = nil
-        playbackItem = try await initialMediaPlayerItemProvider()
+        let resolved = try await initialMediaPlayerItemProvider()
+
+        // Avant `playbackItem`, dont l'affectation publie les compléments (la file).
+        if queue == nil, let resolvedQueue = queueForResolvedItem?(resolved.baseItem) {
+            queue = AnyMediaPlayerQueue(resolvedQueue)
+            queue?.manager = self
+        }
+        playbackItem = resolved
     }
 
     // TODO: remove playback item?
