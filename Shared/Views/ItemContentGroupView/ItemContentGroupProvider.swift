@@ -229,12 +229,26 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     /// Passe par le même chemin qu'une fiche native (`resolveMediaPlayerItemProvider`),
     /// donc une série se lance sur son épisode à suivre, comme d'habitude.
     ///
+    /// En deux temps : le bouton s'active **dès que l'item est connu**, avec une lecture
+    /// à résoudre dans le lecteur ; la fiche complète (durée, pistes, reprise), que le
+    /// serveur peut mettre plusieurs secondes à préparer, la remplace ensuite.
+    ///
     /// Parametres :
     /// - itemID (String?) : item à lancer, `nil` pour ne rien faire
     /// - userSession (UserSession) : session courante
     func usePlayableItem(_ itemID: String?, userSession: UserSession) async {
         guard mediaPlayerItemProvider == nil, let itemID, !Task.isCancelled else { return }
 
+        // 1. Tout de suite. D'une série, le serveur désigne un épisode.
+        var placeholder = BaseItemDto(id: itemID)
+        placeholder.type = item.type == .series ? .episode : item.type
+        placeholder.name = item.name
+        mediaPlayerItemProvider = MediaPlayerItemProvider(item: placeholder) { item, modifyItem in
+            try await MediaPlayerItem.build(for: item, modifyItem: modifyItem)
+        }
+        isResolvingPlayable = false
+
+        // 2. La fiche complète, quand le serveur l'a préparée.
         do {
             let playableItem = try await BaseItemDto(id: itemID).getFullItem(userSession: userSession)
             let provider = try await resolveMediaPlayerItemProvider(for: playableItem, userSession: userSession)

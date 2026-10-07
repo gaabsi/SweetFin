@@ -51,10 +51,21 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
     private var currentAdjacentEpisodesTask: AnyCancellable?
     private let seasonsViewModel: PagingLibraryViewModel<SeasonViewModelLibrary>
 
-    init(episode: BaseItemDto) {
+    /// SweetFin : clé de la série quand elle est **hors bibliothèque** (l'épisode lu
+    /// n'a alors pas de `seriesID`) : saisons et épisodes viennent du plugin, et un
+    /// épisode se lance par `MediaPlayerItemProvider.episode`. `nil` = série du serveur.
+    private let mediaKey: String?
+
+    /// Parametres :
+    /// - episode (BaseItemDto) : l'épisode lancé
+    /// - seriesKey (String?) : clé de la série, connue du point de lancement ; ne sert
+    ///   que si l'épisode n'a pas de série sur le serveur
+    init(episode: BaseItemDto, seriesKey: String? = nil) {
+        self.mediaKey = episode.seriesID == nil ? seriesKey : nil
+        let seriesID = episode.seriesID ?? seriesKey.map { EnhancedFinSyntheticItem.id(for: $0) }
         self.seasonsViewModel = PagingLibraryViewModel(
             library: SeasonViewModelLibrary(
-                parent: BaseItemDto(id: episode.seriesID, name: episode.seriesName)
+                parent: BaseItemDto(id: seriesID, name: episode.seriesName)
             ),
             pageSize: 100
         )
@@ -64,7 +75,14 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
     }
 
     var videoPlayerBody: some PlatformView {
-        EpisodeOverlay(viewModel: seasonsViewModel)
+        EpisodeOverlay(viewModel: seasonsViewModel, mediaKey: mediaKey)
+    }
+
+    /// SweetFin : l'épisode en cours d'une série hors bibliothèque n'a pas l'id de sa
+    /// carte (il porte celui du serveur qui le lit) : on compare saison et numéro.
+    static func isCurrent(_ episode: BaseItemDto, playing: BaseItemDto) -> Bool {
+        guard EnhancedFinSyntheticItem.isSynthetic(episode.id) else { return playing.id == episode.id }
+        return playing.parentIndexNumber == episode.parentIndexNumber && playing.indexNumber == episode.indexNumber
     }
 
     private func didReceive(newItem: MediaPlayerItem?) {
@@ -83,6 +101,10 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
 
     private func getAdjacentEpisodes(for item: BaseItemDto?) async throws {
         guard let item else { return }
+        if let mediaKey {
+            try await getAdjacentEnhancedFinEpisodes(for: item, mediaKey: mediaKey)
+            return
+        }
         guard let seriesID = item.seriesID, item.type == .episode else { return }
 
         let parameters = try Paths.GetEpisodesParameters(
@@ -153,6 +175,59 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
 
 extension EpisodeMediaPlayerQueue {
 
+    /// SweetFin : précédent et suivant d'un épisode hors bibliothèque, d'après les
+    /// saisons TMDB du plugin (dernier épisode → premier de la saison suivante).
+    /// Rien n'est résolu d'avance : chacun se résout quand on le lance.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : l'épisode en cours
+    /// - mediaKey (String) : clé de la série
+    private func getAdjacentEnhancedFinEpisodes(for item: BaseItemDto, mediaKey: String) async throws {
+        guard let season = item.parentIndexNumber, let number = item.indexNumber,
+              let client = userSession?.enhancedFinClient
+        else { return }
+
+        let seasons = try await client.seasons(mediaKey).map(\.number).sorted()
+        let current = try await client.season(mediaKey, number: season).episodes.map(\.number).sorted()
+
+        func episodeItem(_ season: Int, _ episode: Int) -> BaseItemDto {
+            EnhancedFinSyntheticItem.makeEpisode(mediaKey: mediaKey, seriesTitle: item.seriesName, season: season, episode: episode, name: nil)
+        }
+
+        var previous = current.last(where: { $0 < number }).map { episodeItem(season, $0) }
+        var next = current.first(where: { $0 > number }).map { episodeItem(season, $0) }
+
+        if previous == nil, let earlier = seasons.last(where: { $0 < season }),
+           let last = try await client.season(mediaKey, number: earlier).episodes.map(\.number).max()
+        {
+            previous = episodeItem(earlier, last)
+        }
+        if next == nil, let later = seasons.first(where: { $0 > season }),
+           let first = try await client.season(mediaKey, number: later).episodes.map(\.number).min()
+        {
+            next = episodeItem(later, first)
+        }
+
+        guard !Task.isCancelled else { return }
+
+        // Préchauffage de n+1 : demander dès maintenant s'il est lisible fait préparer
+        // au serveur release, lien et sondage, qu'il garde. « Suivant » et
+        // l'enchaînement partiront de ce cache.
+        if let next, let nextSeason = next.parentIndexNumber, let nextEpisode = next.indexNumber {
+            Task { _ = try? await client.playable(mediaKey, season: nextSeason, episode: nextEpisode) }
+        }
+
+        let nextProvider = next.map { MediaPlayerItemProvider.episode($0, mediaKey: mediaKey, fromStart: true) }
+        let previousProvider = previous.map { MediaPlayerItemProvider.episode($0, mediaKey: mediaKey, fromStart: true) }
+
+        await MainActor.run {
+            self.nextItem = nextProvider
+            self.previousItem = previousProvider
+            self.hasNextItem = nextProvider != nil
+            self.hasPreviousItem = previousProvider != nil
+        }
+    }
+
     private struct EpisodeOverlay: PlatformView {
 
         @EnvironmentObject
@@ -163,6 +238,9 @@ extension EpisodeMediaPlayerQueue {
         @ObservedObject
         var viewModel: PagingLibraryViewModel<SeasonViewModelLibrary>
 
+        /// SweetFin : clé de la série hors bibliothèque, `nil` pour une série du serveur.
+        let mediaKey: String?
+
         @State
         private var selection: PagingLibraryViewModel<EpisodeLibrary>.ID?
 
@@ -172,6 +250,12 @@ extension EpisodeMediaPlayerQueue {
         }
 
         private func select(episode: BaseItemDto) {
+            // SweetFin : hors bibliothèque, l'épisode est résolu à l'ouverture (roue).
+            if mediaKey != nil {
+                manager.playNewItem(provider: .episode(episode, mediaKey: mediaKey))
+                return
+            }
+
             let provider = MediaPlayerItemProvider(item: episode) { item, modifyItem in
                 try await MediaPlayerItem.build(for: item, modifyItem: modifyItem)
             }
@@ -180,7 +264,10 @@ extension EpisodeMediaPlayerQueue {
         }
 
         private func selectInitialSeason() {
-            if let seasonID = manager.item.seasonID, let season = viewModel.elements[id: seasonID] {
+            // SweetFin : hors bibliothèque, la saison se retrouve par son numéro.
+            let seasonID = manager.item.seasonID
+                ?? mediaKey.map { EnhancedFinSyntheticItem.id(for: $0, season: manager.item.parentIndexNumber) }
+            if let seasonID, let season = viewModel.elements[id: seasonID] {
                 if season.elements.isEmpty {
                     season.refresh()
                 }
@@ -267,7 +354,7 @@ extension EpisodeMediaPlayerQueue {
                                 insets: .edgeInsets
                             )
                         ) { item in
-                            EpisodeRow(episode: item, isSelected: manager.item.id == item.id) {
+                            EpisodeRow(episode: item, isSelected: EpisodeMediaPlayerQueue.isCurrent(item, playing: manager.item)) {
                                 action(item)
                             }
                         }
@@ -327,7 +414,7 @@ extension EpisodeMediaPlayerQueue {
                     id: \.id,
                     layout: .grid(columns: 5, rows: 1, columnTrailingInset: 0)
                 ) { episode in
-                    EpisodeButton(episode: episode, isSelected: manager.item.id == episode.id) {
+                    EpisodeButton(episode: episode, isSelected: EpisodeMediaPlayerQueue.isCurrent(episode, playing: manager.item)) {
                         action(episode)
                     }
                 }
@@ -339,7 +426,7 @@ extension EpisodeMediaPlayerQueue {
                     id: \.id,
                     layout: .minimumWidth(columnWidth: 170, rows: 1)
                 ) { item in
-                    EpisodeButton(episode: item, isSelected: manager.item.id == item.id) {
+                    EpisodeButton(episode: item, isSelected: EpisodeMediaPlayerQueue.isCurrent(item, playing: manager.item)) {
                         action(item)
                     }
                 }

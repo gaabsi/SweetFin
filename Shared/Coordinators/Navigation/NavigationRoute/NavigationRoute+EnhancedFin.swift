@@ -65,8 +65,11 @@ extension Router.Wrapper {
     /// - provider (MediaPlayerItemProvider) : lecture à résoudre dans le lecteur
     @MainActor
     func play(_ provider: MediaPlayerItemProvider) {
+        // L'item affiché pendant la résolution porte la série quand elle est hors
+        // bibliothèque (id synthétique) : la file en a besoin pour ses épisodes.
+        let seriesKey = EnhancedFinSyntheticItem.mediaKey(from: provider.item.id)
         let manager = MediaPlayerManager(provider: provider) { resolvedItem in
-            resolvedItem.type == .episode ? EpisodeMediaPlayerQueue(episode: resolvedItem) : nil
+            resolvedItem.type == .episode ? EpisodeMediaPlayerQueue(episode: resolvedItem, seriesKey: seriesKey) : nil
         }
         route(to: .videoPlayer(manager: manager))
     }

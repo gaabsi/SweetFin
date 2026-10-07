@@ -41,8 +41,9 @@ struct PlayButton: View {
             return
         }
 
+        // SweetFin : la clé de la fiche sert à la file si l'épisode est hors bibliothèque.
         let queue: (any MediaPlayerQueue)? = mediaPlayerItemProvider.item.type == .episode ?
-            EpisodeMediaPlayerQueue(episode: mediaPlayerItemProvider.item) : nil
+            EpisodeMediaPlayerQueue(episode: mediaPlayerItemProvider.item, seriesKey: provider.item.enhancedFinMediaKey) : nil
 
         router.route(
             to: .videoPlayer(

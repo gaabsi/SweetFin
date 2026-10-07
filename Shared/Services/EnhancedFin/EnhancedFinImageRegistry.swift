@@ -39,7 +39,9 @@ final class EnhancedFinImageRegistry {
     /// - images ([ImageType: URL]) : URL absolues, typiquement TMDB
     func register(itemID: String, images: [ImageType: URL]) {
         guard images.isNotEmpty else { return }
-        state.withLock { $0[itemID] = images }
+        // Fusion : un même item reçoit ses images de plusieurs endroits (une série :
+        // affiche par sa fiche, `.thumb` par la tuile d'un de ses épisodes).
+        state.withLock { $0[itemID, default: [:]].merge(images) { _, new in new } }
     }
 
     /// URL externe enregistrée, ou `nil` si l'item n'en a pas — cas de tous les

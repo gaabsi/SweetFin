@@ -199,37 +199,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         placeholder.parentIndexNumber = season
         placeholder.indexNumber = episode.number
 
-        return MediaPlayerItemProvider(item: placeholder) { [weak self] _, modifyItem in
-            guard let self,
-                  let userSession = await self.userSession,
-                  let itemID = await self.resolveItemID(for: episode, season: season)
-            else { throw ErrorMessage(PlayerStrings.nothingToPlay) }
-
-            let item = try await BaseItemDto(id: itemID).getFullItem(userSession: userSession)
-            guard let provider = item.getPlaybackItemProvider(userSession: userSession) else {
-                throw ErrorMessage(PlayerStrings.nothingToPlay)
-            }
-            return try await provider.modifyingItem { modifyItem?(&$0) }()
-        }
-    }
-
-    /// L'item à lancer, demandé au serveur pour **cet** épisode s'il n'est pas déjà
-    /// connu (natif, ou réponse de la saison arrivée avant le tap).
-    ///
-    /// Parametres :
-    /// - episode (EpisodeRow) : épisode à lire
-    /// - season (Int?) : saison de l'épisode
-    ///
-    /// Output :
-    /// - itemID (String?) : `nil` si l'épisode n'est pas lisible
-    private func resolveItemID(for episode: EpisodeRow, season: Int?) async -> String? {
-        if let itemID = playableItemID(for: episode) { return itemID }
-
-        guard let mediaKey, let season, let number = episode.number,
-              let client = userSession?.enhancedFinClient
-        else { return nil }
-
-        return try? await client.playable(mediaKey, season: season, episode: number).itemId
+        return .episode(placeholder, mediaKey: mediaKey, itemID: playableItemID(for: episode))
     }
 
     // MARK: - Vu / non vu

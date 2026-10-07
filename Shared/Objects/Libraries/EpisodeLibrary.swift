@@ -27,6 +27,24 @@ struct EpisodeLibrary: BaseItemKindLibrary {
             throw ErrorMessage(L10n.unknownError)
         }
 
+        // SweetFin : saison hors bibliothèque → épisodes TMDB, via le plugin.
+        if let mediaKey = EnhancedFinSyntheticItem.mediaKey(from: seasonID), let number = parent.indexNumber {
+            guard let client = pageState.userSession.enhancedFinClient else { return [] }
+            return try await client.season(mediaKey, number: number).episodes.map {
+                EnhancedFinSyntheticItem.makeEpisode(
+                    mediaKey: mediaKey,
+                    seriesTitle: parent.seriesName,
+                    season: number,
+                    episode: $0.number,
+                    name: $0.name,
+                    overview: $0.overview,
+                    stillURL: $0.stillUrl,
+                    runtimeMinutes: $0.runtime,
+                    isPlayed: $0.watched == true
+                )
+            }
+        }
+
         var parameters = Paths.GetEpisodesParameters()
         parameters.enableUserData = true
         parameters.fields = [.overview]
