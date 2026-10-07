@@ -24,22 +24,25 @@ enum EnhancedFinSyntheticItem {
     /// empêche toute collision avec un GUID Jellyfin.
     static let idPrefix = "enhancedfin:"
 
-    /// Identifiant synthétique d'un média, ou d'un de ses épisodes.
+    /// Identifiant synthétique d'un média, d'une de ses saisons ou d'un épisode.
     ///
-    /// Un épisode a le sien (`enhancedfin:tv:95479/s1e3`) : le registre d'images est
-    /// indexé par identifiant, et la vignette de l'épisode ne doit pas remplacer
-    /// l'affiche de la série.
+    /// Saison et épisode ont le leur (`enhancedfin:tv:95479/s1`, `…/s1e3`) : le
+    /// registre d'images est indexé par identifiant, et la vignette d'un épisode ne
+    /// doit pas remplacer l'affiche de la série.
     ///
     /// Parametres :
     /// - mediaKey (String) : clé '{movie|tv}:{tmdb_id}'
-    /// - season (Int?) : saison de l'épisode, `nil` pour le média
-    /// - episode (Int?) : numéro de l'épisode, toujours avec `season`
+    /// - season (Int?) : saison, `nil` pour le média
+    /// - episode (Int?) : numéro de l'épisode, avec `season`
     ///
     /// Output :
     /// - id (String) : identifiant synthétique
     static func id(for mediaKey: String, season: Int? = nil, episode: Int? = nil) -> String {
-        guard let season, let episode else { return idPrefix + mediaKey }
-        return "\(idPrefix)\(mediaKey)/s\(season)e\(episode)"
+        switch (season, episode) {
+        case let (season?, episode?): "\(idPrefix)\(mediaKey)/s\(season)e\(episode)"
+        case let (season?, nil): "\(idPrefix)\(mediaKey)/s\(season)"
+        default: idPrefix + mediaKey
+        }
     }
 
     static func isSynthetic(_ itemID: String?) -> Bool {
@@ -172,52 +175,89 @@ enum EnhancedFinSyntheticItem {
         return item
     }
 
-    /// Fabrique l'épisode d'une série hors bibliothèque, rendu comme un épisode du
-    /// serveur (nom de la série, SxEy, nom de l'épisode).
-    ///
-    /// Image : le fond de la série, comme une tuile d'épisode native (et toujours
-    /// présent, contrairement à la vignette d'une sortie récente).
+    /// Fabrique la saison d'une série hors bibliothèque, pour les vues natives des
+    /// saisons (panneau Épisodes du lecteur).
     ///
     /// Parametres :
     /// - mediaKey (String) : clé de la série
-    /// - seriesTitle (String) : titre de la série
+    /// - seriesTitle (String?) : titre de la série, transmis à ses épisodes
+    /// - season (EnhancedFinSeason) : la saison, d'après TMDB
+    ///
+    /// Output :
+    /// - item (BaseItemDto) : saison synthétique
+    static func makeSeason(mediaKey: String, seriesTitle: String?, season: EnhancedFinSeason) -> BaseItemDto {
+        let itemID = id(for: mediaKey, season: season.number)
+        if let poster = URL.enhancedFinImage(season.posterUrl) {
+            EnhancedFinImageRegistry.shared.register(itemID: itemID, images: [.primary: poster])
+        }
+
+        var item = BaseItemDto(id: itemID)
+        item.type = .season
+        item.name = season.name ?? "\(L10n.season) \(season.number)"
+        item.indexNumber = season.number
+        item.seriesID = id(for: mediaKey)
+        item.seriesName = seriesTitle
+        return item
+    }
+
+    /// Fabrique l'épisode d'une série hors bibliothèque, rendu comme un épisode du
+    /// serveur (nom de la série, SxEy, nom de l'épisode).
+    ///
+    /// Images, par le même chemin que le natif :
+    /// - une **tuile** (rail `.isThumb`) montre l'image de sa série : `seriesID` pointe
+    ///   la série synthétique, dont le fond est enregistré en `.thumb` ;
+    /// - une **carte d'épisode** (panneau du lecteur) montre sa vignette, `.primary`.
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé de la série
+    /// - seriesTitle (String?) : titre de la série
     /// - season (Int) : saison
     /// - episode (Int) : numéro de l'épisode
     /// - name (String?) : nom de l'épisode
+    /// - overview (String?) : synopsis
+    /// - stillURL (String?) : vignette TMDB de l'épisode
     /// - backdropURL (String?) : fond TMDB de la série
+    /// - runtimeMinutes (Int?) : durée
+    /// - isPlayed (Bool) : vu
     ///
     /// Output :
     /// - item (BaseItemDto) : épisode synthétique prêt à être affiché
     static func makeEpisode(
         mediaKey: String,
-        seriesTitle: String,
+        seriesTitle: String?,
         season: Int,
         episode: Int,
         name: String?,
-        backdropURL: String?
+        overview: String? = nil,
+        stillURL: String? = nil,
+        backdropURL: String? = nil,
+        runtimeMinutes: Int? = nil,
+        isPlayed: Bool = false
     ) -> BaseItemDto {
         let itemID = id(for: mediaKey, season: season, episode: episode)
+        let seriesID = id(for: mediaKey)
 
-        // Une tuile d'épisode affiche son image principale.
-        var images: [ImageType: URL] = [:]
         if let backdrop = URL.enhancedFinImage(backdropURL) {
-            images[.primary] = backdrop
-            images[.backdrop] = backdrop
+            EnhancedFinImageRegistry.shared.register(itemID: seriesID, images: [.thumb: backdrop, .backdrop: backdrop])
         }
-
-        EnhancedFinImageRegistry.shared.register(itemID: itemID, images: images)
+        let still = URL.enhancedFinImage(stillURL)
+        if let still {
+            EnhancedFinImageRegistry.shared.register(itemID: itemID, images: [.primary: still])
+        }
 
         var item = BaseItemDto(id: itemID)
         item.type = .episode
+        item.seriesID = seriesID
         item.seriesName = seriesTitle
+        item.seriesThumbImageTag = backdropURL == nil ? nil : seriesID
         item.name = name ?? seriesTitle
+        item.overview = overview
         item.parentIndexNumber = season
         item.indexNumber = episode
-        if images[.primary] != nil {
+        item.runTimeTicks = runtimeMinutes.map { $0 * 60 * 10_000_000 }
+        item.userData = UserItemDataDto(isPlayed: isPlayed, itemID: itemID, key: itemID)
+        if still != nil {
             item.imageTags = [ImageType.primary.rawValue: itemID]
-        }
-        if images[.backdrop] != nil {
-            item.backdropImageTags = [itemID]
         }
         return item
     }
