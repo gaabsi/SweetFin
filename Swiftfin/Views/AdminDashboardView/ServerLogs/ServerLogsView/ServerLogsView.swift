@@ -7,6 +7,7 @@
 //
 
 import JellyfinAPI
+import QuickLook
 import SwiftUI
 
 // TODO: super cool log parser?
