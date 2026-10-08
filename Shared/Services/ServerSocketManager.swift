@@ -154,7 +154,8 @@ final class ServerSocketManager {
                     case .connecting:
                         logger.debug("Socket retrying...")
                     case let .connected(url):
-                        logger.info("Socket connected", metadata: ["url": .stringConvertible(url)])
+                        // SweetFin : l'hôte seul, l'URL porte le jeton (`ApiKey`) et finirait dans les journaux.
+                        logger.info("Socket connected", metadata: ["host": .string(url.host ?? "?")])
                         isConnected.send(true)
                     case .disconnected:
                         logger.info("Socket disconnected")
