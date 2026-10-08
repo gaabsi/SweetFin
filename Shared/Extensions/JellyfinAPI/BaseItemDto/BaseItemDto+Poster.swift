@@ -145,6 +145,16 @@ extension BaseItemDto: Poster {
                         tag: seriesThumbImageTag,
                         environment: environment
                     )
+
+                    // SweetFin : la série d'abord, même sans Thumb (TMDB n'en fournit pas,
+                    // elle vient de Fanart.tv ou d'un fichier local) : son fond, avant
+                    // l'image de l'épisode.
+                    imageSource(
+                        itemID: parentBackdropItemID ?? seriesID,
+                        .backdrop,
+                        tag: parentBackdropImageTags?.first,
+                        environment: environment
+                    )
                 }
 
                 imageSource(
