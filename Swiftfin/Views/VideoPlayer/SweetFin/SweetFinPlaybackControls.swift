@@ -73,8 +73,8 @@ struct SweetFinPlaybackControls: View {
                     .transition(.opacity)
             }
 
-            // Le lecteur s'ouvre parfois avant que le flux soit prêt (lecture depuis une
-            // tuile, source distante) : on montre qu'il charge.
+            // Le lecteur s'ouvre parfois avant que l'item soit résolu (lecture depuis une
+            // tuile) : on montre qu'il charge.
             if manager.state == .loadingItem {
                 ProgressView()
                     .progressViewStyle(.circular)

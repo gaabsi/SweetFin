@@ -16,7 +16,7 @@ extension Router.Wrapper {
     /// Ouvre la fiche d'un item EnhancedFin, sur le serveur ou non.
     ///
     /// En bibliothèque : la fiche native, avec lecture et épisodes. Sinon la même
-    /// vue, nourrie par TMDB, bouton Lire grisé.
+    /// vue, nourrie par TMDB, bouton Lire selon la réponse du serveur (`playable`).
     ///
     /// Ici et non dans chaque écran : la règle était recopiée dans `ExplorerView` et
     /// `FilmographyGroup`, et chaque nouvelle liste en ajoutait une copie. Un écart
