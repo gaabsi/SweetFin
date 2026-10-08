@@ -9,12 +9,8 @@
 import Defaults
 import FactoryKit
 import SwiftUI
-import Transmission
 
 struct VideoPlayer: View {
-
-    @Environment(\.presentationCoordinator)
-    private var presentationCoordinator
 
     @InjectedObject(\.mediaPlayerManager)
     private var manager: MediaPlayerManager
@@ -28,8 +24,6 @@ struct VideoPlayer: View {
     // TODO: move audio/subtitle offset to container state?
     @State
     private var audioOffset: Duration = .zero
-    @State
-    private var isBeingDismissedByTransition = false
 
     // TODO: move behavior to `PlaybackProgress`?
     @State
@@ -94,11 +88,6 @@ struct VideoPlayer: View {
                 proxy.setSubtitleOffset(subtitleOffset)
             }
         }
-        .onChange(of: presentationCoordinator.isPresented) {
-            guard !presentationCoordinator.isPresented else { return }
-            isBeingDismissedByTransition = true
-            manager.stop()
-        }
         .onReceive(manager.$playbackItem) { newItem in
             containerState.isAspectFilled = false
             audioOffset = .zero
@@ -108,7 +97,7 @@ struct VideoPlayer: View {
             containerState.scrubbedSeconds.value = newItem?.baseItem.startSeconds ?? .zero
         }
         .onReceive(manager.$state) { newState in
-            if newState == .stopped, !isBeingDismissedByTransition {
+            if newState == .stopped {
                 router.dismiss()
             }
         }
