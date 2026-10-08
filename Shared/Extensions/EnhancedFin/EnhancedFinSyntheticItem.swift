@@ -193,7 +193,7 @@ enum EnhancedFinSyntheticItem {
 
         var item = BaseItemDto(id: itemID)
         item.type = .season
-        item.name = season.name ?? "\(L10n.season) \(season.number)"
+        item.name = season.displayName
         item.indexNumber = season.number
         item.seriesID = id(for: mediaKey)
         item.seriesName = seriesTitle

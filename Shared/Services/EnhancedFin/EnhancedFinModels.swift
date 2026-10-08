@@ -542,6 +542,11 @@ struct EnhancedFinSeason: Decodable, Hashable {
 
     let number: Int
     let name: String?
+
+    /// Son nom, à défaut « Saison N ».
+    var displayName: String {
+        name ?? "\(L10n.season) \(number)"
+    }
     let episodeCount: Int?
     let posterUrl: String?
 
