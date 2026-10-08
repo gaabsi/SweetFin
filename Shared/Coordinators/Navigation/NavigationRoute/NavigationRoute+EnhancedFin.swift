@@ -59,15 +59,17 @@ extension Router.Wrapper {
     /// Ouvre le lecteur tout de suite sur une lecture encore à résoudre. Un épisode
     /// reçoit sa file une fois résolu.
     ///
-    /// Partagé par les tuiles (``play(_:)-item``) et la feuille des épisodes.
+    /// Partagé par les tuiles (``play(_:)-item``), la feuille des épisodes et le bouton
+    /// Lire de la fiche : une seule règle pour la file, appliquée à l'item résolu.
     ///
     /// Parametres :
     /// - provider (MediaPlayerItemProvider) : lecture à résoudre dans le lecteur
+    /// - seriesKey (String?) : clé de la série, à défaut celle de l'id synthétique affiché
     @MainActor
-    func play(_ provider: MediaPlayerItemProvider) {
+    func play(_ provider: MediaPlayerItemProvider, seriesKey: String? = nil) {
         // L'item affiché pendant la résolution porte la série quand elle est hors
         // bibliothèque (id synthétique) : la file en a besoin pour ses épisodes.
-        let seriesKey = EnhancedFinSyntheticItem.mediaKey(from: provider.item.id)
+        let seriesKey = seriesKey ?? EnhancedFinSyntheticItem.mediaKey(from: provider.item.id)
         let manager = MediaPlayerManager(provider: provider) { resolvedItem in
             resolvedItem.type == .episode ? EpisodeMediaPlayerQueue(episode: resolvedItem, seriesKey: seriesKey) : nil
         }
