@@ -161,9 +161,6 @@ extension UserSessionManager {
                 mediaSourceID: generalCommand.arguments?["MediaSourceId"],
                 userSession: currentSession
             )
-        case .playTrailers:
-            guard let itemID = generalCommand.arguments?["ItemId"] else { return }
-            playTrailers(itemID: itemID, userSession: currentSession)
         case .displayMessage:
             // TODO: Implement via Toast
             return
@@ -215,43 +212,6 @@ extension UserSessionManager {
             } catch {
                 logger.error(
                     "Unable to play item from socket command",
-                    metadata: ["error": .string(error.localizedDescription)]
-                )
-            }
-        }
-    }
-
-    @MainActor
-    private func playTrailers(itemID: String, userSession: UserSession) {
-        Task { @MainActor in
-            do {
-                let request = Paths.getLocalTrailers(itemID: itemID, userID: userSession.user.id)
-                let response = try await userSession.client.send(request)
-
-                if let trailerID = response.value.first?.id {
-                    playItem(id: trailerID, userSession: userSession)
-                    return
-                }
-
-                let item = try await BaseItemDto(id: itemID).getFullItem(userSession: userSession)
-                guard let urlString = item.remoteTrailers?.first?.url else { return }
-
-                #if os(tvOS)
-                guard let externalURL = ExternalTrailerURL(string: urlString),
-                      externalURL.canBeOpened
-                else { return }
-
-                await UIApplication.shared.open(externalURL.deepLink)
-                #else
-                guard let url = URL(string: urlString),
-                      UIApplication.shared.canOpenURL(url)
-                else { return }
-
-                await UIApplication.shared.open(url)
-                #endif
-            } catch {
-                logger.error(
-                    "Unable to play trailers from socket command",
                     metadata: ["error": .string(error.localizedDescription)]
                 )
             }
