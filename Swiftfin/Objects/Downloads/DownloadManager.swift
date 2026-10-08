@@ -314,13 +314,20 @@ final class DownloadManager: NSObject, ObservableObject {
     @MainActor
     private func refreshStoredProgress(userSession: UserSession) async {
         let userID = userSession.user.id
+        let waiting = downloads(of: userID).filter { Self.readProgress(progressFile(of: $0.id, userID: userID)) == nil }
+        guard waiting.isNotEmpty else { return }
 
-        for download in downloads(of: userID) {
+        // SweetFin : une seule requête pour tous les téléchargements, au lieu d'une par item.
+        var parameters = Paths.GetItemsParameters()
+        parameters.userID = userID
+        parameters.ids = waiting.map(\.id)
+        parameters.enableUserData = true
+        guard let items = try? await userSession.client.send(Paths.getItems(parameters: parameters)).value.items else { return }
+        let userDataByID = Dictionary(items.compactMap { item in item.id.map { ($0, item.userData) } }, uniquingKeysWith: { first, _ in first })
+
+        for download in waiting {
+            guard let userData = userDataByID[download.id] ?? nil else { continue }
             let folder = folder(Self.key(userID, download.id))
-            guard Self.readProgress(progressFile(of: download.id, userID: userID)) == nil,
-                  let userData = try? await userSession.client
-                  .send(Paths.getItemUserData(itemID: download.id, userID: userID)).value
-            else { continue }
 
             var item = download.item
             item.userData = userData
