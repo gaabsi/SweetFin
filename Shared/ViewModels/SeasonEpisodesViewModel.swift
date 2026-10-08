@@ -38,6 +38,12 @@ struct EpisodeRow: Identifiable, Hashable {
 
     /// Jellyfin seulement : l'item épisode, pour le marquer vu.
     let jellyfinID: String?
+
+    /// SweetFin : pas encore diffusé (date connue, après aujourd'hui). Ni lisible ni
+    /// marquable vu.
+    var isUpcoming: Bool {
+        airDate.map { $0 > .now } ?? false
+    }
 }
 
 /// SweetFin : saisons et épisodes d'une série, et leur état « vu ».

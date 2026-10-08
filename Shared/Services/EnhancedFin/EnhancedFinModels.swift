@@ -580,6 +580,12 @@ struct EnhancedFinEpisode: Decodable, Hashable {
     /// En minutes.
     let runtime: Int?
     let watched: Bool?
+
+    /// Déjà diffusé : date connue et passée (le jour même compte). Sans date (« à
+    /// annoncer »), pas encore.
+    var isAired: Bool {
+        airDate.flatMap(DateFormatter.calendarDay.date(from:)).map { $0 <= .now } ?? false
+    }
 }
 
 /// Champs disponibles seulement avec `?detail=true`.
