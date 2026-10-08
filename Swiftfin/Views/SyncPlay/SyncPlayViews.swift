@@ -393,8 +393,10 @@ private struct SyncPlayInviteBannerView: View {
 
     private func banner(_ invite: SyncPlayInvite) -> some View {
         VStack(spacing: 14) {
+            // Le nom vient tel quel du message reçu : borné, pour ne pas couvrir l'écran.
             Label(SyncPlayStrings.invited(by: invite.from), systemImage: "person.3.fill")
                 .font(.headline)
+                .lineLimit(2)
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 12) {
