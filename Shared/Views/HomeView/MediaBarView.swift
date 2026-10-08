@@ -177,10 +177,7 @@ struct MediaBarView: View {
             return
         }
 
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-
-        withTransaction(transaction) {
+        withTransaction(.noAnimation) {
             select(recentered)
         }
     }

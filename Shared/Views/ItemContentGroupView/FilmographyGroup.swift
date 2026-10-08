@@ -121,9 +121,7 @@ struct FilmographyGroup: ContentGroup {
         /// pour le problème.
         private func select(_ newValue: Sort) {
             Task { @MainActor in
-                var transaction = Transaction()
-                transaction.disablesAnimations = true
-                withTransaction(transaction) { sort = newValue }
+                withTransaction(.noAnimation) { sort = newValue }
             }
         }
 

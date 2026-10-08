@@ -68,6 +68,9 @@ enum EnhancedFinSyntheticItem {
         return EnhancedFinMediaType(mediaKey: key) == nil ? nil : key
     }
 
+    /// Le format d'un id de personne, écrit une seule fois.
+    private static let personPrefix = idPrefix + "person:"
+
     /// Identifiant synthétique d'une personne.
     ///
     /// Ce format était écrit à la main à quatre endroits, dont un qui le **produit**
@@ -80,7 +83,7 @@ enum EnhancedFinSyntheticItem {
     /// Output :
     /// - id (String) : identifiant synthétique
     static func personID(for tmdbID: Int) -> String {
-        "\(idPrefix)person:\(tmdbID)"
+        personPrefix + String(tmdbID)
     }
 
     /// Lecture inverse de ``personID(for:)``.
@@ -92,10 +95,9 @@ enum EnhancedFinSyntheticItem {
     /// - tmdbID (Int?) : identifiant TMDB, `nil` si l'item n'est pas une personne
     ///   synthétique
     static func personTmdbID(from itemID: String) -> Int? {
-        let prefix = "\(idPrefix)person:"
-        guard itemID.hasPrefix(prefix) else { return nil }
+        guard itemID.hasPrefix(personPrefix) else { return nil }
 
-        return Int(itemID.dropFirst(prefix.count))
+        return Int(itemID.dropFirst(personPrefix.count))
     }
 
     /// Construit l'item et enregistre ses images externes.
@@ -256,7 +258,7 @@ enum EnhancedFinSyntheticItem {
         item.overview = overview
         item.parentIndexNumber = season
         item.indexNumber = episode
-        item.runTimeTicks = runtimeMinutes.map { $0 * 60 * 10_000_000 }
+        item.runTimeTicks = runtimeMinutes.map { Duration.minutes($0).ticks }
         item.userData = UserItemDataDto(isPlayed: isPlayed, itemID: itemID, key: itemID)
         if still != nil {
             item.imageTags = [ImageType.primary.rawValue: itemID]
@@ -399,7 +401,7 @@ extension EnhancedFinSyntheticItem {
     /// Output :
     /// - item (BaseItemDto) : item provisoire, remplacé dès la fiche reçue
     static func makePersonPlaceholder(_ person: BaseItemPerson) -> BaseItemDto {
-        var item = BaseItemDto(id: person.id ?? "\(idPrefix)person:inconnu")
+        var item = BaseItemDto(id: person.id ?? personPrefix + "inconnu")
         item.name = person.name
         item.type = .person
 

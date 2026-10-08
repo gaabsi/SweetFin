@@ -294,7 +294,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
                 thumbnail: episode.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 128)),
                 airDate: episode.premiereDate,
                 // 1 tick = 100 ns.
-                runtime: episode.runTimeTicks.map { .nanoseconds($0 * 100) },
+                runtime: episode.runTimeTicks.map { .ticks($0) },
                 isWatched: episode.userData?.isPlayed == true,
                 jellyfinID: episode.id
             )
