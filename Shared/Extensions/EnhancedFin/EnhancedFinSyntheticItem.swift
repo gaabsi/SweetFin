@@ -237,7 +237,9 @@ enum EnhancedFinSyntheticItem {
         let itemID = id(for: mediaKey, season: season, episode: episode)
         let seriesID = id(for: mediaKey)
 
-        if let backdrop = URL.enhancedFinImage(backdropURL) {
+        // Validée une fois : l'étiquette d'image ci-dessous ne vaut que pour une URL acceptée.
+        let backdrop = URL.enhancedFinImage(backdropURL)
+        if let backdrop {
             EnhancedFinImageRegistry.shared.register(itemID: seriesID, images: [.thumb: backdrop, .backdrop: backdrop])
         }
         let still = URL.enhancedFinImage(stillURL)
@@ -249,7 +251,7 @@ enum EnhancedFinSyntheticItem {
         item.type = .episode
         item.seriesID = seriesID
         item.seriesName = seriesTitle
-        item.seriesThumbImageTag = backdropURL == nil ? nil : seriesID
+        item.seriesThumbImageTag = backdrop == nil ? nil : seriesID
         item.name = name ?? seriesTitle
         item.overview = overview
         item.parentIndexNumber = season
