@@ -1310,6 +1310,16 @@
           }
         }
       }
+    },
+    "Upcoming · %@": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À venir · %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -27,6 +27,10 @@ enum ItemStrings {
     static let markAsWatched = String(localized: "Mark as Watched", table: "SweetFin")
     static let validate = String(localized: "Confirm", table: "SweetFin")
 
+    static func upcoming(_ date: String) -> String {
+        String(localized: "Upcoming · \(date)", table: "SweetFin")
+    }
+
     static func watchedCount(_ watched: Int, of total: Int) -> String {
         String(localized: "\(watched)/\(total) watched", table: "SweetFin")
     }

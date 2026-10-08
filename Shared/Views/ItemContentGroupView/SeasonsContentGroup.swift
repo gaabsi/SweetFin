@@ -446,8 +446,16 @@ private struct EpisodeRowView: View {
                         .lineLimit(2)
                 }
 
-                // En italique : à ne pas confondre avec le synopsis juste dessous.
-                if let airDate = episode.airDate {
+                // SweetFin : pas encore diffusé, en couleur d'accent (l'atténuation veut
+                // déjà dire « vu » dans cette feuille).
+                if episode.isUpcoming, let airDate = episode.airDate {
+                    Label(ItemStrings.upcoming(airDate.formatted(.dateTime.day().month())), systemImage: "calendar")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.tint)
+                        .padding(.bottom, 2)
+                } else if let airDate = episode.airDate {
+                    // En italique : à ne pas confondre avec le synopsis juste dessous.
                     Text(airDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .italic()
@@ -467,13 +475,15 @@ private struct EpisodeRowView: View {
         .padding(.vertical, 12)
         .contentShape(Rectangle())
         // Hors mode sélection, un tap ouvre le lecteur, qui dit si l'épisode est lisible.
+        // Un épisode à venir ne se lit ni ne se marque.
         .onTapGesture {
+            guard !episode.isUpcoming else { return }
             if isSelecting { toggleSelection() } else { play() }
         }
         #if os(iOS)
         // SweetFin : appui long → télécharger, comme sur les affiches.
         .contextMenu {
-            if let downloadableID, !isSelecting {
+            if let downloadableID, !isSelecting, !episode.isUpcoming {
                 DownloadButton(item: BaseItemDto(id: downloadableID, type: .episode))
             }
         }

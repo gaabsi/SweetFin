@@ -196,7 +196,8 @@ extension EpisodeMediaPlayerQueue {
         async let seasonList = client.seasons(mediaKey)
         async let seasonDetail = client.season(mediaKey, number: season)
         let seasons = try await seasonList.map(\.number).sorted()
-        let current = try await seasonDetail.episodes.map(\.number).sorted()
+        // Seulement les épisodes déjà diffusés : « suivant » ne propose pas un épisode à venir.
+        let current = try await seasonDetail.episodes.filter(\.isAired).map(\.number).sorted()
 
         func episodeItem(_ season: Int, _ episode: Int) -> BaseItemDto {
             EnhancedFinSyntheticItem.makeEpisode(mediaKey: mediaKey, seriesTitle: item.seriesName, season: season, episode: episode, name: nil)
@@ -211,7 +212,7 @@ extension EpisodeMediaPlayerQueue {
             previous = episodeItem(earlier, last)
         }
         if next == nil, let later = seasons.first(where: { $0 > season }),
-           let first = try await client.season(mediaKey, number: later).episodes.map(\.number).min()
+           let first = try await client.season(mediaKey, number: later).episodes.filter(\.isAired).map(\.number).min()
         {
             next = episodeItem(later, first)
         }
