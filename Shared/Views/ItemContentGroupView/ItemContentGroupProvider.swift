@@ -134,7 +134,11 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         guard let mediaKey, let client = userSession?.enhancedFinClient else { return nil }
 
         do {
-            return try await client.media(mediaKey, detail: true, enrich: true)
+            let media = try await client.media(mediaKey, detail: true, enrich: true)
+            // SweetFin : la réponse porte déjà mon état (note, watchlist, suivi) : les
+            // boutons le reprennent au lieu de redemander `/media`.
+            EnhancedFinItemStateStore.shared.state(for: mediaKey).apply(media.me)
+            return media
         } catch let problem as EnhancedFinProblem where problem.status == 404 {
             // Inconnu de TMDB : attendu, la fiche garde ce qu'elle a.
             return nil

@@ -84,12 +84,19 @@ final class EnhancedFinItemState: ObservableObject {
         await task.value
     }
 
+    /// Remplit l'état depuis une réponse `/media` déjà reçue (la fiche la demande de toute
+    /// façon) : les boutons n'ont pas à refaire l'appel.
+    func apply(_ me: EnhancedFinMediaMe) {
+        rating = me.rating.flatMap(EnhancedFinScore.init(rawValue:))
+        isInWatchlist = me.inWatchlist
+        isFollowing = me.following
+        isLoaded = true
+        if loadTask == nil { loadTask = Task {} }
+    }
+
     private func fetch(with client: EnhancedFinClient) async {
         do {
-            let me = try await client.media(mediaKey).me
-            rating = me.rating.flatMap(EnhancedFinScore.init(rawValue:))
-            isInWatchlist = me.inWatchlist
-            isFollowing = me.following
+            apply(try await client.media(mediaKey).me)
         } catch let problem as EnhancedFinProblem where problem.status == 404 {
             // Média hors référentiel : une réponse, pas un échec.
         } catch {
