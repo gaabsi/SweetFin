@@ -164,11 +164,16 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
 
         guard !Task.isCancelled else { return }
 
+        await publish(next: nextProvider, previous: previousProvider)
+    }
+
+    /// SweetFin : publie précédent et suivant, natifs comme hors bibliothèque.
+    private func publish(next: MediaPlayerItemProvider?, previous: MediaPlayerItemProvider?) async {
         await MainActor.run {
-            self.nextItem = nextProvider
-            self.previousItem = previousProvider
-            self.hasNextItem = nextProvider != nil
-            self.hasPreviousItem = previousProvider != nil
+            self.nextItem = next
+            self.previousItem = previous
+            self.hasNextItem = next != nil
+            self.hasPreviousItem = previous != nil
         }
     }
 }
@@ -187,8 +192,11 @@ extension EpisodeMediaPlayerQueue {
               let client = userSession?.enhancedFinClient
         else { return }
 
-        let seasons = try await client.seasons(mediaKey).map(\.number).sorted()
-        let current = try await client.season(mediaKey, number: season).episodes.map(\.number).sorted()
+        // Indépendantes : en parallèle.
+        async let seasonList = client.seasons(mediaKey)
+        async let seasonDetail = client.season(mediaKey, number: season)
+        let seasons = try await seasonList.map(\.number).sorted()
+        let current = try await seasonDetail.episodes.map(\.number).sorted()
 
         func episodeItem(_ season: Int, _ episode: Int) -> BaseItemDto {
             EnhancedFinSyntheticItem.makeEpisode(mediaKey: mediaKey, seriesTitle: item.seriesName, season: season, episode: episode, name: nil)
@@ -219,12 +227,7 @@ extension EpisodeMediaPlayerQueue {
         let nextProvider = next.map { MediaPlayerItemProvider.playable($0, mediaKey: mediaKey, fromStart: true) }
         let previousProvider = previous.map { MediaPlayerItemProvider.playable($0, mediaKey: mediaKey, fromStart: true) }
 
-        await MainActor.run {
-            self.nextItem = nextProvider
-            self.previousItem = previousProvider
-            self.hasNextItem = nextProvider != nil
-            self.hasPreviousItem = previousProvider != nil
-        }
+        await publish(next: nextProvider, previous: previousProvider)
     }
 
     private struct EpisodeOverlay: PlatformView {
