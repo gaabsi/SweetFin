@@ -42,13 +42,19 @@ struct MediaBarView: View {
     /// et le même ratio que l'en-tête des fiches (`CompactEnhancedHeaderContentGroup`).
     private static let wideAspectRatio: CGFloat = 1.6
 
+    /// SweetFin : iPad. ❌ 1.6 : 45 % de la hauteur d'un 13" en portrait, les rails
+    /// écrasés dessous. ❌ 2.0 : ~36 %, jugée un peu petite. 1.8 : ~40 %.
+    private static let padAspectRatio: CGFloat = 1.8
+
     @Environment(\.horizontalSizeClass)
     private var horizontalSizeClass
     @Environment(\.verticalSizeClass)
     private var verticalSizeClass
 
     private var aspectRatio: CGFloat {
-        horizontalSizeClass == .regular || verticalSizeClass == .compact
+        if UIDevice.isPad, horizontalSizeClass == .regular { return Self.padAspectRatio }
+
+        return horizontalSizeClass == .regular || verticalSizeClass == .compact
             ? Self.wideAspectRatio
             : Self.compactAspectRatio
     }

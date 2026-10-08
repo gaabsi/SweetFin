@@ -26,6 +26,16 @@ extension UIDevice {
         current.userInterfaceIdiom == .tv
     }
 
+    #if os(iOS)
+    /// SweetFin : agrandissement des rails sur iPad, par rapport à un 11" (820 pt de petit
+    /// côté), réglage de référence. 1 sur un 11", ~1,26 sur un 13". Petit côté de l'écran :
+    /// la taille ne change pas quand on tourne l'iPad.
+    static let padScale: CGFloat = {
+        guard isPad, let screen = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen else { return 1 }
+        return max(1, min(screen.bounds.width, screen.bounds.height) / 820)
+    }()
+    #endif
+
     static let supportsLiquidGlass: Bool = {
         #if os(tvOS)
         var systemInfo = utsname()

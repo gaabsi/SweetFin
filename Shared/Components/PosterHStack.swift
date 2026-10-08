@@ -58,8 +58,9 @@ struct PosterHStack<
                 }
             }()
 
+            // SweetFin : réglé sur un 11", agrandi sur les plus grands iPad.
             return .minimumWidth(
-                columnWidth: minWidth,
+                columnWidth: minWidth * UIDevice.padScale,
                 rows: 1
             )
         } else {
