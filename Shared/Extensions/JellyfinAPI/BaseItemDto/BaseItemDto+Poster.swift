@@ -321,14 +321,19 @@ private struct BaseItemDtoPosterContextMenu: View {
                 // plugin : la fiche native demanderait à Jellyfin un item qu'il ne
                 // connaît pas (400).
                 if isSynthetic, let mediaKey = item.enhancedFinMediaKey {
-                    router.route(to: .explorerItem(mediaKey: mediaKey, item: item))
+                    let start = item.type == .episode
+                        ? EnhancedFinSyntheticItem.make(mediaKey: mediaKey, title: item.seriesName ?? item.displayTitle)
+                        : item
+                    router.route(to: .explorerItem(mediaKey: mediaKey, item: start))
                 } else {
                     router.route(to: .item(id: itemID))
                 }
             }
         }
 
-        if item.type == .episode, !representsSeries, let seriesID = item.seriesID {
+        // Épisode natif seulement : hors médiathèque, « Aller à l'élément » mène déjà à la
+        // série, et la fiche native ne connaît pas un id `enhancedfin:…` (400).
+        if item.type == .episode, !representsSeries, !isSynthetic, let seriesID = item.seriesID {
             Button(L10n.goToSeries, systemImage: "tv") {
                 router.route(to: .item(id: seriesID))
             }
