@@ -9,6 +9,7 @@
 import Defaults
 import FactoryKit
 import SwiftUI
+import Transmission // `prefersStatusBarHidden`
 
 struct VideoPlayer: View {
 
