@@ -6,7 +6,6 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import SwiftUI
 
 // TODO: Add scrollTargetLayout and scrollTargetBehavior to the scroll views.

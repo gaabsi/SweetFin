@@ -6,10 +6,8 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import FactoryKit
 import JellyfinAPI
-import PreferencesView
 import SwiftUI
 
 extension NavigationRoute {
