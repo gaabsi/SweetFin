@@ -9,6 +9,7 @@
 import Defaults
 import FactoryKit
 import JellyfinAPI
+import Nuke
 import SwiftUI
 
 // ⚠️ **iOS uniquement.** `PageTabViewStyle` et `PageIndexViewStyle` n'existent pas sur
@@ -77,6 +78,15 @@ struct MediaBarView: View {
         viewModel.elements.elements
     }
 
+    /// SweetFin : diapos préchargées de chaque côté de celle affichée (fond et logo
+    /// décodés en mémoire). `TabView` ne construit une diapo qu'au début du balayage :
+    /// son image arrivait floutée. 1 = ~26 Mo ; passer à 2 si des balayages rapides
+    /// rattrapent encore le décodage.
+    private static let prefetchedNeighbors = 1
+
+    @State
+    private var prefetcher = ImagePrefetcher(pipeline: .shared, destination: .memoryCache)
+
     /// Nombre de copies de la liste dans la fenêtre. Trois : une avant, une visible,
     /// une après — de quoi balayer dans les deux sens sans jamais atteindre un bord.
     private static let cycles = 3
@@ -132,8 +142,27 @@ struct MediaBarView: View {
         // l'identifiant : un recentrage de la fenêtre circulaire garde le même média.
         .onChange(of: item(at: position)?.id, initial: true) {
             Container.shared.homeBackdrop().item = item(at: position)
+            prefetchNeighbors(of: position)
         }
         .accessibilityLabel(HomeStrings.mediaBar)
+    }
+
+    /// SweetFin : prépare en mémoire les images des diapos voisines (voir
+    /// `prefetchedNeighbors`), celles d'avant annulées.
+    ///
+    /// Parametres :
+    /// - position (Int) : position affichée dans la fenêtre circulaire
+    private func prefetchNeighbors(of position: Int) {
+        guard windowSize > 0 else { return }
+
+        let urls = (1 ... Self.prefetchedNeighbors)
+            .flatMap { [position - $0, position + $0] }
+            .compactMap { item(at: ($0 + windowSize) % windowSize) }
+            .flatMap { MediaBarSlide.imageSources(of: $0, aspectRatio: aspectRatio, isRegular: horizontalSizeClass == .regular) }
+            .compactMap(\.url)
+
+        prefetcher.stopPrefetching()
+        prefetcher.startPrefetching(with: urls)
     }
 
     /// Un point par média réel, celui en cours mis en avant.
@@ -250,9 +279,34 @@ private struct MediaBarSlide: View {
     /// diapo deux fois plus large. La largeur est plafonnée sur iPad : sans elle, un
     /// logo très large (« A Silent Voice ») couvrait toute la diapo et le bouton.
     private var logoSize: CGSize {
-        horizontalSizeClass == .regular
-            ? CGSize(width: 520, height: 150)
-            : CGSize(width: CGFloat.infinity, height: 80)
+        Self.logoSize(isRegular: horizontalSizeClass == .regular)
+    }
+
+    private static func logoSize(isRegular: Bool) -> CGSize {
+        isRegular ? CGSize(width: 520, height: 150) : CGSize(width: CGFloat.infinity, height: 80)
+    }
+
+    /// SweetFin : les images d'une diapo, fond puis logo. Partagées avec le préchargement
+    /// de `MediaBarView` : mêmes URL, donc mêmes entrées de cache.
+    ///
+    /// Parametres :
+    /// - item (BaseItemDto) : le média de la diapo
+    /// - aspectRatio (CGFloat) : ratio de la diapo
+    /// - isRegular (Bool) : grand écran (iPad)
+    ///
+    /// Output :
+    /// - sources ([ImageSource]) : fond, puis logo
+    static func imageSources(of item: BaseItemDto, aspectRatio: CGFloat, isRegular: Bool) -> [ImageSource] {
+        [
+            // Carte portrait (iPhone), le fond est calé sur sa hauteur : ~800 pt de large
+            // suffisent. `imageURL` multiplie par la densité (×3).
+            item.imageSource(.backdrop, environment: ImageSourceOptions(maxWidth: aspectRatio < 1 ? 800 : 1320)),
+            item.imageSource(.logo, environment: ImageSourceOptions(maxHeight: logoSize(isRegular: isRegular).height + 10)),
+        ]
+    }
+
+    private var sources: [ImageSource] {
+        Self.imageSources(of: item, aspectRatio: aspectRatio, isRegular: horizontalSizeClass == .regular)
     }
 
     var body: some View {
@@ -305,14 +359,7 @@ private struct MediaBarSlide: View {
     /// d'eux. C'est le cas qu'on rate en ne testant que des logos blancs.
     @ViewBuilder
     private var backdrop: some View {
-        ImageView(
-            item.imageSource(
-                .backdrop,
-                // SweetFin : carte portrait (iPhone), le fond est calé sur sa hauteur :
-                // ~800 pt de large suffisent. `imageURL` multiplie par la densité (×3).
-                environment: ImageSourceOptions(maxWidth: aspectRatio < 1 ? 800 : 1320)
-            )
-        )
+        ImageView(sources[0])
         .failure {
             Color.secondarySystemFill
         }
@@ -339,12 +386,7 @@ private struct MediaBarSlide: View {
     /// `failure` ne couvre qu'un échec de téléchargement.
     @ViewBuilder
     private var logo: some View {
-        ImageView(
-            item.imageSource(
-                .logo,
-                environment: ImageSourceOptions(maxHeight: logoSize.height + 10)
-            )
-        )
+        ImageView(sources[1])
         // ⚠️ **Redimensionner l'image explicitement est indispensable.** `ImageView`
         // ne porte pas de ratio intrinsèque : un `.aspectRatio(contentMode: .fit)`
         // posé par-dessus n'a rien sur quoi s'appuyer, le cadre ne contraint alors
