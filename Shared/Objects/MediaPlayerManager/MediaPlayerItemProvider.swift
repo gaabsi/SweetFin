@@ -88,7 +88,7 @@ extension MediaPlayerItemProvider {
             if resolvedID == nil, let mediaKey, let season, let episode,
                let client = Container.shared.currentUserSession()?.enhancedFinClient
             {
-                resolvedID = try? await client.playable(mediaKey, season: season, episode: episode).itemId
+                resolvedID = try await client.playable(mediaKey, season: season, episode: episode).itemId
             }
             guard let resolvedID else { throw ErrorMessage(PlayerStrings.nothingToPlay) }
 
