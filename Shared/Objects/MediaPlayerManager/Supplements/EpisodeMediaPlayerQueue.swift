@@ -53,7 +53,7 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
 
     /// SweetFin : clé de la série quand elle est **hors bibliothèque** (l'épisode lu
     /// n'a alors pas de `seriesID`) : saisons et épisodes viennent du plugin, et un
-    /// épisode se lance par `MediaPlayerItemProvider.episode`. `nil` = série du serveur.
+    /// épisode se lance par `MediaPlayerItemProvider.playable`. `nil` = série du serveur.
     private let mediaKey: String?
 
     /// Parametres :
@@ -216,8 +216,8 @@ extension EpisodeMediaPlayerQueue {
             Task { _ = try? await client.playable(mediaKey, season: nextSeason, episode: nextEpisode) }
         }
 
-        let nextProvider = next.map { MediaPlayerItemProvider.episode($0, mediaKey: mediaKey, fromStart: true) }
-        let previousProvider = previous.map { MediaPlayerItemProvider.episode($0, mediaKey: mediaKey, fromStart: true) }
+        let nextProvider = next.map { MediaPlayerItemProvider.playable($0, mediaKey: mediaKey, fromStart: true) }
+        let previousProvider = previous.map { MediaPlayerItemProvider.playable($0, mediaKey: mediaKey, fromStart: true) }
 
         await MainActor.run {
             self.nextItem = nextProvider
@@ -251,7 +251,7 @@ extension EpisodeMediaPlayerQueue {
         private func select(episode: BaseItemDto) {
             // SweetFin : hors bibliothèque, l'épisode est résolu à l'ouverture (roue).
             if mediaKey != nil {
-                manager.playNewItem(provider: .episode(episode, mediaKey: mediaKey))
+                manager.playNewItem(provider: .playable(episode, mediaKey: mediaKey))
                 return
             }
 

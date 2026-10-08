@@ -199,7 +199,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         placeholder.parentIndexNumber = season
         placeholder.indexNumber = episode.number
 
-        return .episode(placeholder, mediaKey: mediaKey, itemID: playableItemID(for: episode))
+        return .playable(placeholder, mediaKey: mediaKey, itemID: playableItemID(for: episode))
     }
 
     // MARK: - Vu / non vu

@@ -58,23 +58,23 @@ struct MediaPlayerItemProvider {
 
 extension MediaPlayerItemProvider {
 
-    /// SweetFin : lecture d'un épisode désigné par sa série et son numéro, **résolue à
-    /// l'ouverture** : le lecteur s'affiche aussitôt sur `placeholder`. L'item à lancer
-    /// est celui déjà connu (`itemID`), sinon celui que le serveur désigne pour cet
-    /// épisode seul (`playable`).
+    /// SweetFin : lecture d'un média désigné par sa clé (film, ou épisode par sa saison et
+    /// son numéro), **résolue à l'ouverture** : le lecteur s'affiche aussitôt sur
+    /// `placeholder`. L'item à lancer est celui déjà connu (`itemID`), sinon celui que le
+    /// serveur désigne (`playable`).
     ///
-    /// Commun à la feuille des épisodes et au panneau du lecteur (tap, suivant,
-    /// précédent) : une seule façon de lancer un épisode hors bibliothèque.
+    /// Commun à la feuille des épisodes, au panneau du lecteur (tap, suivant, précédent) et
+    /// aux reprises hors médiathèque : une seule façon de lancer un item hors bibliothèque.
     ///
     /// Parametres :
     /// - placeholder (BaseItemDto) : de quoi afficher le lecteur pendant la résolution
-    /// - mediaKey (String?) : clé de la série
+    /// - mediaKey (String?) : clé du film ou de la série
     /// - itemID (String?) : item déjà connu (natif, ou réponse d'une saison)
     /// - fromStart (Bool) : vrai pour ignorer la reprise (suivant, précédent)
     ///
     /// Output :
     /// - provider (MediaPlayerItemProvider) : lecture à résoudre
-    static func episode(
+    static func playable(
         _ placeholder: BaseItemDto,
         mediaKey: String?,
         itemID: String? = nil,
@@ -85,7 +85,7 @@ extension MediaPlayerItemProvider {
 
         return MediaPlayerItemProvider(item: placeholder) { _, modifyItem in
             var resolvedID = itemID
-            if resolvedID == nil, let mediaKey, let season, let episode,
+            if resolvedID == nil, let mediaKey,
                let client = Container.shared.currentUserSession()?.enhancedFinClient
             {
                 resolvedID = try await client.playable(mediaKey, season: season, episode: episode).itemId
