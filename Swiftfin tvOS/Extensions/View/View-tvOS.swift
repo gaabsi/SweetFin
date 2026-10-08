@@ -45,13 +45,3 @@ extension View {
         self
     }
 }
-
-extension EnvironmentValues {
-
-    @Entry
-    var presentationCoordinator: PresentationCoordinator = .init()
-}
-
-struct PresentationCoordinator {
-    var isPresented: Bool = false
-}
