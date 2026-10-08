@@ -9,19 +9,6 @@
 import Defaults
 import PreferencesView
 import SwiftUI
-import Transmission
-
-// TODO: have full screen zoom presentation zoom from/to center
-//       - probably need to make mock view with matching ids
-
-struct PresentationControllerShouldDismissPreferenceKey: PreferenceKey {
-
-    static var defaultValue: Bool = true
-
-    static func reduce(value: inout Bool, nextValue: () -> Bool) {
-        value = nextValue()
-    }
-}
 
 struct NavigationInjectionView: View {
 
@@ -33,9 +20,6 @@ struct NavigationInjectionView: View {
 
     @StateObject
     private var coordinator: NavigationCoordinator
-
-    @State
-    private var isPresentationInteractive: Bool = true
 
     private let content: AnyView
 
@@ -100,35 +84,40 @@ struct NavigationInjectionView: View {
                 presentedRoute.route.destination
             }
         }
-        .presentation(
-            $coordinator.presentedFullScreen,
-            transition: .zoomIfAvailable(
-                .init(
-                    dimmingVisualEffect: .systemThickMaterialDark,
-                    prefersScalePresentingView: false
-                ),
-                options: .init(
-                    isInteractive: isPresentationInteractive,
-                    preferredPresentationSafeAreaInsets: .zero,
-                ),
-                otherwise: .slide(.init(edge: .bottom), options: .init(isInteractive: isPresentationInteractive))
-            )
-        ) { presentedRouteBinding, _ in
-            let vc = UIPreferencesHostingController {
-                NavigationInjectionView(coordinator: presentedRouteBinding.wrappedValue.coordinator) {
-                    presentedRouteBinding.wrappedValue.route.destination
-                        .onPreferenceChange(PresentationControllerShouldDismissPreferenceKey.self) { newValue in
-                            isPresentationInteractive = newValue
-                        }
+        // SweetFin : seul le lecteur est présenté en plein écran → verrouillé en paysage sur
+        // iPhone (iPad libre). Plein écran standard (comme tvOS) : avec le zoom de Transmission,
+        // le retour en portrait n'arrivait qu'après l'animation de fermeture (accueil affiché en
+        // paysage, puis pivoté). Le masque est posé ici, hors de la `NavigationStack` : une
+        // préférence ne la traverse pas.
+        .fullScreenCover(
+            item: $coordinator.presentedFullScreen
+        ) { presentedRoute in
+            PreferencesView {
+                NavigationInjectionView(coordinator: presentedRoute.coordinator) {
+                    presentedRoute.route.destination
                 }
+                .supportedOrientations(UIDevice.isPad ? .allButUpsideDown : .landscape)
             }
-
-            vc.view.backgroundColor = .black
-
-            return vc
+            .ignoresSafeArea()
+            .background(Color.black)
+            .onDisappear { Self.rotateToPortrait() }
         }
         #endif
     }
+
+    #if os(iOS)
+    /// SweetFin : ramène l'écran en portrait à la fermeture du lecteur (iPhone). À l'ouverture,
+    /// rien à demander : le masque paysage du lecteur suffit à faire pivoter (vérifié sur iPhone,
+    /// la demande y était d'ailleurs refusée, partie trop tôt).
+    private static func rotateToPortrait() {
+        guard !UIDevice.isPad,
+              let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        for window in scene.windows {
+            window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
+        scene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+    }
+    #endif
 }
 
 // SweetFin : aussi utilisé par les feuilles qui ont leur propre `NavigationStack`
