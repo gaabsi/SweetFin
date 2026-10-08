@@ -94,10 +94,6 @@ struct VideoPlayer: View {
                 proxy.setSubtitleOffset(subtitleOffset)
             }
         }
-        .preference(
-            key: PresentationControllerShouldDismissPreferenceKey.self,
-            value: containerState.presentationControllerShouldDismiss
-        )
         .onChange(of: presentationCoordinator.isPresented) {
             guard !presentationCoordinator.isPresented else { return }
             isBeingDismissedByTransition = true

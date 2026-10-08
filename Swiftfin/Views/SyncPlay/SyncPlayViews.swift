@@ -264,7 +264,8 @@ struct SyncPlayInviteList: View {
 /// bannière de notification, reste visible sur tous les écrans, lecteur compris.
 struct SyncPlayInviteBanner: ViewModifier {
 
-    let manager: SyncPlayManager
+    @ObservedObject
+    var manager: SyncPlayManager
 
     /// Seule référence à la fenêtre : elle est libérée avec la vue (déconnexion, changement
     /// de compte). ❌ Pas d'`onDisappear` pour la retirer : le lecteur, présenté en plein
@@ -275,10 +276,17 @@ struct SyncPlayInviteBanner: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onAppear(perform: installWindow)
+            // Visible seulement pendant une invitation : visible en permanence, la fenêtre
+            // pilotait l'orientation de la scène (iOS 26) et le lecteur restait dessiné en
+            // portrait dans une scène en paysage.
+            .onChange(of: manager.pendingInvite?.id) { _, id in
+                window?.isHidden = id == nil
+            }
     }
 
     /// Crée la fenêtre du bandeau, juste au-dessus de celle de l'app. Elle ne devient
-    /// jamais la fenêtre principale : clavier et orientation restent ceux de l'app.
+    /// jamais la fenêtre principale (le clavier reste celui de l'app), mais visible, elle
+    /// pilote l'orientation de la scène : d'où sa visibilité limitée aux invitations.
     private func installWindow() {
         guard window == nil,
               let appWindow = UIApplication.shared.keyWindow,
@@ -296,7 +304,7 @@ struct SyncPlayInviteBanner: ViewModifier {
         window.windowLevel = appWindow.windowLevel + 1
         window.overrideUserInterfaceStyle = appWindow.overrideUserInterfaceStyle
         window.tintColor = appWindow.tintColor
-        window.isHidden = false
+        window.isHidden = manager.pendingInvite == nil
         self.window = window
     }
 }
