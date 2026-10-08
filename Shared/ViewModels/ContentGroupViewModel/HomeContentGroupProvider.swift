@@ -16,7 +16,7 @@ import JellyfinAPI
 /// |---|---|---|
 /// | 1 | Carrousel | tirage aléatoire, non vu |
 /// | 2 | Mes médias | les bibliothèques du serveur |
-/// | 3 | Continuer de regarder | reprise + épisode suivant + sources externes |
+/// | 3 | Continuer de regarder | reprise + épisode suivant + reprises du plugin |
 /// | 4 | Ajoutés récemment | toutes bibliothèques confondues |
 ///
 /// Remplace le `DefaultContentGroupProvider` d'upstream. Le branchement tient en un

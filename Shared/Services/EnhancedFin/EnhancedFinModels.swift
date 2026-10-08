@@ -252,11 +252,9 @@ struct EnhancedFinFollow: Decodable, Hashable, Identifiable {
 
 /// Une lecture en cours — `GET /me/continue-watching`.
 ///
-/// ⚠️ **Cette route ne voit PAS ce que Jellyfin sait.** Elle lit la seule table
-/// `playback` du plugin, alimentée par `PUT /me/progress`, que rien n'appelle
-/// aujourd'hui — elle ne contient donc que l'historique migré des **sources
-/// externes**. La reprise côté serveur vient, elle, des
-/// routes Jellyfin natives.
+/// ⚠️ **Cette route ne voit PAS ce que Jellyfin sait.** Elle lit la table `playback`
+/// du plugin (`PUT /me/progress`), pas l'historique Jellyfin. La reprise des items du
+/// serveur vient, elle, des routes Jellyfin natives.
 ///
 /// C'est pour ça que l'Accueil fusionne trois sources plutôt qu'une, et que la
 /// fusion déduplique par identifiant TMDB : un même média peut être en cours des
@@ -295,7 +293,7 @@ struct EnhancedFinContinueWatching: Decodable, Hashable, Identifiable {
 
 /// Un item masqué de « Continuer de regarder » — `GET /me/hidden`.
 ///
-/// Le plugin filtre lui-même sa reprise externe ; les reprises Jellyfin, elles, sont
+/// Le plugin filtre lui-même ses reprises ; les reprises Jellyfin, elles, sont
 /// filtrées par `ContinueWatchingLibrary`.
 struct EnhancedFinHiddenItem: Decodable {
 

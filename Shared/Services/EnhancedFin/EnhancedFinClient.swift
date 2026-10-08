@@ -199,9 +199,8 @@ final class EnhancedFinClient {
 
     /// Les lectures en cours connues du plugin.
     ///
-    /// ⚠️ **Ne couvre que les sources externes.** La table `playback` n'est nourrie
-    /// que par `PUT /me/progress` ; ce que tu regardes sur le serveur Jellyfin n'y
-    /// arrive jamais. L'Accueil complète donc cette liste avec `/UserItems/Resume` et
+    /// ⚠️ **Ne couvre que la progression enregistrée par le plugin** (`PUT /me/progress`),
+    /// pas celle de Jellyfin. L'Accueil complète donc cette liste avec `/UserItems/Resume` et
     /// `/Shows/NextUp`, et déduplique l'ensemble par identifiant TMDB.
     ///
     /// - Parameter limit: nombre maximum d'entrées. Le serveur plafonne à 200.
@@ -436,10 +435,9 @@ final class EnhancedFinClient {
 /// `sessionConfiguration.httpAdditionalHeaders` — c'est déjà ce que fait le
 /// `JellyfinClient` voisin.
 ///
-/// ⚠️ **Cela ne protège pas d'une redirection.** URLSession recopie les en-têtes de
-/// la requête d'origine sur la requête redirigée, `Authorization` compris : la façon
-/// de poser l'en-tête n'y change rien. C'est ``EnhancedFinRedirectGuard`` qui s'en
-/// charge, et lui seul.
+/// Redirections : URLSession retire en pratique `Authorization` à chaque redirection
+/// (vérifié), mais ce comportement n'est pas documenté. ``EnhancedFinRedirectGuard``
+/// le garantit, en défense en profondeur.
 ///
 /// La validation de réponse est ici pour une autre raison : c'est le seul endroit
 /// qui voit à la fois le code HTTP et le corps. Sans elle, `Get` lèverait
@@ -478,12 +476,12 @@ private struct EnhancedFinDelegate: APIClientDelegate {
 
 /// Retire le jeton d'une redirection qui sort du serveur.
 ///
-/// ⚠️ **Sans lui, un `302` emporte le jeton Jellyfin vers l'hôte d'arrivée.**
-/// URLSession suit les redirections tout seul et recopie les en-têtes de la requête
-/// d'origine sur la suivante ; `Get` laisse passer la proposition telle quelle faute
-/// de délégué (`DataLoader.urlSession(_:task:willPerformHTTPRedirection:…)`). Un
-/// serveur compromis — ou un intermédiaire, l'app autorisant le HTTP en clair pour
-/// les serveurs auto-hébergés — obtiendrait un jeton aux droits complets.
+/// Défense en profondeur : URLSession retire en pratique `Authorization` à chaque
+/// redirection (vérifié), mais ce n'est pas documenté, et `Get` laisse passer la
+/// proposition telle quelle faute de délégué
+/// (`DataLoader.urlSession(_:task:willPerformHTTPRedirection:…)`). Si ce comportement
+/// changeait, un serveur compromis — ou un intermédiaire, l'app autorisant le HTTP en
+/// clair pour les serveurs auto-hébergés — obtiendrait un jeton aux droits complets.
 ///
 /// On ne refuse pas la redirection : un serveur derrière un proxy peut légitimement
 /// rediriger chez lui. On retire seulement le jeton quand la destination change

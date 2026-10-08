@@ -299,7 +299,7 @@ private struct BaseItemDtoPosterContextMenu: View {
         isInContinueWatching && item.type == .episode && item.seriesID != nil
     }
 
-    /// Une reprise externe (`enhancedfin:…`), inconnue de Jellyfin.
+    /// Un item hors médiathèque (`enhancedfin:…`), inconnu de Jellyfin.
     private var isSynthetic: Bool {
         EnhancedFinSyntheticItem.isSynthetic(item.id)
     }
@@ -352,7 +352,7 @@ private struct BaseItemDtoPosterContextMenu: View {
         }
 
         // SweetFin : télécharger pour le hors-connexion (iPhone) — film ou épisode du
-        // serveur ; pas une série représentée par un épisode, ni une reprise externe.
+        // serveur ; pas une série représentée par un épisode, ni un item hors médiathèque.
         #if os(iOS)
         if !isSynthetic, !representsSeries, [.movie, .episode].contains(item.type), item.canBeDownloaded {
             DownloadButton(item: item)

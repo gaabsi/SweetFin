@@ -466,7 +466,7 @@ private struct EpisodeRowView: View {
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
-        // Hors mode sélection, un tap lance l'épisode s'il est lisible (sinon rien).
+        // Hors mode sélection, un tap ouvre le lecteur, qui dit si l'épisode est lisible.
         .onTapGesture {
             if isSelecting { toggleSelection() } else { play() }
         }
@@ -518,11 +518,6 @@ private struct EpisodeRowView: View {
     }
 }
 
-/// Une image dans un cadre **fixe**, remplie et découpée.
-///
-/// ⚠️ Le cadre d'abord, l'image ensuite : avec `posterStyle` puis `.frame(width:)`,
-/// une vignette au format inattendu (4:3 au lieu de 16:9) imposait sa propre taille
-/// et débordait sous le texte voisin.
 #if os(iOS)
 /// SweetFin : pastille « disponible hors connexion » d'un épisode.
 ///
@@ -556,6 +551,11 @@ private struct DownloadedBadge: View {
 }
 #endif
 
+/// Une image dans un cadre **fixe**, remplie et découpée.
+///
+/// ⚠️ Le cadre d'abord, l'image ensuite : avec `posterStyle` puis `.frame(width:)`,
+/// une vignette au format inattendu (4:3 au lieu de 16:9) imposait sa propre taille
+/// et débordait sous le texte voisin.
 private struct FixedImage: View {
 
     let source: ImageSource?

@@ -32,7 +32,7 @@ struct PosterIndicatorsOverlay: View {
     var body: some View {
         // SweetFin : les tuiles de « Continuer de regarder » ont leur propre habillage.
         if viewContext.contains(.isInContinueWatching) {
-            // Toucher la tuile lance la lecture, reprise externe comprise.
+            // Toucher la tuile lance la lecture, reprise hors médiathèque comprise.
             ResumeTileOverlay(progress: showsProgressIndicator ? item.progressPercentage ?? 0 : nil)
         } else {
             standardOverlay

@@ -210,9 +210,8 @@ extension EpisodeMediaPlayerQueue {
 
         guard !Task.isCancelled else { return }
 
-        // Préchauffage de n+1 : demander dès maintenant s'il est lisible fait préparer
-        // au serveur release, lien et sondage, qu'il garde. « Suivant » et
-        // l'enchaînement partiront de ce cache.
+        // Préchauffage de n+1 : poser la question `playable` dès maintenant laisse le
+        // serveur préparer sa réponse. « Suivant » et l'enchaînement en profitent.
         if let next, let nextSeason = next.parentIndexNumber, let nextEpisode = next.indexNumber {
             Task { _ = try? await client.playable(mediaKey, season: nextSeason, episode: nextEpisode) }
         }

@@ -307,8 +307,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
     /// Complète les durées que Jellyfin n'a pas, par celles de TMDB.
     ///
-    /// ⚠️ Un `.strm` n'est qu'un lien : Jellyfin ne peut pas le sonder, il n'a donc
-    /// pas de `runTimeTicks`. Un seul appel au plugin, pour la
+    /// ⚠️ Certains items n'ont pas de durée côté Jellyfin (`runTimeTicks` vide). Un seul appel au plugin, pour la
     /// saison entière, et seulement s'il manque quelque chose. Correspondance par
     /// numéro d'épisode ; un échec laisse les durées telles quelles.
     ///

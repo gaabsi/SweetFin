@@ -24,8 +24,8 @@ extension Notifications.Key {
 ///
 /// Trois écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
 /// - **un tap lance la lecture** (`Router.play`) au lieu d'ouvrir la fiche : c'est une
-///   liste de choses en cours. Une reprise externe passe par `playable` ; rien de
-///   lisible, sa fiche s'ouvre ;
+///   liste de choses en cours. Une reprise hors médiathèque passe par `playable` ;
+///   rien de lisible, le lecteur l'indique ;
 /// - **toujours affiché**, même vide : un `PosterGroup` vide s'efface de l'Accueil
 ///   (`_shouldBeResolved`), et sur un compte neuf on croyait la section perdue. Des
 ///   emplacements vides tiennent sa place ;
