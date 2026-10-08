@@ -595,33 +595,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     }
 
     private func setIsPlayed(_ isPlayed: Bool) async throws {
-        guard let itemID = item.id else { return }
-
-        // SweetFin : un film de découverte n'existe pas sur le serveur, son état vu
-        // vit dans le plugin (saison 0, épisode 0).
-        if EnhancedFinSyntheticItem.isSynthetic(itemID) {
-            guard let mediaKey = item.enhancedFinMediaKey,
-                  let client = userSession?.enhancedFinClient
-            else { return }
-
-            try await client.setWatched(mediaKey, season: 0, episodes: [0], watched: isPlayed)
-            return
-        }
-
-        let request: Request<UserItemDataDto> = if isPlayed {
-            try Paths.markPlayedItem(
-                itemID: itemID,
-                userID: authenticatedUser.id
-            )
-        } else {
-            try Paths.markUnplayedItem(
-                itemID: itemID,
-                userID: authenticatedUser.id
-            )
-        }
-
-        let response = try await send(request)
-        Notifications[.itemUserDataDidChange].post(response.value)
-        Notifications[.itemShouldRefreshMetadata].post(itemID)
+        try await item.setPlayed(isPlayed, userSession: requireUserSession())
     }
 }

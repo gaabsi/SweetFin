@@ -320,6 +320,7 @@ private struct BaseItemDtoPosterContextMenu: View {
                 // Un item synthétique ouvre la fiche de l'Explorer, nourrie par le
                 // plugin : la fiche native demanderait à Jellyfin un item qu'il ne
                 // connaît pas (400).
+                // Un épisode hors médiathèque mène à sa série : sa clé est celle de la série.
                 if isSynthetic, let mediaKey = item.enhancedFinMediaKey {
                     let start = item.type == .episode
                         ? EnhancedFinSyntheticItem.make(mediaKey: mediaKey, title: item.seriesName ?? item.displayTitle)
@@ -339,8 +340,9 @@ private struct BaseItemDtoPosterContextMenu: View {
             }
         }
 
-        // Pas pour un item synthétique : Jellyfin ne le connaît pas.
-        if item.canBePlayed, !isSynthetic {
+        // Hors médiathèque : film ou épisode seulement, le plugin ne marque pas une série
+        // entière en un appel.
+        if item.canBePlayed, !isSynthetic || [.movie, .episode].contains(item.type) {
             Button(isPlayed ? L10n.markAsUnplayed : L10n.markAsPlayed, systemImage: isPlayed ? "circle" : "checkmark.circle") {
                 Task {
                     await toggleIsPlayed()
@@ -432,26 +434,10 @@ private struct BaseItemDtoPosterContextMenu: View {
     }
 
     private func setIsPlayed(_ isPlayed: Bool) async throws {
-        guard let itemID = item.id,
-              let userSession = Container.shared.currentUserSession()
-        else { return }
-
-        let request: Request<UserItemDataDto> = if isPlayed {
-            Paths.markPlayedItem(
-                itemID: itemID,
-                userID: userSession.user.id
-            )
-        } else {
-            Paths.markUnplayedItem(
-                itemID: itemID,
-                userID: userSession.user.id
-            )
+        guard let userSession = Container.shared.currentUserSession() else { return }
+        if let userData = try await item.setPlayed(isPlayed, userSession: userSession) {
+            item.userData = userData
         }
-
-        let response = try await userSession.client.send(request)
-        item.userData = response.value
-        Notifications[.itemUserDataDidChange].post(response.value)
-        Notifications[.itemShouldRefreshMetadata].post(itemID)
     }
 }
 
