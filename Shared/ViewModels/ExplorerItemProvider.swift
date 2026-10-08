@@ -31,10 +31,10 @@ final class ExplorerItemProvider: ItemContentGroupProvider {
         self.mediaKey = mediaKey
         super.init(item: item)
 
-        // Après une lecture, l'item à lancer change (épisode suivant, reprise) : le
-        // bouton Lire redemande au serveur. Le rafraîchissement d'arrière-plan de la
+        // Après une lecture ou un marquage, l'item à lancer change (épisode suivant,
+        // reprise) : le bouton Lire redemande au serveur. Le rafraîchissement d'arrière-plan de la
         // page ne repasse pas par `makeGroups`, d'où cet abonnement.
-        Notifications[.didSendStopReport].publisher
+        Notifications[.didChangeWatchState].publisher
             .sink { [weak self] in
                 guard let self, let userSession = self.userSession else { return }
                 self.startPlayableResolution(self.mediaKey, userSession: userSession, replacing: true)

@@ -61,13 +61,14 @@ final class ContentGroupViewModel<Provider: ContentGroupProvider>: ViewModel {
         }
         .store(in: &cancellables)
 
-        // SweetFin : une lecture qui s'arrête change ce qu'il y a à reprendre (Continuer
-        // de regarder). Rafraîchi tout de suite, en arrière-plan : le lecteur plein écran
+        // SweetFin : une lecture qui s'arrête, un item marqué vu ou masqué change ce qu'il
+        // y a à reprendre (Continuer de regarder). Rafraîchi tout de suite, en
+        // arrière-plan, sans repartir de zéro : le lecteur plein écran
         // ne fait pas « disparaître » la page, qui ne verrait donc jamais un signal en
         // attente à son retour. ⚠️ Ne recharge que les sections, pas `makeGroups` : le
         // bouton Lire d'une fiche de découverte a son propre abonnement
         // (`ExplorerItemProvider`).
-        Notifications[.didSendStopReport].publisher
+        Notifications[.didChangeWatchState].publisher
             .sink { [weak self] in
                 self?.background.refresh()
             }
