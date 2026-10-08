@@ -64,4 +64,43 @@ extension BaseItemDto {
             keys[id] = key
         }
     }
+
+    /// SweetFin : marque l'item vu ou non vu, là où son état vit — Jellyfin pour un item
+    /// du serveur, le plugin pour un item hors médiathèque (sa saison et son épisode, 0/0
+    /// pour un film). Seule façon de le faire : appui long et menu de la fiche.
+    ///
+    /// Parametres :
+    /// - isPlayed (Bool) : vrai pour marquer vu
+    /// - userSession (UserSession) : la session en cours
+    ///
+    /// Output :
+    /// - userData (UserItemDataDto?) : la réponse de Jellyfin, `nil` hors médiathèque
+    @MainActor
+    @discardableResult
+    func setPlayed(_ isPlayed: Bool, userSession: UserSession) async throws -> UserItemDataDto? {
+        guard let id else { return nil }
+
+        if EnhancedFinSyntheticItem.isSynthetic(id) {
+            guard let mediaKey = enhancedFinMediaKey, let client = userSession.enhancedFinClient else { return nil }
+            try await client.setWatched(mediaKey, season: parentIndexNumber ?? 0, episodes: [indexNumber ?? 0], watched: isPlayed)
+            Self.refreshHome()
+            return nil
+        }
+
+        let request = isPlayed
+            ? Paths.markPlayedItem(itemID: id, userID: userSession.user.id)
+            : Paths.markUnplayedItem(itemID: id, userID: userSession.user.id)
+        let response = try await userSession.client.send(request)
+        Notifications[.itemUserDataDidChange].post(response.value)
+        Notifications[.itemShouldRefreshMetadata].post(id)
+        Self.refreshHome()
+        return response.value
+    }
+
+    /// « Continuer de regarder » n'écoute pas `itemUserDataDidChange` : un item marqué vu
+    /// y restait jusqu'au prochain « tirer pour rafraîchir ».
+    @MainActor
+    private static func refreshHome() {
+        Notifications[.didChangeWatchState].post()
+    }
 }
