@@ -9,7 +9,6 @@
 import JellyfinAPI
 import SwiftUI
 
-// TODO: download to device?
 // TODO: super cool log parser?
 //       - separate package
 
@@ -20,6 +19,10 @@ struct ServerLogsView: View {
 
     @StateObject
     private var viewModel = ServerLogsViewModel()
+
+    /// SweetFin : le journal ouvert dans l'aperçu Quick Look.
+    @State
+    private var previewedFile: URL?
 
     @ViewBuilder
     private var contentView: some View {
@@ -33,9 +36,8 @@ struct ServerLogsView: View {
 
             if viewModel.logs.isNotEmpty {
                 ForEach(viewModel.logs, id: \.self) { log in
-                    ChevronButton(external: true) {
-                        guard let url = log.url else { return }
-                        UIApplication.shared.open(url)
+                    ChevronButton {
+                        Task { previewedFile = try? await log.temporaryFile() }
                     } label: {
                         VStack(alignment: .leading) {
                             Text(log.name ?? L10n.unknown)
@@ -78,6 +80,7 @@ struct ServerLogsView: View {
         .onFirstAppear {
             viewModel.refresh(filter: filter)
         }
+        .quickLookPreview($previewedFile)
         .onChange(of: filter) {
             viewModel.refresh(filter: filter)
         }
