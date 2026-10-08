@@ -112,8 +112,13 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         parameters.nextUpDateCutoff = Date.now.addingTimeInterval(-SweetFinPlayerPolicy.maxNextUp)
 
         let request = Paths.getNextUp(parameters: parameters)
+        let items = (try? await pageState.userSession.client.send(request).value.items) ?? []
 
-        return (try? await pageState.userSession.client.send(request).value.items) ?? []
+        // SweetFin : jamais de S1E1. Ouvert quelques secondes (< 5 %), un épisode garde sa date
+        // de lecture sans position : Jellyfin tient la série pour commencée et propose son S1E1.
+        // ❌ `disableFirstEpisode` : sans effet dans ce cas (vérifié sur le serveur). Une série
+        // vraiment commencée arrive quand même, par la reprise.
+        return items.filter { $0.parentIndexNumber != 1 || $0.indexNumber != 1 }
     }
 
     /// Les reprises venues des sources externes, converties en items synthétiques.
