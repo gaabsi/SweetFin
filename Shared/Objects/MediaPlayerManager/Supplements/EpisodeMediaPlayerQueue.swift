@@ -629,6 +629,9 @@ extension EpisodeMediaPlayerQueue {
                 action()
             }
             .isSelected(isSelected)
+            // SweetFin : pas de nom de série sous la tuile, on est déjà dans la série. Posé
+            // ici et non autour de la cellule : `CollectionHStack` la mesure sans environnement.
+            .withViewContext(.isInParent)
         }
     }
 }

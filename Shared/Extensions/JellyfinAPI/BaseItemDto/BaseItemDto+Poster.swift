@@ -452,13 +452,17 @@ private struct BaseItemDtoPosterContextMenu: View {
 
 private struct BaseItemDtoPosterLabel: View {
 
+    /// SweetFin : affiché dans sa série (panneau Épisodes du lecteur) → pas de nom de série.
+    @ViewContextContains(.isInParent)
+    private var isInParent
+
     let item: BaseItemDto
 
     var body: some View {
         switch item.type {
         case .episode:
             Label {
-                if let seriesName = item.seriesName {
+                if !isInParent, let seriesName = item.seriesName {
                     Text(seriesName)
                 }
                 if let indexLabel = item.seasonEpisodeLabel {
