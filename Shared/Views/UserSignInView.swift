@@ -7,7 +7,6 @@
 //
 
 import CollectionVGrid
-import Defaults
 import FactoryKit
 import JellyfinAPI
 import SwiftUI
