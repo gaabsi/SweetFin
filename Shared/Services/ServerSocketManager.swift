@@ -121,7 +121,6 @@ final class ServerSocketManager {
                     .play,
                     .playMediaSource,
                     .playState,
-                    .playTrailers,
                     .setAudioStreamIndex,
                     .setSubtitleStreamIndex,
                 ],
