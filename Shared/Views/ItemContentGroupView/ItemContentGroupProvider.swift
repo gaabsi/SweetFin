@@ -284,9 +284,16 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             return ItemFacts(media: enhancedFinMedia)
         }
 
-        guard !EnhancedFinSyntheticItem.isSynthetic(item.id) else { return nil }
+        guard isOnServer else { return nil }
 
         return ItemFacts(item: item)
+    }
+
+    /// SweetFin : la fiche est-elle celle d'un item du serveur ? Faux pour un item hors
+    /// médiathèque (`enhancedfin:…`), que Jellyfin ne connaît pas : les sections qui
+    /// l'interrogent (épisodes, saisons, bonus, similaires) n'y récolteraient qu'un 400.
+    var isOnServer: Bool {
+        !EnhancedFinSyntheticItem.isSynthetic(id)
     }
 
     /// SweetFin : d'où viennent les saisons d'une série.
@@ -296,16 +303,15 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     ///
     /// Parametres :
     /// - item (BaseItemDto) : la série
-    /// - itemID (String) : identifiant de la fiche
     ///
     /// Output :
     /// - backend (SeasonEpisodesViewModel.Backend?) : source, `nil` si aucune
-    func seasonsBackend(for item: BaseItemDto, itemID: String) -> SeasonEpisodesViewModel.Backend? {
-        if EnhancedFinSyntheticItem.isSynthetic(itemID) {
+    func seasonsBackend(for item: BaseItemDto) -> SeasonEpisodesViewModel.Backend? {
+        guard isOnServer else {
             return item.enhancedFinMediaKey.map { .enhancedFin(mediaKey: $0) }
         }
 
-        return .jellyfin(seriesID: itemID, mediaKey: item.enhancedFinMediaKey)
+        return .jellyfin(seriesID: id, mediaKey: item.enhancedFinMediaKey)
     }
 
     /// SweetFin : la carte « + » des saisons, pour une série du serveur que Seerr
@@ -313,13 +319,12 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     ///
     /// Parametres :
     /// - item (BaseItemDto) : la série
-    /// - itemID (String) : identifiant de la fiche
     ///
     /// Output :
     /// - completion (SeasonsContentGroup.Completion?) : `nil` si rien ne manque ou si
     ///   Seerr n'a pas répondu
-    func seasonsCompletion(for item: BaseItemDto, itemID: String) -> SeasonsContentGroup.Completion? {
-        guard !EnhancedFinSyntheticItem.isSynthetic(itemID),
+    func seasonsCompletion(for item: BaseItemDto) -> SeasonsContentGroup.Completion? {
+        guard isOnServer,
               enhancedFinMedia?.isIncompleteSeries == true,
               let mediaKey = item.enhancedFinMediaKey
         else { return nil }
@@ -334,11 +339,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
 
         Self.personContentGroups(for: item)
-
-        // SweetFin : un item de découverte (`enhancedfin:…`) n'existe pas sur le
-        // serveur. Les sections qui l'interrogent — épisodes, saisons, bonus,
-        // similaires — ne récoltaient qu'un 400 chacune, sans rien afficher.
-        let isOnServer = !EnhancedFinSyntheticItem.isSynthetic(itemID)
 
         // SweetFin : sur iOS, une série n'a plus le rail horizontal de sa saison
         // courante — ses épisodes s'ouvrent depuis `SeasonsContentGroup`, plus bas.
@@ -365,8 +365,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         // SweetFin : saisons, et leurs épisodes à marquer vus — série du serveur
         // comme de découverte. Voir `SeasonsContentGroup`.
         #if os(iOS)
-        if item.type == .series, let backend = seasonsBackend(for: item, itemID: itemID) {
-            SeasonsContentGroup(id: itemID, backend: backend, completion: seasonsCompletion(for: item, itemID: itemID))
+        if item.type == .series, let backend = seasonsBackend(for: item) {
+            SeasonsContentGroup(id: itemID, backend: backend, completion: seasonsCompletion(for: item))
         }
         #endif
 

@@ -189,11 +189,9 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         let season = selectedSeason
 
         // De quoi afficher le lecteur pendant la résolution. Hors serveur, l'id
-        // synthétique de l'épisode : les images ne le demandent pas à Jellyfin.
-        var placeholder = BaseItemDto(
-            id: episode.jellyfinID
-                ?? mediaKey.map { EnhancedFinSyntheticItem.id(for: $0, season: season, episode: episode.number) }
-        )
+        // synthétique de l'épisode (celui de la ligne) : les images ne le demandent pas
+        // à Jellyfin.
+        var placeholder = BaseItemDto(id: episode.id)
         placeholder.name = episode.name
         placeholder.type = .episode
         placeholder.parentIndexNumber = season
@@ -376,7 +374,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         return try await client.seasons(mediaKey).map { season in
             SeasonRow(
                 number: season.number,
-                name: season.name ?? "\(L10n.season) \(season.number)",
+                name: season.displayName,
                 poster: URL.enhancedFinImage(season.posterUrl).map { ImageSource(url: $0) },
                 episodeCount: season.episodeCount,
                 watchedCount: season.watchedCount ?? 0,
@@ -390,7 +388,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
         return try await client.season(mediaKey, number: season).episodes.map { episode in
             EpisodeRow(
-                id: "\(season)-\(episode.number)",
+                id: EnhancedFinSyntheticItem.id(for: mediaKey, season: season, episode: episode.number),
                 number: episode.number,
                 name: episode.name,
                 overview: episode.overview,
