@@ -158,7 +158,12 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     func startPlayableResolution(_ mediaKey: String?, userSession: UserSession, replacing: Bool = false) {
         playableTask?.cancel()
         if replacing { mediaPlayerItemProvider = nil }
-        isResolvingPlayable = mediaPlayerItemProvider == nil && mediaKey != nil
+        // SweetFin : lecteur natif déjà trouvé (ou pas de clé) : rien à demander au plugin.
+        guard mediaPlayerItemProvider == nil, mediaKey != nil else {
+            isResolvingPlayable = false
+            return
+        }
+        isResolvingPlayable = true
 
         playableTask = Task {
             let itemID = await fetchPlayableItemID(mediaKey)
