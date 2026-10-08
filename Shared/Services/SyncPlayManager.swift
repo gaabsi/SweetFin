@@ -58,6 +58,11 @@ final class SyncPlayManager: ObservableObject {
     /// En dessous, pas de pause pour attendre `when` : VLC n'aurait pas le temps de confirmer
     /// la pause avant le play (cf. la course du démarrage).
     private static let minScheduledPause: TimeInterval = 0.3
+
+    /// Position et temps écoulé venus du serveur, bornés à 24 h : une valeur géante ferait
+    /// déborder les additions d'entiers (plantage).
+    private static let maxSeconds: TimeInterval = 24 * 3600
+    private static let maxTicks = Duration.seconds(maxSeconds).ticks
     /// Au-delà, `when` est jugé aberrant (horloge locale fausse, mesures ratées) : on part
     /// quand même plutôt que de rester en pause.
     private static let maxScheduledDelay: TimeInterval = 5
@@ -264,7 +269,7 @@ final class SyncPlayManager: ObservableObject {
         scheduledUnpause?.cancel()
         expectedSeekTicks = nil
 
-        let ticks = command.positionTicks
+        let ticks = command.positionTicks.map { min(max($0, 0), Self.maxTicks) }
         // Les commandes du groupe ne touchent que son média : rejoindre un groupe (qui envoie
         // `stop`) ne ferme pas ce qu'on regardait, un seek ne vise pas le média précédent.
         let groupPlayer = player?.item.id == itemID ? player : nil
@@ -518,7 +523,7 @@ final class SyncPlayManager: ObservableObject {
 
     /// Position du groupe à l'instant `date` : celle de la commande + le temps écoulé depuis.
     private func groupPositionTicks(from positionTicks: Int, since when: Date, at date: Date = Date()) -> Int {
-        let elapsed = serverDate(at: date).timeIntervalSince(when)
+        let elapsed = min(max(serverDate(at: date).timeIntervalSince(when), 0), Self.maxSeconds)
         return positionTicks + Duration.seconds(elapsed).ticks
     }
 
