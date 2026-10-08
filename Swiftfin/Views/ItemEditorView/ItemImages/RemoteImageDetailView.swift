@@ -68,7 +68,8 @@ struct RemoteImageDetailView: View {
                 }
             }
 
-            if let url = remoteImageInfo.url?.url {
+            // SweetFin : lien venu du serveur, ouvert seulement en http(s).
+            if let url = remoteImageInfo.url?.url, ["http", "https"].contains(url.scheme?.lowercased()) {
                 Section {
                     ChevronButton(
                         L10n.imageSource,
