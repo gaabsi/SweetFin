@@ -275,6 +275,7 @@ final class DownloadManager: NSObject, ObservableObject {
     ///
     /// Output :
     /// - didSync (Bool) : vrai si au moins une position a été envoyée
+    @MainActor
     private func syncOfflineProgress(userSession: UserSession) async -> Bool {
         let userID = userSession.user.id
         var didSync = false
@@ -310,6 +311,7 @@ final class DownloadManager: NSObject, ObservableObject {
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
+    @MainActor
     private func refreshStoredProgress(userSession: UserSession) async {
         let userID = userSession.user.id
 
