@@ -62,7 +62,8 @@ final class NavigationCoordinator: ObservableObject {
         case .fullscreen:
             // SweetFin : lecteur ouvert sans animation (la montée depuis le bas n'était pas
             // belle) : c'est la rotation en paysage qui fait office de transition.
-            withTransaction(Self.noAnimation) {
+            // ❌ Pour la fermeture : le `dismiss` SwiftUI ignore la transaction.
+            withTransaction(.noAnimation) {
                 presentedFullScreen = .init(
                     route: route,
                     coordinator: .init()
@@ -70,13 +71,5 @@ final class NavigationCoordinator: ObservableObject {
             }
         }
         #endif
-    }
-
-    /// SweetFin : transaction qui présente le lecteur sans animation. ❌ Pour la fermeture : le
-    /// `dismiss` SwiftUI l'ignore, le lecteur redescend vers le bas.
-    static var noAnimation: Transaction {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        return transaction
     }
 }
