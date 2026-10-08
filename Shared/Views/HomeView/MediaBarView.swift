@@ -311,7 +311,9 @@ private struct MediaBarSlide: View {
         ImageView(
             item.imageSource(
                 .backdrop,
-                environment: ImageSourceOptions(maxWidth: 1320)
+                // SweetFin : carte portrait (iPhone), le fond est calé sur sa hauteur :
+                // ~800 pt de large suffisent. `imageURL` multiplie par la densité (×3).
+                environment: ImageSourceOptions(maxWidth: aspectRatio < 1 ? 800 : 1320)
             )
         )
         .failure {
