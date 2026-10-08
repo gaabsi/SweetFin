@@ -181,35 +181,27 @@ extension MediaPlayerItem {
             return url
         }
 
-        if item.mediaType == .video {
+        // SweetFin : toujours la route vidéo du serveur. ❌ Avant, un item non vidéo (type
+        // fixé par le serveur) donnait `mediaSource.path` tel quel à VLC : `smb://`,
+        // `file://`… choisis par le serveur. L'app ne lit que de la vidéo.
+        logger.trace("Making video stream URL for item \(itemID)")
 
-            logger.trace("Making video stream URL for item \(itemID)")
+        let videoStreamParameters = Paths.GetVideoStreamParameters(
+            isStatic: true,
+            tag: mediaSource.eTag ?? item.etag,
+            playSessionID: playSessionID,
+            mediaSourceID: mediaSource.id ?? itemID,
+            liveStreamID: mediaSource.liveStreamID
+        )
 
-            let videoStreamParameters = Paths.GetVideoStreamParameters(
-                isStatic: true,
-                tag: mediaSource.eTag ?? item.etag,
-                playSessionID: playSessionID,
-                mediaSourceID: mediaSource.id ?? itemID,
-                liveStreamID: mediaSource.liveStreamID
-            )
+        let videoStreamRequest = Paths.getVideoStream(
+            itemID: itemID,
+            parameters: videoStreamParameters
+        )
 
-            let videoStreamRequest = Paths.getVideoStream(
-                itemID: itemID,
-                parameters: videoStreamParameters
-            )
+        guard let videoStreamURL = userSession.client.url(with: videoStreamRequest)
+        else { throw ErrorMessage("Unable to make video stream URL") }
 
-            guard let videoStreamURL = userSession.client.url(with: videoStreamRequest)
-            else { throw ErrorMessage("Unable to make video stream URL") }
-
-            return videoStreamURL
-        }
-
-        logger.trace("Using media source path for item \(itemID)")
-
-        guard let path = mediaSource.path, let streamURL = URL(
-            string: path
-        ) else { throw ErrorMessage("Unable to make stream URL") }
-
-        return streamURL
+        return videoStreamURL
     }
 }
