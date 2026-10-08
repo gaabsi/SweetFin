@@ -225,7 +225,7 @@ private struct MediaBarShowcase: View {
                 .focused($focus, equals: .rowStart)
 
             Button {
-                Task { await router.play(item) }
+                router.play(item)
             } label: {
                 Label(L10n.play, systemImage: "play.fill")
             }
