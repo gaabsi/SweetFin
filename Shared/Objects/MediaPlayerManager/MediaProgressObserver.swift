@@ -77,16 +77,20 @@ class MediaProgressObserver: ViewModel, MediaPlayerObserver {
             .store(in: &cancellables)
     }
 
-    private func endPlaybackSession() {
+    /// SweetFin : `notifies` = vraie fin de lecture (pages à rafraîchir), pas un simple
+    /// changement d'épisode.
+    private func endPlaybackSession(notifies: Bool = true) {
         guard let item else { return }
-        sendStopReport(for: item, seconds: manager?.seconds)
+        sendStopReport(for: item, seconds: manager?.seconds, notifies: notifies)
     }
 
     private func playbackItemDidChange(_ newItem: MediaPlayerItem?) {
         timer.poke()
 
         if let item, newItem !== item {
-            endPlaybackSession()
+            // SweetFin : épisode suivant / précédent, la lecture continue : pas de
+            // rafraîchissement des pages derrière le lecteur.
+            endPlaybackSession(notifies: false)
             self.item = newItem
             self.hasSentStart = false
             sendReport()
@@ -135,7 +139,7 @@ class MediaProgressObserver: ViewModel, MediaPlayerObserver {
         }
     }
 
-    private func sendStopReport(for item: MediaPlayerItem, seconds: Duration?) {
+    private func sendStopReport(for item: MediaPlayerItem, seconds: Duration?, notifies: Bool) {
 
         #if DEBUG
         guard Defaults[.sendProgressReports] else { return }
@@ -156,7 +160,8 @@ class MediaProgressObserver: ViewModel, MediaPlayerObserver {
             // SweetFin : les pages ouvertes se rafraîchissent au retour (bouton Lire,
             // reprise). Un item hors médiathèque n'a pas de données Jellyfin, donc pas
             // de `itemUserDataDidChange` du serveur pour le faire.
-            await MainActor.run { Notifications[.didSendStopReport].post() }
+            guard notifies else { return }
+            await MainActor.run { Notifications[.didChangeWatchState].post() }
         }
     }
 

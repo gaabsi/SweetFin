@@ -113,8 +113,11 @@ extension Notifications.Key {
         Key("didChangeServerConnection")
     }
 
-    static var didSendStopReport: Key<Void> {
-        Key("didSendStopReport")
+    /// SweetFin : ce qu'il y a à reprendre a changé — fin de lecture, item marqué vu ou
+    /// non vu, item masqué de « Continuer de regarder ». Les pages se rafraîchissent en
+    /// arrière-plan, sans repartir de zéro.
+    static var didChangeWatchState: Key<Void> {
+        Key("didChangeWatchState")
     }
 
     static var didRequestGlobalRefresh: Key<Void> {

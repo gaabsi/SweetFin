@@ -8,28 +8,16 @@
 
 import SwiftUI
 
-extension Notifications.Key {
-
-    /// SweetFin : un item vient d'être masqué de « Continuer de regarder ».
-    ///
-    /// Pas `didDeleteItem` : il retirerait l'item de **tous** les rails chargés.
-    ///
-    /// - Payload: la clé EnhancedFin masquée.
-    static var didHideContinueWatchingItem: Key<String> {
-        Key("didHideContinueWatchingItem")
-    }
-}
-
 /// SweetFin : « Continuer de regarder ».
 ///
-/// Trois écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
+/// Deux écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
 /// - **un tap lance la lecture** (`Router.play`) au lieu d'ouvrir la fiche : c'est une
 ///   liste de choses en cours. Une reprise hors médiathèque passe par `playable` ;
 ///   rien de lisible, le lecteur l'indique ;
 /// - **toujours affiché**, même vide : un `PosterGroup` vide s'efface de l'Accueil
 ///   (`_shouldBeResolved`), et sur un compte neuf on croyait la section perdue. Des
-///   emplacements vides tiennent sa place ;
-/// - **rechargé** dès qu'un item est masqué : un autre vient combler le rail.
+///   emplacements vides tiennent sa place. Masquer un item rafraîchit la page en
+///   arrière-plan (`didChangeWatchState`) : un autre vient combler le rail.
 struct ContinueWatchingContentGroup: ContentGroup {
 
     /// Le nombre d'emplacements vides : une largeur d'écran de tuiles paysage
@@ -43,9 +31,6 @@ struct ContinueWatchingContentGroup: ContentGroup {
     @ViewBuilder
     func body(with viewModel: PagingLibraryViewModel<ContinueWatchingLibrary>) -> some View {
         _Body(viewModel: viewModel)
-            .onReceive(Notifications[.didHideContinueWatchingItem].publisher) { _ in
-                viewModel.refresh()
-            }
     }
 
     /// Une vue à part pour observer le view model : sans `@ObservedObject`, le passage

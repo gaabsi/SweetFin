@@ -397,7 +397,7 @@ private struct BaseItemDtoPosterContextMenu: View {
         // Échec silencieux : la tuile reste, ce qui dit déjà que rien n'a changé.
         guard (try? await client.hide(mediaKey)) != nil else { return }
 
-        Notifications[.didHideContinueWatchingItem].post(mediaKey)
+        Notifications[.didChangeWatchState].post()
     }
 
     /// La clé EnhancedFin du **média** : celle de l'item, ou de sa série pour un
