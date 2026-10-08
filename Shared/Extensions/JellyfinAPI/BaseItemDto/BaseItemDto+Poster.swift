@@ -457,6 +457,11 @@ private struct BaseItemDtoPosterLabel: View {
     @ViewContextContains(.isInParent)
     private var isInParent
 
+    /// SweetFin : « Continuer de regarder » mêle films et épisodes (« S1E6 • Titre ») : un
+    /// film y prend son année en 2ᵉ ligne, pour que les tuiles s'équilibrent.
+    @ViewContextContains(.isInContinueWatching)
+    private var isInContinueWatching
+
     let item: BaseItemDto
 
     var body: some View {
@@ -471,6 +476,13 @@ private struct BaseItemDtoPosterLabel: View {
                 }
 
                 Text(item.displayTitle)
+            }
+        case .movie where isInContinueWatching:
+            Label {
+                Text(item.displayTitle)
+                if let year = item.productionYear {
+                    Text(String(year))
+                }
             }
         case .season:
             Label {
