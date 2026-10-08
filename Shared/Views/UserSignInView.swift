@@ -70,7 +70,11 @@ struct UserSignInView: View {
             markdown: disclaimer,
             options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
         ) {
+            // SweetFin : le texte vient du serveur, ses liens ne s'ouvrent qu'en http(s).
             Text(attributedString)
+                .environment(\.openURL, OpenURLAction { url in
+                    ["http", "https"].contains(url.scheme?.lowercased()) ? .systemAction : .discarded
+                })
         } else {
             Text(disclaimer)
         }
