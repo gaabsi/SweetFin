@@ -141,7 +141,11 @@ struct SettingsView: View {
 
     // MARK: - Credits Footer
 
-    /// SweetFin : l'attribution TMDB (logo + notice) exigée par les conditions de l'API.
+    private static let privacyPolicyURL = URL(string: "https://github.com/gaabsi/SweetFin/blob/main/PRIVACY.md")!
+    private static let sourceCodeURL = URL(string: "https://github.com/gaabsi/SweetFin")!
+
+    /// SweetFin : l'attribution TMDB (logo + notice) exigée par les conditions de l'API,
+    /// puis les liens vers la politique de confidentialité et le code source.
     /// Notice reprise mot pour mot, non traduite ; logo officiel en monochrome (autorisé).
     private var creditsFooter: some View {
         Section {} footer: {
@@ -155,6 +159,18 @@ struct SettingsView: View {
                 Text(
                     verbatim: "This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB."
                 )
+
+                // Lien exigé par l'App Store dans l'app (5.1.1(i)). tvOS n'a pas de
+                // navigateur : l'adresse en clair.
+                #if os(iOS)
+                HStack(spacing: 16) {
+                    Link(SettingsStrings.privacyPolicy, destination: Self.privacyPolicyURL)
+                    Link(L10n.sourceCode, destination: Self.sourceCodeURL)
+                }
+                #else
+                Text(SettingsStrings.privacyPolicy)
+                Text(verbatim: Self.privacyPolicyURL.absoluteString)
+                #endif
 
                 Text(verbatim: "SweetFin \(UIApplication.appVersion ?? "") (\(UIApplication.bundleVersion ?? ""))")
             }
