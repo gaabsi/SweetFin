@@ -1,5 +1,5 @@
 {
-  "originHash" : "2acf7a83362e76445a535e0392c1b0dfa55d677b1ebcf71093cda4660fb5a261",
+  "originHash" : "dae4a258bebee0c377ce171ff880742eff8b90a2627e235c91e5916a44d90caf",
   "pins" : [
     {
       "identity" : "blurhashkit",
@@ -318,10 +318,10 @@
     {
       "identity" : "swiftvlc",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/harflabs/SwiftVLC",
+      "location" : "https://github.com/gaabsi/SwiftVLC",
       "state" : {
-        "revision" : "192393a45cdcd7ebb6befac26586360b8b1676b3",
-        "version" : "1.0.0"
+        "revision" : "b7d39893e35029d3f84aaca1ff943bf40fc22525",
+        "version" : "1.0.0-sweetfin.1"
       }
     },
     {

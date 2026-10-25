@@ -1242,10 +1242,10 @@
 		};
 		E144DBF730464F3A009B85B5 /* XCRemoteSwiftPackageReference "SwiftVLC" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/harflabs/SwiftVLC";
+			repositoryURL = "https://github.com/gaabsi/SwiftVLC";
 			requirement = {
 				kind = exactVersion;
-				version = 1.0.0;
+				version = "1.0.0-sweetfin.1";
 			};
 		};
 		E145EB492BE16849003BF6F3 /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
