@@ -1,10 +1,10 @@
-SweetFin is a client for Jellyfin, the free and open-source media server you run at home.
+SweetFin is a client for Jellyfin, the free and open-source media server you run on your own hardware.
 
-SweetFin does not provide, host or sell any media. It only plays what your own Jellyfin server provides, and you are responsible for the content on your server. A Jellyfin server is required.
+SweetFin does not provide, host, sell or link to any media. It only plays what your own Jellyfin server provides, and you are responsible for the content on your server. A Jellyfin server is required.
 
 FEATURES
 • Direct play, no transcoding: ideal for small home servers
-• Download movies and episodes to watch offline
+• Offline viewing: save movies and episodes from your own server to your device, when your server administrator allows it
 • Skip intros, recaps and credits, then jump to the next episode
 • Watch together with SyncPlay
 • Clean audio and subtitle lists, grouped by language
@@ -12,13 +12,12 @@ FEATURES
 • Designed for iPhone and iPad
 • Default, Purple and Dark themes
 
-KEEP TRACK OF EVERYTHING YOU WATCH
-With the free EnhancedFin plugin on your server, SweetFin brings all your viewing in one place:
-• Explore movies and shows: synopsis, cast, ratings and release dates
+KEEP TRACK OF WHAT YOU WATCH
+With the free EnhancedFin plugin installed on your server, SweetFin brings your viewing history together:
+• Details for movies and shows: synopsis, cast, ratings and release dates
 • Rate what you have watched and keep a watchlist
-• Follow titles and see upcoming releases in a calendar
-• SyncPlay invitations sent to another user
-These features display information about titles from TMDB. Titles that are not on your server can be tracked, never played.
+• Follow movies and shows and see upcoming releases in a calendar
+This information comes from TMDB and is retrieved by the plugin on your own server. Titles that are not on your server are shown for information only: they cannot be played or saved.
 
 SweetFin is open source (MPL-2.0) and collects no data.
 SweetFin is not affiliated with or endorsed by the Jellyfin project.

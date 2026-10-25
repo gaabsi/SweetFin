@@ -1,1 +1,1 @@
-Your Jellyfin library, beautifully on iPhone. Skip intros, download for offline, watch together with SyncPlay.
+Your own Jellyfin library, beautifully on iPhone and iPad. Skip intros, keep media from your server for offline viewing, and watch together with SyncPlay.
