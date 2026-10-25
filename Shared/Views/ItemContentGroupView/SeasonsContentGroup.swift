@@ -342,7 +342,8 @@ private struct SeasonEpisodesSheet: View {
         HStack {
             if isSelecting {
                 Button(L10n.selectAll) {
-                    selection = Set(viewModel.episodes.map(\.id))
+                    // Les épisodes à venir ne se marquent pas : ils gardent leur coche actuelle.
+                    selection.formUnion(viewModel.episodes.filter { !$0.isUpcoming }.map(\.id))
                 }
 
                 Spacer()
@@ -475,10 +476,16 @@ private struct EpisodeRowView: View {
         .padding(.vertical, 12)
         .contentShape(Rectangle())
         // Hors mode sélection, un tap ouvre le lecteur, qui dit si l'épisode est lisible.
-        // Un épisode à venir ne se lit ni ne se marque.
+        // Un épisode à venir ne se lit ni ne se marque, mais marqué vu par erreur il doit
+        // pouvoir se décocher.
         .onTapGesture {
-            guard !episode.isUpcoming else { return }
-            if isSelecting { toggleSelection() } else { play() }
+            if isSelecting {
+                guard !episode.isUpcoming || episode.isWatched else { return }
+                toggleSelection()
+            } else {
+                guard !episode.isUpcoming else { return }
+                play()
+            }
         }
         #if os(iOS)
         // SweetFin : appui long → télécharger, comme sur les affiches.
