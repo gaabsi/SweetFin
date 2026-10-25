@@ -294,6 +294,7 @@ private struct SeasonEpisodesSheet: View {
                                 episode: episode,
                                 isSelecting: isSelecting,
                                 isSelected: selection.contains(episode.id),
+                                availability: viewModel.availability(of: episode),
                                 toggleSelection: { toggleSelection(episode) },
                                 play: { play(episode) },
                                 downloadableID: downloadableID(episode)
@@ -411,6 +412,8 @@ private struct EpisodeRowView: View {
     let episode: EpisodeRow
     let isSelecting: Bool
     let isSelected: Bool
+    /// SweetFin : seul un épisode lisible ouvre le lecteur.
+    let availability: EpisodeAvailability
     let toggleSelection: () -> Void
     let play: () -> Void
     /// SweetFin : item à proposer au téléchargement (appui long), `nil` = pas de menu.
@@ -429,6 +432,12 @@ private struct EpisodeRowView: View {
             : String(format: "%dh%02d", minutes / 60, minutes % 60)
     }
 
+    /// Sorti mais non lisible : vignette en noir et blanc, titre atténué. Pas d'opacité,
+    /// qui veut déjà dire « vu » ici ; un épisode à venir garde sa pastille de date.
+    private var isGreyed: Bool {
+        availability == .unavailable && !episode.isUpcoming
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             if isSelecting {
@@ -445,6 +454,7 @@ private struct EpisodeRowView: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(2)
+                        .foregroundStyle(isGreyed ? .secondary : .primary)
                 }
 
                 // SweetFin : pas encore diffusé, en couleur d'accent (l'atténuation veut
@@ -475,15 +485,16 @@ private struct EpisodeRowView: View {
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
-        // Hors mode sélection, un tap ouvre le lecteur, qui dit si l'épisode est lisible.
-        // Un épisode à venir ne se lit ni ne se marque, mais marqué vu par erreur il doit
-        // pouvoir se décocher.
+        // Hors mode sélection, un tap ouvre le lecteur, seulement pour un épisode
+        // lisible (`availability`) : jamais de lecteur ouvert
+        // pour rien. Un épisode à venir ne se lit ni ne se marque, mais marqué vu par
+        // erreur il doit pouvoir se décocher.
         .onTapGesture {
             if isSelecting {
                 guard !episode.isUpcoming || episode.isWatched else { return }
                 toggleSelection()
             } else {
-                guard !episode.isUpcoming else { return }
+                guard !episode.isUpcoming, availability == .playable else { return }
                 play()
             }
         }
@@ -501,6 +512,7 @@ private struct EpisodeRowView: View {
     /// de ligne, pour ne rien prendre à la largeur du synopsis.
     private var thumbnail: some View {
         FixedImage(source: episode.thumbnail, width: 128, height: 72)
+            .grayscale(isGreyed ? 1 : 0)
             .opacity(episode.isWatched && !isSelecting ? 0.6 : 1)
             .overlay(alignment: .topTrailing) {
                 if episode.isWatched, !isSelecting {

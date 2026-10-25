@@ -371,13 +371,14 @@ struct EnhancedFinPlayable: Decodable, Hashable {
 }
 
 /// Réponse de `GET /media/{mediaKey}/seasons/{season}/playable` : seuls les épisodes
-/// lisibles y figurent, chacun avec l'item à lancer.
+/// lisibles y figurent. `itemId` facultatif : sinon,
+/// la route de l'épisode le donne.
 struct EnhancedFinPlayableSeason: Decodable, Hashable {
 
     struct Episode: Decodable, Hashable {
 
         let episode: Int
-        let itemId: String
+        let itemId: String?
     }
 
     let season: Int

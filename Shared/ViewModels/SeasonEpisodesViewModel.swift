@@ -24,6 +24,16 @@ struct SeasonRow: Identifiable, Hashable {
     var id: Int { number }
 }
 
+/// SweetFin : ce qu'un tap peut faire d'un épisode.
+enum EpisodeAvailability {
+    /// Un item à lancer est connu.
+    case playable
+    /// Réponse du serveur pas encore arrivée : ni lisible ni grisé, pas de clignotement.
+    case pending
+    /// Le serveur ne le propose pas : aucun lecteur ne s'ouvre.
+    case unavailable
+}
+
 /// SweetFin : un épisode, quelle que soit sa source.
 struct EpisodeRow: Identifiable, Hashable {
 
@@ -72,10 +82,11 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     private(set) var isLoadingEpisodes = false
     @Published
     private(set) var error: Error?
-    /// SweetFin : épisodes lisibles de la saison ouverte, numéro → item à lancer
-    /// (`playable` par saison). Le natif reste prioritaire : voir `playableItemID(for:)`.
+    /// SweetFin : épisodes lisibles de la saison ouverte, par numéro (`playable` par
+    /// saison), `nil` tant que le serveur n'a pas répondu. Le natif reste prioritaire :
+    /// voir `availability(of:)` et `playableItemID(for:)`.
     @Published
-    private(set) var playableItemIDs: [Int: String] = [:]
+    private(set) var playableEpisodes: [Int: EnhancedFinPlayableSeason.Episode]?
 
     let backend: Backend
 
@@ -154,20 +165,41 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     /// - number (Int) : numéro de saison
     private func startPlayableResolution(season number: Int) {
         playableTask?.cancel()
-        playableItemIDs = [:]
+        playableEpisodes = nil
 
-        guard let mediaKey, let client = userSession?.enhancedFinClient else { return }
+        // Rien à demander sans plugin, ni pour une série de la médiathèque : chaque
+        // épisode listé y est (`isMissing = false`).
+        guard case .enhancedFin = backend, let mediaKey, let client = userSession?.enhancedFinClient else {
+            playableEpisodes = [:]
+            return
+        }
 
         playableTask = Task {
             let response = try? await client.playableEpisodes(mediaKey, season: number)
 
             // Une saison ouverte entre-temps a la priorité : pas d'écrasement tardif.
-            guard !Task.isCancelled, selectedSeason == number, let response else { return }
-            playableItemIDs = Dictionary(
-                response.episodes.map { ($0.episode, $0.itemId) },
+            guard !Task.isCancelled, selectedSeason == number else { return }
+            // Erreur : aucun épisode de plus, plutôt qu'une attente sans fin.
+            playableEpisodes = Dictionary(
+                (response?.episodes ?? []).map { ($0.episode, $0) },
                 uniquingKeysWith: { first, _ in first }
             )
         }
+    }
+
+    /// Ce qu'un tap peut faire d'un épisode : lisible s'il a son item Jellyfin, sinon
+    /// la liste du serveur décide.
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode de la saison ouverte
+    ///
+    /// Output :
+    /// - availability (EpisodeAvailability) : lisible, en attente du serveur ou non
+    func availability(of episode: EpisodeRow) -> EpisodeAvailability {
+        if episode.jellyfinID != nil { return .playable }
+        guard let playableEpisodes else { return .pending }
+
+        return episode.number.flatMap { playableEpisodes[$0] } == nil ? .unavailable : .playable
     }
 
     /// L'item à lancer pour un épisode : celui de Jellyfin s'il est déjà là (le natif
@@ -177,14 +209,14 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     /// - episode (EpisodeRow) : épisode de la saison ouverte
     ///
     /// Output :
-    /// - itemID (String?) : `nil` si l'épisode n'est pas lisible
+    /// - itemID (String?) : `nil` si la route de l'épisode le donne
     func playableItemID(for episode: EpisodeRow) -> String? {
-        episode.jellyfinID ?? episode.number.flatMap { playableItemIDs[$0] }
+        episode.jellyfinID ?? episode.number.flatMap { playableEpisodes?[$0]?.itemId }
     }
 
     /// Lecture d'un épisode, rendue **tout de suite** : le lecteur s'ouvre sur son titre
     /// et résout dedans, par le même chemin qu'une fiche (fiche complète de l'item, puis
-    /// son lecteur). Rien de lisible : le lecteur l'affiche, le tap n'est jamais muet.
+    /// son lecteur). Appelé seulement pour un épisode lisible (`availability(of:)`).
     ///
     /// Parametres :
     /// - episode (EpisodeRow) : épisode à lire
@@ -194,9 +226,9 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     func playbackProvider(for episode: EpisodeRow) -> MediaPlayerItemProvider {
         let season = selectedSeason
 
-        // De quoi afficher le lecteur pendant la résolution. Sans item Jellyfin, l'id
-        // synthétique de l'épisode (celui de la ligne) : les images ne le demandent pas
-        // à Jellyfin.
+        // De quoi afficher le lecteur le temps que le serveur réponde. Sans item
+        // Jellyfin, l'id synthétique de l'épisode (celui de la ligne) : les images ne le
+        // demandent pas à Jellyfin.
         var placeholder = BaseItemDto(id: episode.id)
         placeholder.name = episode.name
         placeholder.type = .episode
