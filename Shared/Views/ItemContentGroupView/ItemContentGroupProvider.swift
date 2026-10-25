@@ -20,10 +20,12 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     private(set) var mediaPlayerItemProvider: MediaPlayerItemProvider?
     @Published
     private(set) var randomBackdropItem: BaseItemDto?
-    /// SweetFin : vrai tant que `playable` n'a pas répondu pour une fiche sans
-    /// lecteur natif — le bouton Lire affiche alors une roue.
+    /// SweetFin : vrai tant qu'on ne sait pas s'il y a quelque chose à lire (fiche en
+    /// chargement, puis `playable` sans réponse) — le bouton Lire affiche alors une
+    /// roue. Vrai dès le départ : sinon « Indisponible » s'afficherait le temps du
+    /// chargement de n'importe quelle fiche.
     @Published
-    private(set) var isResolvingPlayable = false
+    private(set) var isResolvingPlayable = true
 
     /// SweetFin : la résolution `playable` en cours, pour l'annuler au prochain
     /// chargement et pour que `Router.play` puisse l'attendre.
@@ -148,7 +150,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     }
 
     /// SweetFin : lance `playable` **sans l'attendre**, pour que la fiche s'affiche
-    /// tout de suite ; seul le bouton Lire patiente (roue), puis s'active ou se grise.
+    /// tout de suite ; seul le bouton Lire patiente (roue), puis s'active ou affiche
+    /// « Indisponible ».
     ///
     /// Une résolution précédente est annulée : un rafraîchissement ne doit pas la
     /// laisser écrire par-dessus la nouvelle.
@@ -210,8 +213,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
     /// SweetFin : l'item que le serveur désigne comme lisible pour ce média.
     ///
     /// Demandé pour toute fiche, native comme de découverte : la même question
-    /// partout, le serveur seul décide. Une erreur vaut « rien à lire » — on grise
-    /// le bouton, on ne casse pas la fiche.
+    /// partout, le serveur seul décide. Une erreur vaut « rien à lire » : le bouton
+    /// affiche « Indisponible », la fiche ne casse pas.
     ///
     /// Parametres :
     /// - mediaKey (String?) : clé EnhancedFin, `nil` pour un item sans équivalent

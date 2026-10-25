@@ -1271,6 +1271,16 @@
         }
       }
     },
+    "Unavailable": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indisponible"
+          }
+        }
+      }
+    },
     "Unfollow": {
       "localizations": {
         "fr": {

@@ -23,6 +23,9 @@ enum ItemStrings {
     static let createdBy = String(localized: "Created By", table: "SweetFin")
     static let ratings = String(localized: "Ratings", table: "SweetFin")
 
+    /// Bouton Lire d'une fiche dont le serveur n'a rien à lire (`PlayButton`).
+    static let unavailable = String(localized: "Unavailable", table: "SweetFin")
+
     // Saisons et épisodes (`SeasonsContentGroup`).
     static let markAsWatched = String(localized: "Mark as Watched", table: "SweetFin")
     static let validate = String(localized: "Confirm", table: "SweetFin")

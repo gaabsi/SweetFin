@@ -22,6 +22,22 @@ struct PlayButton: View {
     @Router
     private var router
 
+    /// Pas encore d'item à lancer, le serveur n'a pas encore répondu (`playable`).
+    private var isResolving: Bool {
+        provider.mediaPlayerItemProvider == nil && provider.isResolvingPlayable
+    }
+
+    /// Rien à lire sur ce serveur, réponse connue : le bouton le dit au lieu de proposer
+    /// une lecture grisée (rien n'est présenté comme lisible sans item à lancer).
+    private var isUnavailable: Bool {
+        provider.mediaPlayerItemProvider == nil && !provider.isResolvingPlayable
+    }
+
+    private var label: String {
+        if isUnavailable { return ItemStrings.unavailable }
+        return provider.mediaPlayerItemProvider?.item.playButtonLabel ?? L10n.play
+    }
+
     private var mediaSource: String? {
         guard provider.mediaPlayerItemProvider?.item.mediaSources?.count ?? 0 > 1 else { return nil }
         return provider.mediaPlayerItemProvider?.mediaSource?.displayTitle
@@ -52,15 +68,18 @@ struct PlayButton: View {
         } label: {
             HStack {
                 // SweetFin : roue tant que le serveur n'a pas dit s'il y a quelque
-                // chose à lire (`playable`, résolu après l'affichage de la fiche).
-                if provider.mediaPlayerItemProvider == nil, provider.isResolvingPlayable {
+                // chose à lire (`playable`, résolu après l'affichage de la fiche), sans
+                // libellé : rien n'annonce une lecture avant qu'elle soit possible.
+                if isResolving {
                     ProgressView()
                 } else {
-                    Image(systemName: "play.fill")
+                    Image(systemName: isUnavailable ? "nosign" : "play.fill")
                 }
 
                 VStack(spacing: 2) {
-                    Text(provider.mediaPlayerItemProvider?.item.playButtonLabel ?? L10n.play)
+                    if !isResolving {
+                        Text(label)
+                    }
 
                     if let mediaSource {
                         Marquee(mediaSource, speed: 40, delay: 3, fade: 5)
