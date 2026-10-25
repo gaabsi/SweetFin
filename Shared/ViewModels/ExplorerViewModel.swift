@@ -54,6 +54,10 @@ final class ExplorerViewModel: ViewModel {
     @Published
     private(set) var isLoadingTrending = false
 
+    /// Faux quand l'admin du serveur a désactivé les tendances : la rangée disparaît.
+    @Published
+    private(set) var isTrendingEnabled = true
+
     /// Ce qui est déjà chargé pour chaque filtre.
     ///
     /// Un état **par filtre** et non un seul remis à zéro : revenir sur « Tout »
@@ -123,6 +127,7 @@ final class ExplorerViewModel: ViewModel {
         self.ratings = r.value ?? []
 
         if let page = t.value {
+            isTrendingEnabled = page.enabled ?? true
             feeds[.all] = feed(.all, adding: page, to: TrendingFeed())
         }
 

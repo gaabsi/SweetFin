@@ -125,7 +125,9 @@ struct ExplorerView: View {
                 watchlistSection
             }
 
-            trendingSection
+            if viewModel.isTrendingEnabled {
+                trendingSection
+            }
 
             if viewModel.ratings.isNotEmpty {
                 ratingsSection

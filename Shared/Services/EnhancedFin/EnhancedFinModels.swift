@@ -214,6 +214,9 @@ struct EnhancedFinTrendingPage: Decodable {
 
     let items: [EnhancedFinSearchItem]
     let nextCursor: Int?
+    /// `false` quand l'admin a désactivé les tendances ; absent (plugin plus ancien) :
+    /// activées.
+    let enabled: Bool?
 }
 
 // MARK: - Suivis
