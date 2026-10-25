@@ -17,6 +17,8 @@ SweetFin connects only to the Jellyfin server(s) you add. Your credentials, sett
 
 If your server runs the EnhancedFin plugin, some posters and backdrops are loaded directly from The Movie Database (TMDB), which receives your IP address like any website does. See the [TMDB privacy policy](https://www.themoviedb.org/privacy-policy).
 
+If you are a server administrator, the image editor also shows artwork that your server's metadata providers suggest. Those images are loaded from the addresses your server returns.
+
 ## Contact
 
 Questions: open an issue on [GitHub](https://github.com/gaabsi/SweetFin/issues).
