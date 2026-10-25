@@ -224,25 +224,6 @@ final class EnhancedFinClient {
         try await send(Request(path: "me/hidden/\(escaped(mediaKey))", method: .put))
     }
 
-    // MARK: - Seerr
-
-    /// Le statut Seerr d'un média, et de chacune de ses saisons pour une série.
-    func seerr(_ mediaKey: String) async throws -> EnhancedFinSeerrDetail {
-        try await send(Request(path: "seerr/\(escaped(mediaKey))"))
-    }
-
-    /// Demande un média sur Seerr, au nom de l'utilisateur connecté (tiré du jeton par
-    /// le plugin, avec ses droits Seerr).
-    ///
-    /// - Parameter seasons: les saisons voulues pour une série ; ignoré pour un film.
-    func requestOnSeerr(_ mediaKey: String, seasons: [Int]) async throws {
-        try await send(Request(
-            path: "me/requests/\(escaped(mediaKey))",
-            method: .post,
-            body: SeerrRequestBody(seasons: seasons)
-        ))
-    }
-
     // MARK: - SyncPlay
 
     /// Invite un utilisateur dans mon groupe SyncPlay (l'expéditeur est tiré du jeton).
@@ -386,11 +367,6 @@ final class EnhancedFinClient {
     /// reste aligné sur ce que le front existant envoie.
     private struct RateBody: Encodable {
         let score: Int
-    }
-
-    /// Corps de `POST /me/requests/{mediaKey}`.
-    private struct SeerrRequestBody: Encodable {
-        let seasons: [Int]
     }
 
     /// Corps de `POST /syncplay/invite` (camelCase côté plugin).

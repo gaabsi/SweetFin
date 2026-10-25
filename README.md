@@ -61,7 +61,6 @@ All of this works on any Jellyfin server, no plugin needed.
 - **Explore** movies and shows: synopsis, cast, ratings and release dates.
 - **Calendar**: upcoming episodes and releases of the movies and shows you follow.
 - **Ratings, watchlist and follows**, kept on your server.
-- **Requests through Seerr**: if your server uses Seerr, ask its administrator to add a title.
 - **SyncPlay invitations** sent straight to another user's device.
 
 These features display information about titles from TMDB. Titles that are not on your server can be tracked, never played.

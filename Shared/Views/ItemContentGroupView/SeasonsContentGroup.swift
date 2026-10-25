@@ -19,19 +19,8 @@ import SwiftUI
 /// `episode_modal_core.js` du front web.
 struct SeasonsContentGroup: ContentGroup {
 
-    /// Ce qui manque à une série du serveur, pour la carte « + ».
-    struct Completion {
-
-        /// Clé TMDB de la série : la carte ouvre ses saisons complètes.
-        let mediaKey: String
-
-        /// Affiche de la série, floutée sur la carte.
-        let poster: ImageSource?
-    }
-
     let id: String
     let viewModel: SeasonEpisodesViewModel
-    let completion: Completion?
 
     var _shouldBeResolved: Bool {
         viewModel.seasons.isNotEmpty
@@ -40,15 +29,13 @@ struct SeasonsContentGroup: ContentGroup {
     /// Parametres :
     /// - id (String) : identifiant de la série, pour distinguer les groupes
     /// - backend (SeasonEpisodesViewModel.Backend) : source des saisons
-    /// - completion (Completion?) : série incomplète selon Seerr, `nil` sinon
-    init(id: String, backend: SeasonEpisodesViewModel.Backend, completion: Completion? = nil) {
+    init(id: String, backend: SeasonEpisodesViewModel.Backend) {
         self.id = "\(id)-seasons"
         self.viewModel = SeasonEpisodesViewModel(backend: backend)
-        self.completion = completion
     }
 
     func body(with viewModel: SeasonEpisodesViewModel) -> some View {
-        SeasonsRail(viewModel: viewModel, completion: completion)
+        SeasonsRail(viewModel: viewModel)
     }
 }
 
@@ -58,8 +45,6 @@ private struct SeasonsRail: View {
 
     @ObservedObject
     var viewModel: SeasonEpisodesViewModel
-
-    let completion: SeasonsContentGroup.Completion?
 
     @State
     private var isPresentingEpisodes = false
@@ -77,13 +62,6 @@ private struct SeasonsRail: View {
                         }
                         .buttonStyle(.plain)
                     }
-
-                    if let completion {
-                        CompletionCard(
-                            completion: completion,
-                            serverSeasons: Set(viewModel.seasons.map(\.number))
-                        )
-                    }
                 }
                 .edgePadding(.horizontal)
             }
@@ -95,64 +73,6 @@ private struct SeasonsRail: View {
                 .accessibilityAddTraits(.isHeader)
         }
         .seasonEpisodesSheet(isPresented: $isPresentingEpisodes, viewModel: viewModel)
-    }
-}
-
-/// La carte « + » en fin de rail : la série n'est pas entière sur le serveur.
-///
-/// Reprise du front web (carte « see-more ») : affiche de la série floutée,
-/// un `+` au centre. Elle ouvre la même feuille, mais sur les saisons **TMDB**, où
-/// le suivi « vu » passe par le plugin comme pour une série de découverte.
-private struct CompletionCard: View {
-
-    let completion: SeasonsContentGroup.Completion
-
-    /// Saisons présentes sur le serveur : la feuille s'ouvre sur la première absente.
-    let serverSeasons: Set<Int>
-
-    @StateObject
-    private var viewModel: SeasonEpisodesViewModel
-
-    @State
-    private var isPresenting = false
-
-    init(completion: SeasonsContentGroup.Completion, serverSeasons: Set<Int>) {
-        self.completion = completion
-        self.serverSeasons = serverSeasons
-        _viewModel = StateObject(wrappedValue: SeasonEpisodesViewModel(backend: .enhancedFin(mediaKey: completion.mediaKey)))
-    }
-
-    var body: some View {
-        Button {
-            isPresenting = true
-            Task { await open() }
-        } label: {
-            FixedImage(source: completion.poster, width: 120, height: 180)
-                .blur(radius: 3)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay {
-                    Image(systemName: "plus.square.dashed")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.6), radius: 4, y: 2)
-                }
-                .accessibilityLabel(L10n.seasons)
-        }
-        .buttonStyle(.plain)
-        .seasonEpisodesSheet(isPresented: $isPresenting, viewModel: viewModel)
-    }
-
-    /// Charge les saisons TMDB, puis ouvre la première absente du serveur — à défaut
-    /// (il ne manque que des épisodes), la première.
-    private func open() async {
-        if viewModel.seasons.isEmpty {
-            await viewModel.refresh()
-        }
-
-        let target = viewModel.seasons.first { !serverSeasons.contains($0.number) } ?? viewModel.seasons.first
-        if let target {
-            await viewModel.select(season: target.number)
-        }
     }
 }
 
@@ -189,7 +109,7 @@ private struct SeasonCard: View {
 ///
 /// Le lecteur ne s'ouvre qu'**une fois la feuille fermée** : SwiftUI refuse deux
 /// présentations à la fois, et le lecteur est présenté par le coordinateur, sous la
-/// feuille. Un seul endroit pour les deux qui ouvrent la feuille (rail, carte « + »).
+/// feuille.
 private struct SeasonEpisodesSheetModifier: ViewModifier {
 
     @Binding

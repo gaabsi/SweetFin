@@ -12,10 +12,10 @@ import SwiftUI
 /// SweetFin : ce que le bloc « infos » d'une fiche affiche.
 ///
 /// Deux sources, une seule forme :
-/// - le **plugin** (TMDB + MDBList), pour toute fiche qui a un identifiant TMDB ;
+/// - le **plugin** (TMDB), pour toute fiche qui a un identifiant TMDB ;
 /// - l'**item Jellyfin** en secours, quand le plugin ne répond pas. Moins complet :
 ///   son import TMDB ne garde pas toujours la réalisation (vérifié : Hunger Games,
-///   Toy Story 5 n'y ont que des producteurs), et il n'a pas la note du public.
+///   Toy Story 5 n'y ont que des producteurs).
 struct ItemFacts {
 
     let genres: [String]
@@ -28,12 +28,8 @@ struct ItemFacts {
     /// Note TMDB, sur 10.
     let tmdbRating: Double?
 
-    /// Rotten Tomatoes, en pourcentage : la critique, puis le public.
-    let rtCritics: Int?
-    let rtAudience: Int?
-
     var hasRatings: Bool {
-        tmdbRating != nil || rtCritics != nil || rtAudience != nil
+        tmdbRating != nil
     }
 
     var isEmpty: Bool {
@@ -48,8 +44,6 @@ struct ItemFacts {
         self.releaseDate = media.detail?.releaseDate.flatMap(DateFormatter.calendarDay.date(from:))
         self.isSeries = EnhancedFinMediaType(mediaKey: media.mediaKey) == .tv
         self.tmdbRating = media.voteAverage
-        self.rtCritics = media.scores?.rtCritics
-        self.rtAudience = media.scores?.rtAudience
     }
 
     /// Parametres :
@@ -69,10 +63,6 @@ struct ItemFacts {
         self.releaseDate = item.premiereDate
         self.isSeries = isSeries
         self.tmdbRating = item.communityRating.map(Double.init)
-        // `criticRating` est le Tomatometer, quand le fournisseur de métadonnées
-        // l'a rempli. Jellyfin n'a pas d'équivalent pour le public.
-        self.rtCritics = item.criticRating.map { Int($0) }
-        self.rtAudience = nil
     }
 }
 
@@ -147,19 +137,11 @@ struct ItemFactsContentGroup: ContentGroup {
         .padding(.vertical, 12)
     }
 
-    /// Les notes, réparties sur la largeur. Une note absente n'a pas de place.
-    ///
-    /// ⚠️ Emojis et non symboles pour la tomate et le popcorn : `popcorn.fill` n'a
-    /// qu'un calque (vérifié en le rendant en palette : tout d'une couleur), il ne
-    /// peut pas faire un pot rouge et du popcorn jaune.
-    ///
-    /// ⚠️ **Jamais de logo de site de notes** (refus App Store 5.2.3, 2026-10-24) : les
-    /// emojis sont libres, l'éclaboussure « rotten » dessinée à l'image du site était une
-    /// marque (5.2.1). La tomate reste la même quelle que soit la note.
+    /// La note TMDB, en pourcentage.
     private var ratings: some View {
         HStack {
             if let tmdbRating = facts.tmdbRating {
-                // En pourcentage, comme les deux autres : 7,3 → 73 %.
+                // En pourcentage : 7,3 → 73 %.
                 rating("\(Int((tmdbRating * 10).rounded()))%") {
                     Image(systemName: "star.fill")
                         .resizable()
@@ -167,28 +149,8 @@ struct ItemFactsContentGroup: ContentGroup {
                         .foregroundStyle(.teal)
                 }
             }
-
-            if let rtCritics = facts.rtCritics {
-                rating("\(rtCritics)%") {
-                    emoji("🍅")
-                }
-            }
-
-            if let rtAudience = facts.rtAudience {
-                rating("\(rtAudience)%") {
-                    emoji("🍿")
-                }
-            }
         }
         .padding(.top, 4)
-    }
-
-    /// ⚠️ `fixedSize` : un emoji de 16 pt est un peu plus large que le cadre de 18 pt
-    /// de `rating`, et un `Text` trop étroit se **tronque** — la tomate sortait rognée.
-    private func emoji(_ character: String) -> some View {
-        Text(character)
-            .font(.system(size: 16))
-            .fixedSize()
     }
 
     private func rating(_ value: String, @ViewBuilder icon: () -> some View) -> some View {
