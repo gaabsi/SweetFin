@@ -1,0 +1,144 @@
+# Fastfile générique de la skill appstore-publish.
+# Identique d'un projet à l'autre : tout ce qui change vit dans fastlane/.env (voir env.template).
+# Lanes : pull, upload, metadata, submit, status, release.
+require "json"
+require "tempfile"
+
+API_KEY_ENV = File.expand_path("~/.appstoreconnect/api_key.env")
+PLATFORMS = { "ios" => "IOS", "appletvos" => "TV_OS", "osx" => "MAC_OS" }.freeze
+
+before_all do
+  Dotenv.load(API_KEY_ENV)
+  app_store_connect_api_key
+end
+
+# --- Aides -------------------------------------------------------------------
+
+def app_id
+  ENV.fetch("APP_IDENTIFIER")
+end
+
+def platform
+  ENV.fetch("APP_PLATFORM", "ios")
+end
+
+def connect_platform
+  PLATFORMS.fetch(platform)
+end
+
+def marketing_version
+  get_version_number(xcodeproj: ENV.fetch("APP_XCODEPROJ"), target: ENV.fetch("APP_TARGET"))
+end
+
+def asc_app
+  Spaceship::ConnectAPI::App.find(app_id) || UI.user_error!("App #{app_id} introuvable dans App Store Connect")
+end
+
+# Les actions publiques (soumettre, publier) exigent confirm:true sur la ligne de commande.
+def require_confirmation!(options, action)
+  return if options[:confirm].to_s == "true"
+
+  UI.user_error!("#{action} refusé : relancer avec confirm:true après validation explicite")
+end
+
+# Arguments d'authentification par clé API pour xcodebuild (signature auto + export).
+def xcode_auth_args
+  [
+    "-allowProvisioningUpdates",
+    "-authenticationKeyPath #{File.expand_path(ENV.fetch('APP_STORE_CONNECT_API_KEY_KEY_FILEPATH'))}",
+    "-authenticationKeyID #{ENV.fetch('APP_STORE_CONNECT_API_KEY_KEY_ID')}",
+    "-authenticationKeyIssuerID #{ENV.fetch('APP_STORE_CONNECT_API_KEY_ISSUER_ID')}",
+  ].join(" ")
+end
+
+# --- Lanes -------------------------------------------------------------------
+
+desc "Télécharge la fiche actuelle (textes + captures) d'App Store Connect dans fastlane/"
+lane :pull do
+  key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+  Tempfile.create(["asc_key", ".json"]) do |file|
+    File.chmod(0o600, file.path)
+    File.write(file.path, key.slice(:key_id, :issuer_id, :key).to_json)
+    # Les lanes s'exécutent dans fastlane/ : chemins absolus pour la CLI deliver.
+    paths = ["--metadata_path", File.expand_path("metadata"), "--screenshots_path", File.expand_path("screenshots")]
+    %w[download_metadata download_screenshots].each do |command|
+      sh("fastlane", "deliver", command, "--force", "--api_key_path", file.path,
+         "--app_identifier", app_id, "--platform", platform, *paths)
+    end
+  end
+end
+
+desc "Archive en Release (build = dernier TestFlight + 1) et envoie sur TestFlight"
+lane :upload do
+  version = marketing_version
+  build = latest_testflight_build_number(app_identifier: app_id, version: version,
+                                         platform: platform, initial_build_number: 0) + 1
+  UI.message("Version #{version}, build #{build}")
+  ipa = build_app(
+    project: ENV.fetch("APP_XCODEPROJ"),
+    scheme: ENV.fetch("APP_SCHEME"),
+    configuration: "Release",
+    export_method: "app-store",
+    output_directory: "fastlane/build",
+    # gym (fastlane ≥ 2.24x) repasse `xcargs` à l'export : pas d'`export_xcargs` en plus,
+    # sinon `-authenticationKeyPath` arrive deux fois et xcodebuild refuse (vécu 2026-10-25).
+    xcargs: "#{xcode_auth_args} CURRENT_PROJECT_VERSION=#{build} #{ENV.fetch('APP_XCARGS', '')}",
+  )
+  upload_to_testflight(ipa: ipa, app_identifier: app_id, skip_waiting_for_build_processing: false)
+  UI.success("Build #{version} (#{build}) traité et disponible")
+end
+
+desc "Envoie la fiche locale (fastlane/metadata, + captures si screenshots:true), sans soumettre"
+lane :metadata do |options|
+  deliver(
+    app_identifier: app_id,
+    platform: platform,
+    app_version: marketing_version,
+    skip_binary_upload: true,
+    skip_screenshots: options[:screenshots].to_s != "true",
+    overwrite_screenshots: true,
+    submit_for_review: false,
+    run_precheck_before_submit: false,
+    force: true,
+  )
+end
+
+desc "Rattache le build et soumet la version à la review (confirm:true obligatoire)"
+lane :submit do |options|
+  require_confirmation!(options, "Soumission")
+  deliver(
+    app_identifier: app_id,
+    platform: platform,
+    app_version: marketing_version,
+    build_number: options.fetch(:build).to_s,
+    skip_binary_upload: true,
+    skip_metadata: true,
+    skip_screenshots: true,
+    submit_for_review: true,
+    automatic_release: false,
+    precheck_include_in_app_purchases: false,
+    submission_information: { add_id_info_uses_idfa: false },
+    force: true,
+  )
+end
+
+desc "Affiche l'état des dernières versions et des derniers builds"
+lane :status do
+  app = asc_app
+  app.get_app_store_versions(filter: { platform: connect_platform }, limit: 3).each do |v|
+    UI.message("Version #{v.version_string} : #{v.app_version_state || v.app_store_state} (build #{v.build&.version || '-'})")
+  end
+  Spaceship::ConnectAPI::Build.all(app_id: app.id, limit: 3).each do |b|
+    UI.message("Build #{b.app_version} (#{b.version}) : #{b.processing_state}, envoyé le #{b.uploaded_date}")
+  end
+end
+
+desc "Publie une version acceptée en attente de sortie manuelle (confirm:true obligatoire)"
+lane :release do |options|
+  require_confirmation!(options, "Publication")
+  version = asc_app.get_app_store_versions(
+    filter: { platform: connect_platform, appStoreState: "PENDING_DEVELOPER_RELEASE" }
+  ).first || UI.user_error!("Aucune version en attente de publication")
+  version.create_app_store_version_release_request
+  UI.success("Version #{version.version_string} publiée")
+end

@@ -98,3 +98,14 @@ PUBLICATION.md
 
 # Other
 .idea
+
+# fastlane (skill appstore-publish)
+fastlane/.env
+fastlane/build/
+fastlane/report.xml
+fastlane/README.md
+fastlane/metadata/review_information/
+fastlane/screenshots/
+fastlane/metadata/copyright.txt
+*.ipa
+*.app.dSYM.zip

@@ -1,0 +1,1 @@
+jellyfin,media,server,movies,tv,shows,player,video,offline,syncplay,calendar,watchlist,ratings
