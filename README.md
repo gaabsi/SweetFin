@@ -8,7 +8,11 @@
 </div>
 
 <p align="center">
-  <b>SweetFin</b> is an unofficial video client for the <a href="https://github.com/jellyfin/jellyfin">Jellyfin</a> media server, for iPhone, iPad and Apple TV. It is built on top of <a href="https://github.com/jellyfin/Swiftfin">Swiftfin</a> and plays everything through <b>VLC</b>, with a redesigned interface, watch-together, offline downloads and, paired with its companion server plugin <b>EnhancedFin</b>, discovery, ratings and a release calendar.
+  <b>SweetFin</b> is an unofficial video client for the <a href="https://github.com/jellyfin/jellyfin">Jellyfin</a> media server, for iPhone, iPad and Apple TV. It is built on top of <a href="https://github.com/jellyfin/Swiftfin">Swiftfin</a> and plays everything through <b>VLC</b>, with a redesigned interface, watch-together, offline downloads and, paired with its companion server plugin <b>EnhancedFin</b>, a way to keep track of everything you watch.
+</p>
+
+<p align="center">
+  SweetFin does not provide, host or sell any media. It only plays what your own Jellyfin server provides.
 </p>
 
 ## ⚡️ Download
@@ -18,10 +22,9 @@ Coming soon to the App Store.
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/HomePage.jpg" width="22%"/>
-  <img src="docs/screenshots/ExplorerPage.jpg" width="22%"/>
-  <img src="docs/screenshots/CalendarPage.jpg" width="22%"/>
-  <img src="docs/screenshots/DownloadPage.jpg" width="22%"/>
+  <img src="docs/screenshots/HomePage.jpg" width="28%"/>
+  <img src="docs/screenshots/ExplorerPage.jpg" width="28%"/>
+  <img src="docs/screenshots/DownloadPage.jpg" width="28%"/>
 </p>
 
 ## ✨ Features
@@ -53,14 +56,15 @@ All of this works on any Jellyfin server, no plugin needed.
 
 ### 🧩 Even more with EnhancedFin
 
-[EnhancedFin](https://github.com/gaabsi/EnhancedFin) is a companion **server plugin** for Jellyfin. SweetFin detects it automatically and unlocks:
+[EnhancedFin](https://github.com/gaabsi/EnhancedFin) is a companion **server plugin** for Jellyfin. SweetFin detects it automatically and brings all your viewing in one place:
 
-- **Explore**: browse trending titles and search the whole TMDB catalogue, not just your library.
+- **Explore** movies and shows: synopsis, cast, ratings and release dates.
 - **Calendar**: upcoming episodes and releases of the movies and shows you follow.
 - **Ratings, watchlist and follows**, kept on your server.
-- **TMDB and critics' scores** on item pages.
-- **Requests through Seerr** for what you do not have yet.
+- **Requests through Seerr**: if your server uses Seerr, ask its administrator to add a title.
 - **SyncPlay invitations** sent straight to another user's device.
+
+These features display information about titles from TMDB. Titles that are not on your server can be tracked, never played.
 
 Without the plugin, SweetFin simply hides these features and brings back Jellyfin's native search.
 
