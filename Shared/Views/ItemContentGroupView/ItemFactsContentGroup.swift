@@ -151,8 +151,11 @@ struct ItemFactsContentGroup: ContentGroup {
     ///
     /// ⚠️ Emojis et non symboles pour la tomate et le popcorn : `popcorn.fill` n'a
     /// qu'un calque (vérifié en le rendant en palette : tout d'une couleur), il ne
-    /// peut pas faire un pot rouge et du popcorn jaune. Le symbole `tomato.fresh`
-    /// ferait une tomate plate ; l'emoji est celui du site web.
+    /// peut pas faire un pot rouge et du popcorn jaune.
+    ///
+    /// ⚠️ **Jamais de logo de site de notes** (refus App Store 5.2.3, 2026-10-24) : les
+    /// emojis sont libres, l'éclaboussure « rotten » dessinée à l'image du site était une
+    /// marque (5.2.1). La tomate reste la même quelle que soit la note.
     private var ratings: some View {
         HStack {
             if let tmdbRating = facts.tmdbRating {
@@ -167,15 +170,7 @@ struct ItemFactsContentGroup: ContentGroup {
 
             if let rtCritics = facts.rtCritics {
                 rating("\(rtCritics)%") {
-                    // Sous 60 %, Rotten Tomatoes affiche l'éclaboussure verte.
-                    if rtCritics >= 60 {
-                        emoji("🍅")
-                    } else {
-                        Image(.tomatoRotten)
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(.green)
-                    }
+                    emoji("🍅")
                 }
             }
 
