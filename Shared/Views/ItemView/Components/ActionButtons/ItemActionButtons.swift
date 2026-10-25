@@ -249,12 +249,14 @@ extension ItemActionButtons {
                 // SweetFin : demander le média sur Seerr, quand la fiche est
                 // incomplète ou de découverte. Hors de la liste configurable des
                 // boutons : ce n'est pas une préférence, c'est une situation.
+                // `plus.circle` et non une flèche vers le bas : une demande à l'admin,
+                // pas un téléchargement (refus App Store 5.2.3, 2026-10-24).
                 if let media = provider.enhancedFinMedia,
                    media.canRequestOnSeerr(isNative: !EnhancedFinSyntheticItem.isSynthetic(provider.item.id))
                 {
                     Divider()
 
-                    Button(SeerrStrings.requestOnSeerr, systemImage: "arrow.down.circle") {
+                    Button(SeerrStrings.requestOnSeerr, systemImage: "plus.circle") {
                         router.route(to: .seerrRequest(media: media))
                     }
                 }
