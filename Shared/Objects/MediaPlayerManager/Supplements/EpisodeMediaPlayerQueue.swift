@@ -51,9 +51,9 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
     private var currentAdjacentEpisodesTask: AnyCancellable?
     private let seasonsViewModel: PagingLibraryViewModel<SeasonViewModelLibrary>
 
-    /// SweetFin : clé de la série quand elle est **connue par sa clé** (l'épisode lu
-    /// n'a alors pas de `seriesID`) : saisons et épisodes viennent du plugin, et un
-    /// épisode se lance par `MediaPlayerItemProvider.playable`. `nil` = série du serveur.
+    /// SweetFin : clé de la série quand l'épisode lu n'a pas de `seriesID` : saisons et
+    /// épisodes viennent du plugin, et un épisode se lance par
+    /// `MediaPlayerItemProvider.playable`. `nil` = série connue de Jellyfin.
     private let mediaKey: String?
 
     /// Parametres :
@@ -79,7 +79,7 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
     }
 
     /// SweetFin : l'épisode en cours d'une série connue par sa clé n'a pas l'id de sa
-    /// carte (il porte celui du serveur qui le lit) : on compare saison et numéro.
+    /// carte (il porte celui de l'item lu) : on compare saison et numéro.
     static func isCurrent(_ episode: BaseItemDto, playing: BaseItemDto) -> Bool {
         guard EnhancedFinSyntheticItem.isSynthetic(episode.id) else { return playing.id == episode.id }
         return playing.parentIndexNumber == episode.parentIndexNumber && playing.indexNumber == episode.indexNumber
@@ -180,9 +180,9 @@ class EpisodeMediaPlayerQueue: ViewModel, MediaPlayerQueue {
 
 extension EpisodeMediaPlayerQueue {
 
-    /// SweetFin : précédent et suivant d'un épisode d'une série connue par sa clé, d'après les
-    /// saisons TMDB du plugin (dernier épisode → premier de la saison suivante).
-    /// Chacun est demandé au serveur quand on le lance.
+    /// SweetFin : précédent et suivant d'un épisode d'une série connue par sa clé,
+    /// d'après les saisons TMDB du plugin (dernier épisode → premier de la saison
+    /// suivante). Chacun est demandé au serveur quand on le lance.
     ///
     /// Parametres :
     /// - item (BaseItemDto) : l'épisode en cours
@@ -241,7 +241,8 @@ extension EpisodeMediaPlayerQueue {
         @ObservedObject
         var viewModel: PagingLibraryViewModel<SeasonViewModelLibrary>
 
-        /// SweetFin : clé de la série, `nil` pour une série connue de Jellyfin (`seriesID`).
+        /// SweetFin : clé de la série, `nil` pour une série connue de Jellyfin
+        /// (`seriesID`).
         let mediaKey: String?
 
         @State

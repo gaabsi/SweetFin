@@ -67,8 +67,8 @@ extension Router.Wrapper {
     /// - seriesKey (String?) : clé de la série, à défaut celle de l'id synthétique affiché
     @MainActor
     func play(_ provider: MediaPlayerItemProvider, seriesKey: String? = nil) {
-        // L'item affiché pendant la résolution porte la série quand elle est hors
-        // bibliothèque (id synthétique) : la file en a besoin pour ses épisodes.
+        // L'item affiché pendant la résolution porte la clé de la série quand il est
+        // synthétique : la file en a besoin pour ses épisodes.
         let seriesKey = seriesKey ?? EnhancedFinSyntheticItem.mediaKey(from: provider.item.id)
         let manager = MediaPlayerManager(provider: provider) { resolvedItem in
             resolvedItem.type == .episode ? EpisodeMediaPlayerQueue(episode: resolvedItem, seriesKey: seriesKey) : nil

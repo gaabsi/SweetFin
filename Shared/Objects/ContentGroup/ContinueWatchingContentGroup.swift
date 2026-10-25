@@ -12,8 +12,8 @@ import SwiftUI
 ///
 /// Deux écarts avec un `PosterGroup` d'upstream, d'où un groupe à part :
 /// - **un tap lance la lecture** (`Router.play`) au lieu d'ouvrir la fiche : c'est une
-///   liste de choses en cours. Une entrée du plugin passe par `playable` ;
-///   rien de lisible, le lecteur l'indique ;
+///   liste de choses en cours. Une entrée du plugin passe par `playable` : le serveur
+///   désigne l'item à lire ;
 /// - **toujours affiché**, même vide : un `PosterGroup` vide s'efface de l'Accueil
 ///   (`_shouldBeResolved`), et sur un compte neuf on croyait la section perdue. Des
 ///   emplacements vides tiennent sa place. Masquer un item rafraîchit la page en

@@ -20,9 +20,8 @@ import JellyfinAPI
 ///    synthétique et n'existe sur aucun serveur ; l'interroger renverrait une erreur
 ///    et laisserait la vue en état d'échec.
 /// 2. **`mediaPlayerItemProvider` ne vient pas de Jellyfin** : il n'est rempli que si
-///    EnhancedFin désigne un item lisible (`GET media/{key}/playable`). Sinon il reste
-///    `nil`, et `PlayButton` (`.disabled(provider.mediaPlayerItemProvider == nil)`) se
-///    grise de lui-même.
+///    le serveur désigne un item lisible (`GET media/{key}/playable`). Sinon il reste
+///    `nil`, et `PlayButton` affiche « Indisponible ».
 final class ExplorerItemProvider: ItemContentGroupProvider {
 
     private let mediaKey: String

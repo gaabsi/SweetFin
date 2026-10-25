@@ -158,8 +158,8 @@ class MediaProgressObserver: ViewModel, MediaPlayerObserver {
             try await send(request)
 
             // SweetFin : les pages ouvertes se rafraîchissent au retour (bouton Lire,
-            // reprise). Une entrée du plugin n'a pas de données utilisateur Jellyfin, donc pas
-            // de `itemUserDataDidChange` du serveur pour le faire.
+            // reprise). Une entrée du plugin n'a pas de données utilisateur Jellyfin, donc
+            // pas de `itemUserDataDidChange` du serveur pour le faire.
             guard notifies else { return }
             await MainActor.run { Notifications[.didChangeWatchState].post() }
         }

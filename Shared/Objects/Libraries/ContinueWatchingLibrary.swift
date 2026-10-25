@@ -13,7 +13,7 @@ import JellyfinAPI
 ///
 /// L'Accueil d'upstream montrait « Continuer » et « Next Up » côte à côte, et une
 /// série commencée y apparaissait deux fois. On les fusionne, et on y ajoute les
-/// entrées du plugin, dont la progression est enregistrée par le plugin.
+/// entrées du plugin, dont la progression est enregistrée par EnhancedFin.
 ///
 /// | Source | Route | Ce qu'elle apporte |
 /// |---|---|---|
@@ -23,14 +23,14 @@ import JellyfinAPI
 ///
 /// ⚠️ **La déduplication se fait par identifiant TMDB, pas par `seriesId`.** Le
 /// réflexe est de dédupliquer par série, ce qui suffirait entre les deux routes
-/// natives — mais pas avec les reprises du plugin, qui n'ont aucun
+/// natives — mais pas avec les entrées du plugin, qui n'ont aucun
 /// identifiant Jellyfin. D'où la résolution par identifiant TMDB.
 struct ContinueWatchingLibrary: BaseItemKindLibrary {
 
     /// Ce qu'on garde après fusion. Au-delà, le rail devient un inventaire.
     private static let itemLimit = 20
 
-    /// Plafond distinct pour les reprises du plugin.
+    /// Plafond distinct pour les entrées du plugin.
     ///
     /// ⚠️ Sans lui, un long historique côté plugin noie les reprises Jellyfin sous
     /// des entrées anciennes, puisque tout est trié ensemble par date d'activité.
@@ -68,7 +68,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
 
         // L'ordre de concaténation EST l'ordre de priorité : être au milieu d'un
         // épisode l'emporte sur en avoir un suivant à proposer, qui l'emporte sur une
-        // reprise du plugin.
+        // entrée du plugin.
         let merged = resumed + next + externals
         let keys = await mediaKeys(for: merged, pageState: pageState)
 
@@ -122,7 +122,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
         return items.filter { $0.parentIndexNumber != 1 || $0.indexNumber != 1 }
     }
 
-    /// Les reprises enregistrées par le plugin, converties en items synthétiques.
+    /// Les entrées enregistrées par le plugin, converties en items synthétiques.
     ///
     /// Un tap passe par `Router.play` : le serveur dit si l'item est lisible
     /// (`playable`), sinon le lecteur l'indique.
@@ -160,7 +160,7 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     /// Retire les items masqués **qui n'ont pas été relus depuis**.
     ///
     /// On masque un média entier : un épisode masqué emporte sa série, et n'importe
-    /// quel épisode relu après la fait revenir. Les reprises du plugin ne sont pas
+    /// quel épisode relu après la fait revenir. Les entrées du plugin ne sont pas
     /// regardées ici : le plugin les filtre déjà lui-même, avec la même règle.
     ///
     /// Parametres :
