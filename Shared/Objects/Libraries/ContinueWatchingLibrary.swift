@@ -92,6 +92,9 @@ struct ContinueWatchingLibrary: BaseItemKindLibrary {
     private func resumeItems(_ pageState: LibraryPageState) async -> [BaseItemDto] {
         var parameters = Paths.GetResumeItemsParameters()
         parameters.enableUserData = true
+        // Sans `ProviderIds`, un film n'a pas de clé média, donc « Masquer » ne le retire
+        // jamais (un épisode, lui, passe par sa série).
+        parameters.fields = [.providerIDs]
         parameters.limit = Self.itemLimit
         parameters.mediaTypes = [.video]
         parameters.userID = pageState.userSession.user.id
