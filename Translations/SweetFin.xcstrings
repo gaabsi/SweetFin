@@ -91,6 +91,16 @@
         }
       }
     },
+    "%lld ep.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ép."
+          }
+        }
+      }
+    },
     "%lld episodes · %@": {
       "localizations": {
         "en": {
@@ -267,6 +277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Audiodescription"
+          }
+        }
+      }
+    },
+    "Available": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disponible"
           }
         }
       }
@@ -831,6 +851,16 @@
         }
       }
     },
+    "Not Requested": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non demandée"
+          }
+        }
+      }
+    },
     "Nothing to download: you've watched everything, or the rest of the season is already downloaded.": {
       "localizations": {
         "fr": {
@@ -891,12 +921,32 @@
         }
       }
     },
+    "Partially Available": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partielle"
+          }
+        }
+      }
+    },
     "Participants": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Participants"
+          }
+        }
+      }
+    },
+    "Pending": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente"
           }
         }
       }
@@ -1011,6 +1061,46 @@
         }
       }
     },
+    "Request": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander"
+          }
+        }
+      }
+    },
+    "Request a Movie": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander un film"
+          }
+        }
+      }
+    },
+    "Request a Show": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander une série"
+          }
+        }
+      }
+    },
+    "Request on Seerr": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander sur Seerr"
+          }
+        }
+      }
+    },
     "Retry Download": {
       "localizations": {
         "fr": {
@@ -1041,6 +1131,16 @@
         }
       }
     },
+    "Season %lld": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saison %lld"
+          }
+        }
+      }
+    },
     "Seasons": {
       "localizations": {
         "fr": {
@@ -1057,6 +1157,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voir moins"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout sélectionner"
           }
         }
       }
@@ -1197,6 +1307,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Watchlist"
+          }
+        }
+      }
+    },
+    "“%@” will be requested on Seerr under your name.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %@ » sera demandé sur Seerr, à ton nom."
           }
         }
       }

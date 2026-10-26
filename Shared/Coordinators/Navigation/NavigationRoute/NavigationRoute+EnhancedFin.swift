@@ -162,6 +162,13 @@ extension NavigationRoute {
     }
     #endif
 
+    /// La fenêtre « Demander sur Seerr », voir `SeerrRequestView`.
+    static func seerrRequest(media: EnhancedFinMedia) -> NavigationRoute {
+        NavigationRoute(id: "seerrRequest-\(media.mediaKey)", style: .sheet) {
+            SeerrRequestView(media: media)
+        }
+    }
+
     /// Les réglages du lecteur du fork, voir `PlayerSettingsView`.
     static var playerSettings: NavigationRoute {
         NavigationRoute(id: "playerSettings") {
