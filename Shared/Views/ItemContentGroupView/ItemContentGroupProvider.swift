@@ -315,27 +315,6 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         return .jellyfin(seriesID: id, mediaKey: item.enhancedFinMediaKey)
     }
 
-    /// SweetFin : la carte « + » des saisons, pour une série du serveur que Seerr
-    /// dit incomplète. Jamais sur une série de découverte : elle montre déjà tout TMDB.
-    ///
-    /// Parametres :
-    /// - item (BaseItemDto) : la série
-    ///
-    /// Output :
-    /// - completion (SeasonsContentGroup.Completion?) : `nil` si rien ne manque ou si
-    ///   Seerr n'a pas répondu
-    func seasonsCompletion(for item: BaseItemDto) -> SeasonsContentGroup.Completion? {
-        guard isOnServer,
-              enhancedFinMedia?.isIncompleteSeries == true,
-              let mediaKey = item.enhancedFinMediaKey
-        else { return nil }
-
-        return .init(
-            mediaKey: mediaKey,
-            poster: item.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 120))
-        )
-    }
-
     @ContentGroupBuilder
     func _makeGroups(item: BaseItemDto, itemID: String) async throws -> [any ContentGroup] {
 
@@ -367,7 +346,7 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
         // comme de découverte. Voir `SeasonsContentGroup`.
         #if os(iOS)
         if item.type == .series, let backend = seasonsBackend(for: item) {
-            SeasonsContentGroup(id: itemID, backend: backend, completion: seasonsCompletion(for: item))
+            SeasonsContentGroup(id: itemID, backend: backend)
         }
         #endif
 

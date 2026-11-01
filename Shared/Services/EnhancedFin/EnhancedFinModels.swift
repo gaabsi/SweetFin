@@ -426,12 +426,6 @@ struct EnhancedFinMedia: Decodable, Hashable {
     /// Film ou série, seulement si Seerr a répondu.
     let seerr: EnhancedFinSeerr?
 
-    /// Série à laquelle il manque des épisodes sortis, selon Seerr (carte « + »).
-    /// Faux si Seerr n'a pas répondu : pas de carte à tort.
-    var isIncompleteSeries: Bool {
-        seerr.map { $0.status != .available } ?? false
-    }
-
     /// SweetFin : « Demander sur Seerr » a un sens pour ce média.
     ///
     /// `isNative` : la fiche est un item du serveur, pas une fiche de découverte. Le
