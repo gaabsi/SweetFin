@@ -299,8 +299,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
 
     /// SweetFin : d'où viennent les saisons d'une série.
     ///
-    /// Série du serveur : Jellyfin, qui détient aussi l'état vu. Série de découverte :
-    /// le plugin (TMDB + sa table `playback`).
+    /// Série du serveur : Jellyfin, qui détient aussi l'état vu, complété par TMDB. Série
+    /// de découverte : le plugin (TMDB + sa table `playback`).
     ///
     /// Parametres :
     /// - item (BaseItemDto) : la série

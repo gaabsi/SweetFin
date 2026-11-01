@@ -60,7 +60,8 @@ struct EpisodeRow: Identifiable, Hashable {
 ///
 /// Une seule vue pour deux sources, comme la modale d'épisodes du front web :
 /// - série **du serveur** : Jellyfin, qui détient aussi l'état vu — le plugin le relit
-///   déjà pour « À noter », l'écrire ailleurs ferait deux vérités ;
+///   déjà pour « À noter », l'écrire ailleurs ferait deux vérités. TMDB y ajoute les
+///   saisons et épisodes absents du serveur, comme sur une fiche de découverte ;
 /// - série **de découverte** : TMDB via le plugin, état vu dans sa table `playback`.
 ///
 /// La vue ne lit que ``SeasonRow`` et ``EpisodeRow`` : elle ignore d'où ils viennent.
@@ -116,7 +117,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     func refresh() async {
         do {
             seasons = switch backend {
-            case let .jellyfin(seriesID, _): try await jellyfinSeasons(seriesID)
+            case let .jellyfin(seriesID, mediaKey): try await withMissingSeasons(jellyfinSeasons(seriesID), mediaKey: mediaKey)
             case let .enhancedFin(mediaKey): try await enhancedFinSeasons(mediaKey)
             }
         } catch {
@@ -167,9 +168,8 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         playableTask?.cancel()
         playableEpisodes = nil
 
-        // Rien à demander sans plugin, ni pour une série de la médiathèque : chaque
-        // épisode listé y est (`isMissing = false`).
-        guard case .enhancedFin = backend, let mediaKey, let client = userSession?.enhancedFinClient else {
+        // Rien à demander sans plugin : seuls les épisodes de la médiathèque sont listés.
+        guard let mediaKey, let client = userSession?.enhancedFinClient else {
             playableEpisodes = [:]
             return
         }
@@ -259,8 +259,15 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
         do {
             switch backend {
-            case .jellyfin:
-                try await writeJellyfin(targets, season: season, watched: watched)
+            case let .jellyfin(_, mediaKey):
+                let onServer = targets.filter { $0.jellyfinID != nil }
+                let outside = targets.filter { $0.jellyfinID == nil }
+                if onServer.isNotEmpty {
+                    try await writeJellyfin(onServer, season: season, watched: watched)
+                }
+                if outside.isNotEmpty, let mediaKey {
+                    try await writeEnhancedFin(outside, mediaKey: mediaKey, season: season.number, watched: watched)
+                }
             case let .enhancedFin(mediaKey):
                 try await writeEnhancedFin(targets, mediaKey: mediaKey, season: season.number, watched: watched)
             }
@@ -312,7 +319,11 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     }
 
     private func jellyfinEpisodes(_ season: SeasonRow) async throws -> [EpisodeRow] {
-        guard let seasonID = season.jellyfinID, case let .jellyfin(seriesID, mediaKey) = backend else { return [] }
+        guard case let .jellyfin(seriesID, mediaKey) = backend else { return [] }
+        guard let seasonID = season.jellyfinID else {
+            guard let mediaKey else { return [] }
+            return try await enhancedFinEpisodes(mediaKey, season: season.number)
+        }
 
         var parameters = Paths.GetEpisodesParameters()
         parameters.userID = try authenticatedUser.id
@@ -338,14 +349,43 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
             )
         }
 
-        return await withTMDBRuntimes(rows, mediaKey: mediaKey, season: season.number)
+        return await completed(rows, mediaKey: mediaKey, season: season.number)
     }
 
-    /// Complète les durées que Jellyfin n'a pas, par celles de TMDB.
+    /// Ajoute aux saisons du serveur celles que seul TMDB connaît. Les saisons du serveur
+    /// gardent leurs données, mais comptent les épisodes qu'il leur manque. Un échec
+    /// laisse la liste du serveur.
     ///
-    /// ⚠️ Certains items n'ont pas de durée côté Jellyfin (`runTimeTicks` vide). Un seul appel au plugin, pour la
-    /// saison entière, et seulement s'il manque quelque chose. Correspondance par
-    /// numéro d'épisode ; un échec laisse les durées telles quelles.
+    /// Parametres :
+    /// - seasons ([SeasonRow]) : saisons Jellyfin
+    /// - mediaKey (String?) : clé TMDB de la série
+    ///
+    /// Output :
+    /// - seasons ([SeasonRow]) : saisons complétées, dans l'ordre
+    private func withMissingSeasons(_ seasons: [SeasonRow], mediaKey: String?) async -> [SeasonRow] {
+        guard let mediaKey, let tmdb = try? await enhancedFinSeasons(mediaKey) else { return seasons }
+
+        let tmdbByNumber = Dictionary(tmdb.map { ($0.number, $0) }, uniquingKeysWith: { first, _ in first })
+        let onServer = Set(seasons.map(\.number))
+        let merged = seasons.map { season in
+            guard let known = tmdbByNumber[season.number] else { return season }
+
+            return SeasonRow(
+                number: season.number,
+                name: season.name,
+                poster: season.poster,
+                episodeCount: max(season.episodeCount ?? 0, known.episodeCount ?? 0),
+                watchedCount: max(season.watchedCount, known.watchedCount),
+                jellyfinID: season.jellyfinID
+            )
+        }
+
+        return (merged + tmdb.filter { !onServer.contains($0.number) }).sorted { $0.number < $1.number }
+    }
+
+    /// Complète une saison du serveur par TMDB : les durées que Jellyfin n'a pas
+    /// (`runTimeTicks` vide) et les épisodes absents du serveur. Correspondance par
+    /// numéro d'épisode ; un échec laisse la liste du serveur.
     ///
     /// Parametres :
     /// - rows ([EpisodeRow]) : épisodes Jellyfin
@@ -353,26 +393,29 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
     /// - season (Int) : numéro de saison
     ///
     /// Output :
-    /// - rows ([EpisodeRow]) : les mêmes, durées complétées quand TMDB les connaît
-    private func withTMDBRuntimes(_ rows: [EpisodeRow], mediaKey: String?, season: Int) async -> [EpisodeRow] {
-        guard rows.contains(where: { $0.runtime == nil }),
+    /// - rows ([EpisodeRow]) : épisodes complétés, dans l'ordre
+    private func completed(_ rows: [EpisodeRow], mediaKey: String?, season: Int) async -> [EpisodeRow] {
+        // Les épisodes spéciaux (saison 0) n'existent pas côté plugin.
+        guard season > 0,
               let mediaKey,
-              let client = userSession?.enhancedFinClient,
-              let tmdb = try? await client.season(mediaKey, number: season)
+              let tmdb = try? await enhancedFinEpisodes(mediaKey, season: season)
         else { return rows }
 
         let runtimes = Dictionary(
-            tmdb.episodes.compactMap { episode in episode.runtime.map { (episode.number, $0) } },
+            tmdb.compactMap { row in row.number.flatMap { number in row.runtime.map { (number, $0) } } },
             uniquingKeysWith: { first, _ in first }
         )
-
-        return rows.map { row in
-            guard row.runtime == nil, let number = row.number, let minutes = runtimes[number] else { return row }
+        let onServer = Set(rows.compactMap(\.number))
+        let timed = rows.map { row in
+            guard row.runtime == nil, let number = row.number, let runtime = runtimes[number] else { return row }
 
             var row = row
-            row.runtime = .seconds(minutes * 60)
+            row.runtime = runtime
             return row
         }
+
+        return (timed + tmdb.filter { $0.number.map { !onServer.contains($0) } ?? false })
+            .sorted { ($0.number ?? 0) < ($1.number ?? 0) }
     }
 
     /// Une saison entièrement cochée se marque en un appel sur l'item saison, que
