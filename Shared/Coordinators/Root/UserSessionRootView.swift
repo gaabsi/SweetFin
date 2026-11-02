@@ -23,6 +23,8 @@ struct UserSessionRootView: View {
                 NavigationInjectionView(coordinator: .init()) {
                     SelectUserView()
                 }
+                // SweetFin : pas d'Accueil à attendre, le logo de lancement s'en va.
+                .onAppear { LaunchSplash.shared.skip() }
             case .signedIn:
                 MainTabView()
                     .id(userSessionManager.currentSession?.user.id)

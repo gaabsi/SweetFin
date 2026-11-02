@@ -39,6 +39,15 @@ struct RootView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(appearance.tokens.background.ignoresSafeArea())
         .animation(.linear(duration: 0.1), value: rootCoordinator.state)
+        #if os(iOS)
+        // SweetFin : le logo de lancement continue celui d'iOS jusqu'à l'Accueil.
+        .overlay {
+            LaunchSplashOverlay()
+        }
+        .onChange(of: rootCoordinator.state) {
+            if rootCoordinator.state == .error { LaunchSplash.shared.skip() }
+        }
+        #endif
         .task {
             rootCoordinator.start()
         }

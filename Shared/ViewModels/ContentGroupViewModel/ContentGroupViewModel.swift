@@ -151,6 +151,11 @@ final class ContentGroupViewModel<Provider: ContentGroupProvider>: ViewModel {
     }
 
     private func fullRefresh() async throws {
+        // SweetFin : fin du premier chargement de l'Accueil, en succès comme en erreur
+        // (l'écran de lancement attend ce signal).
+        defer {
+            if provider is HomeContentGroupProvider { LaunchSplash.shared.homeReady() }
+        }
 
         self.groups = []
         self.candidateGroups = []
