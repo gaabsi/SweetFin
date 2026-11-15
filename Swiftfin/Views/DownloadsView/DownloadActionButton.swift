@@ -19,8 +19,27 @@ extension ItemActionButtons {
         private var provider: ItemContentGroupProvider
 
         var body: some View {
-            DownloadButton(item: provider.item)
+            if let target = provider.downloadTarget {
+                DownloadButton(item: target.item, storageID: target.storageID)
+            }
         }
+    }
+}
+
+extension ItemContentGroupProvider {
+
+    /// SweetFin : ce que le bouton Télécharger de la fiche télécharge, seule règle du bouton
+    /// et de sa présence. V1 : un fichier = un film ou un épisode. Fiche hors médiathèque
+    /// (synthétique, sans `canDownload`) : l'item lisible renvoyé par le serveur, s'il
+    /// l'autorise, rangé sous l'id de la fiche (stable, contrairement au sien).
+    ///
+    /// Output :
+    /// - target ((item: BaseItemDto, storageID: String?)?) : `nil` si rien à télécharger
+    var downloadTarget: (item: BaseItemDto, storageID: String?)? {
+        guard [.movie, .episode].contains(item.type) else { return nil }
+        if item.canBeDownloaded { return (item, nil) }
+        if let playable = mediaPlayerItemProvider?.item, playable.canBeDownloaded { return (playable, item.id) }
+        return nil
     }
 }
 
@@ -35,6 +54,11 @@ extension ItemActionButtons {
 struct DownloadButton: View {
 
     let item: BaseItemDto
+    /// Id sous lequel le téléchargement est rangé, si celui de l'item est éphémère.
+    var storageID: String?
+    /// Item à demander au serveur au moment du tap (épisode hors médiathèque, désigné au
+    /// tap) ; sinon `item`.
+    var resolve: (() async throws -> BaseItemDto)?
 
     @EnvironmentObject
     private var toastProxy: ToastProxy
@@ -46,7 +70,7 @@ struct DownloadButton: View {
     private var userSession
 
     var body: some View {
-        if let itemID = item.id, let userSession {
+        if let itemID = storageID ?? item.id, let userSession {
             switch manager.state(of: itemID, userID: userSession.user.id) {
             case .none:
                 Button(DownloadStrings.download, systemImage: ItemActionButton.download.secondarySystemImage) {
@@ -86,7 +110,8 @@ struct DownloadButton: View {
     private func start(userSession: UserSession) {
         Task {
             do {
-                try await manager.start(item, userSession: userSession)
+                let target = try await resolve?() ?? item
+                try await manager.start(target, userSession: userSession, storageID: storageID)
             } catch {
                 toastProxy.present(error.localizedDescription, systemName: "exclamationmark.triangle")
             }

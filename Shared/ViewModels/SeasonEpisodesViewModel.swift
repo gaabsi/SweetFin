@@ -214,6 +214,31 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         episode.jellyfinID ?? episode.number.flatMap { playableEpisodes?[$0]?.itemId }
     }
 
+    /// SweetFin : pour télécharger un épisode lisible **hors médiathèque**, l'item à demander
+    /// au serveur au moment du tap (la feuille ne le connaît souvent pas encore : il est
+    /// désigné au tap, comme pour la lecture). `nil` pour un épisode du serveur ou pas lisible.
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode de la saison ouverte
+    ///
+    /// Output :
+    /// - resolve ((() async throws -> BaseItemDto)?) : renvoie l'item à télécharger
+    func downloadResolver(for episode: EpisodeRow) -> (() async throws -> BaseItemDto)? {
+        guard episode.jellyfinID == nil, availability(of: episode) == .playable,
+              let mediaKey, let season = selectedSeason, let number = episode.number,
+              let client = userSession?.enhancedFinClient
+        else { return nil }
+
+        let known = playableItemID(for: episode)
+        return {
+            let itemID: String? = if let known { known } else {
+                try await client.playable(mediaKey, season: season, episode: number).itemId
+            }
+            guard let itemID else { throw ErrorMessage(ItemStrings.unavailable) }
+            return BaseItemDto(id: itemID, type: .episode)
+        }
+    }
+
     /// Lecture d'un épisode, rendue **tout de suite** : le lecteur s'ouvre sur son titre
     /// et résout dedans, par le même chemin qu'une fiche (fiche complète de l'item, puis
     /// son lecteur). Appelé seulement pour un épisode lisible (`availability(of:)`).

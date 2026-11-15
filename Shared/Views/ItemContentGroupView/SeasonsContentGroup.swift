@@ -168,12 +168,17 @@ private struct SeasonEpisodesSheet: View {
     @State
     private var selection: Set<String> = []
 
-    /// SweetFin : l'item à télécharger pour un épisode (iPhone, épisode du serveur,
-    /// compte autorisé à télécharger) ; `nil` sinon.
-    private func downloadableID(_ episode: EpisodeRow) -> String? {
+    /// SweetFin : ce qu'il faut télécharger pour un épisode (iPhone, compte autorisé à
+    /// télécharger) : l'épisode du serveur, ou l'épisode lisible hors médiathèque, demandé
+    /// au serveur au tap et rangé sous l'id de la ligne ; `nil` sinon.
+    private func download(_ episode: EpisodeRow) -> EpisodeDownload? {
         #if os(iOS)
         guard Container.shared.currentUserSession()?.user.data.policy?.enableContentDownloading == true else { return nil }
-        return episode.jellyfinID
+        if let jellyfinID = episode.jellyfinID {
+            return EpisodeDownload(item: BaseItemDto(id: jellyfinID, type: .episode), storageID: nil, resolve: nil)
+        }
+        guard let resolve = viewModel.downloadResolver(for: episode) else { return nil }
+        return EpisodeDownload(item: BaseItemDto(id: episode.id, type: .episode), storageID: episode.id, resolve: resolve)
         #else
         return nil
         #endif
@@ -217,7 +222,7 @@ private struct SeasonEpisodesSheet: View {
                                 availability: viewModel.availability(of: episode),
                                 toggleSelection: { toggleSelection(episode) },
                                 play: { play(episode) },
-                                downloadableID: downloadableID(episode)
+                                download: download(episode)
                             )
 
                             Divider()
@@ -336,8 +341,8 @@ private struct EpisodeRowView: View {
     let availability: EpisodeAvailability
     let toggleSelection: () -> Void
     let play: () -> Void
-    /// SweetFin : item à proposer au téléchargement (appui long), `nil` = pas de menu.
-    let downloadableID: String?
+    /// SweetFin : ce qu'il faut proposer au téléchargement (appui long), `nil` = pas de menu.
+    let download: EpisodeDownload?
 
     @Default(.accentColor)
     private var accentColor
@@ -421,8 +426,8 @@ private struct EpisodeRowView: View {
         #if os(iOS)
         // SweetFin : appui long → télécharger, comme sur les affiches.
         .contextMenu {
-            if let downloadableID, !isSelecting, !episode.isUpcoming {
-                DownloadButton(item: BaseItemDto(id: downloadableID, type: .episode))
+            if let download, !isSelecting, !episode.isUpcoming {
+                DownloadButton(item: download.item, storageID: download.storageID, resolve: download.resolve)
             }
         }
         #endif
@@ -523,4 +528,12 @@ private struct FixedImage: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
     }
+}
+
+/// SweetFin : un épisode à proposer au téléchargement. Hors médiathèque, `item` ne porte
+/// que l'id de la ligne (rangement) et `resolve` demande au serveur l'item à télécharger.
+struct EpisodeDownload {
+    let item: BaseItemDto
+    let storageID: String?
+    let resolve: (() async throws -> BaseItemDto)?
 }

@@ -16,14 +16,32 @@ import JellyfinAPI
 struct DownloadedItem: Codable, Identifiable {
 
     /// Fiche complète de l'item au moment du téléchargement.
-    let item: BaseItemDto
+    var item: BaseItemDto
     /// Source téléchargée : ses pistes servent à la lecture locale.
     let mediaSource: MediaSourceInfo
     /// Nom du fichier média dans le dossier de l'item (`media.mkv`…).
     let fileName: String
+    /// SweetFin : clé TMDB de l'œuvre (`movie:550`, `tv:95479`), pour un item hors
+    /// médiathèque : sa progression hors ligne part au plugin sous cette clé.
+    let mediaKey: String?
+    /// SweetFin : nom du dossier du téléchargement, posé à la relecture du disque (pas
+    /// enregistré : le dossier fait foi). Id stable, même hors médiathèque, où l'id de
+    /// l'item est un jeton éphémère du serveur (le dossier porte alors l'id de la fiche).
+    var storageID: String?
 
+    private enum CodingKeys: String, CodingKey {
+        case item, mediaSource, fileName, mediaKey
+    }
+
+    /// L'identifiant du téléchargement (dossier, état, affiche, progression locale).
     var id: String {
-        item.id ?? ""
+        storageID ?? item.id ?? ""
+    }
+
+    /// SweetFin : item hors médiathèque, que Jellyfin ne connaît pas (ni progression ni
+    /// position à échanger avec lui).
+    var isOutsideLibrary: Bool {
+        mediaKey != nil
     }
 }
 

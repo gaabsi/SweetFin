@@ -180,6 +180,10 @@ final class DownloadManager: NSObject, ObservableObject {
         save: @escaping (Duration) -> Void
     ) -> MediaPlayerItem {
         var baseItem = download.item
+        // SweetFin : seule la version téléchargée est sur l'appareil. La fiche enregistrée
+        // liste toutes celles du serveur (1080p, 720p, 4K…) : sans ça, l'engrenage
+        // proposerait d'en changer, donc de la lire en ligne (vécu le 2026-11-15).
+        baseItem.mediaSources = [download.mediaSource]
         if let progress = readProgress(folder.appending(path: progressFileName)) {
             var userData = baseItem.userData ?? UserItemDataDto(key: download.id)
             userData.playbackPositionTicks = progress.positionTicks
@@ -266,9 +270,10 @@ final class DownloadManager: NSObject, ObservableObject {
         try? JSONEncoder().encode(progress).write(to: file)
     }
 
-    /// Envoie à Jellyfin les positions notées hors connexion, puis les oublie. Le local
-    /// gagne toujours. Au-delà de 90 %, l'item est marqué vu. Un envoi qui échoue garde son
-    /// fichier pour la prochaine fois.
+    /// Envoie les positions notées hors connexion, puis les oublie : à Jellyfin pour un item
+    /// de la médiathèque (au-delà de 90 %, marqué vu), au plugin pour un item hors
+    /// médiathèque (il décide lui-même « vu »). Le local gagne toujours. Un envoi qui échoue
+    /// garde son fichier pour la prochaine fois.
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
@@ -284,16 +289,30 @@ final class DownloadManager: NSObject, ObservableObject {
             let file = progressFile(of: download.id, userID: userID)
             guard let progress = Self.readProgress(file) else { continue }
 
-            let runtime = download.item.runTimeTicks ?? 0
+            // Durée du fichier téléchargé, à défaut de la fiche.
+            let runtime = download.mediaSource.runTimeTicks ?? download.item.runTimeTicks ?? 0
             let isPlayed = runtime > 0 && Double(progress.positionTicks) >= Double(runtime) * 0.9
-            let body = UpdateUserItemDataDto(
-                isPlayed: isPlayed,
-                lastPlayedDate: progress.date,
-                playbackPositionTicks: isPlayed ? 0 : progress.positionTicks
-            )
 
             do {
-                _ = try await userSession.client.send(Paths.updateItemUserData(itemID: download.id, userID: userID, body))
+                if let key = download.mediaKey {
+                    // Jellyfin ne connaît pas l'item : sa progression vit dans le plugin. Sans
+                    // durée, rien n'est envoyé (elle effacerait celle que le plugin connaît).
+                    guard runtime > 0, let plugin = userSession.enhancedFinClient else { continue }
+                    try await plugin.setProgress(
+                        key,
+                        season: download.item.parentIndexNumber ?? 0,
+                        episode: download.item.indexNumber ?? 0,
+                        positionTicks: progress.positionTicks,
+                        durationTicks: runtime
+                    )
+                } else {
+                    let body = UpdateUserItemDataDto(
+                        isPlayed: isPlayed,
+                        lastPlayedDate: progress.date,
+                        playbackPositionTicks: isPlayed ? 0 : progress.positionTicks
+                    )
+                    _ = try await userSession.client.send(Paths.updateItemUserData(itemID: download.id, userID: userID, body))
+                }
                 try? FileManager.default.removeItem(at: file)
                 didSync = true
             } catch {
@@ -314,7 +333,8 @@ final class DownloadManager: NSObject, ObservableObject {
     @MainActor
     private func refreshStoredProgress(userSession: UserSession) async {
         let userID = userSession.user.id
-        let waiting = downloads(of: userID).filter { Self.readProgress(progressFile(of: $0.id, userID: userID)) == nil }
+        // Hors médiathèque : Jellyfin ne connaît pas l'item.
+        let waiting = downloads(of: userID).filter { !$0.isOutsideLibrary && Self.readProgress(progressFile(of: $0.id, userID: userID)) == nil }
         guard waiting.isNotEmpty else { return }
 
         // SweetFin : une seule requête pour tous les téléchargements, au lieu d'une par item.
@@ -329,9 +349,8 @@ final class DownloadManager: NSObject, ObservableObject {
             guard let userData = userDataByID[download.id] ?? nil else { continue }
             let folder = folder(Self.key(userID, download.id))
 
-            var item = download.item
-            item.userData = userData
-            let refreshed = DownloadedItem(item: item, mediaSource: download.mediaSource, fileName: download.fileName)
+            var refreshed = download
+            refreshed.item.userData = userData
             try? JSONEncoder().encode(refreshed).write(to: folder.appending(path: Self.metadataFileName))
         }
 
@@ -349,19 +368,31 @@ final class DownloadManager: NSObject, ObservableObject {
     /// Parametres :
     /// - item (BaseItemDto) : film ou épisode à télécharger
     /// - userSession (UserSession) : compte connecté, dont on reprend le jeton
+    /// - storageID (String?) : identifiant sous lequel ranger le téléchargement, si celui de
+    ///   l'item n'est pas stable (item hors médiathèque : son id est un jeton éphémère, on
+    ///   range sous l'id de sa fiche, pour la retrouver « téléchargée » à la prochaine visite)
     @MainActor
-    func start(_ item: BaseItemDto, userSession: UserSession) async throws {
+    func start(_ item: BaseItemDto, userSession: UserSession, storageID: String? = nil) async throws {
         let fullItem = try await item.getFullItem(userSession: userSession)
-        guard let itemID = fullItem.id,
-              let source = fullItem.mediaSources?.first,
-              let url = userSession.client.url(path: "/Items/\(itemID)/Download")
+        // La source qui porte l'id de l'item : la version par défaut (hors médiathèque, celle
+        // que le serveur envoie au téléchargement), à défaut la première.
+        guard let fileID = fullItem.id,
+              let source = fullItem.mediaSources?.first(where: { $0.id == fileID }) ?? fullItem.mediaSources?.first,
+              let url = userSession.client.url(path: "/Items/\(fileID)/Download")
         else { throw DownloadError.missingSource }
 
         try checkSpace(needed: source.size.map(Int64.init))
 
         let userID = userSession.user.id
+        let itemID = storageID ?? fileID
         let folder = folder(Self.key(userID, itemID))
-        let downloaded = DownloadedItem(item: fullItem, mediaSource: source, fileName: Self.fileName(for: source))
+        let downloaded = DownloadedItem(
+            item: fullItem,
+            mediaSource: source,
+            fileName: Self.fileName(for: source),
+            mediaKey: EnhancedFinSyntheticItem.mediaKey(from: storageID),
+            storageID: Self.pathComponent(itemID)
+        )
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try JSONEncoder().encode(downloaded).write(to: folder.appending(path: Self.metadataFileName))
         cachedDownloads[userID] = nil
@@ -496,7 +527,9 @@ final class DownloadManager: NSObject, ObservableObject {
     /// - folder (URL) : dossier de l'item
     /// - client (JellyfinClient) : client authentifié du compte
     private func downloadExtras(of downloaded: DownloadedItem, into folder: URL, client: JellyfinClient) async {
-        let posterRequest = Paths.getItemImage(itemID: downloaded.id, imageType: "Primary", parameters: .init(maxWidth: 600))
+        // L'id de l'item pour le serveur (hors médiathèque : le jeton), pas celui du dossier.
+        let serverID = downloaded.item.id ?? downloaded.id
+        let posterRequest = Paths.getItemImage(itemID: serverID, imageType: "Primary", parameters: .init(maxWidth: 600))
         if let poster = try? await client.send(posterRequest).value {
             try? poster.write(to: folder.appending(path: Self.posterFileName))
         }
@@ -509,7 +542,7 @@ final class DownloadManager: NSObject, ObservableObject {
 
         for stream in externals {
             guard let index = stream.index, let codec = stream.codec else { continue }
-            let request = Request<Data>(path: "/Videos/\(downloaded.id)/\(sourceID)/Subtitles/\(index)/Stream.\(codec)")
+            let request = Request<Data>(path: "/Videos/\(serverID)/\(sourceID)/Subtitles/\(index)/Stream.\(codec)")
             if let data = try? await client.send(request).value {
                 try? data.write(to: subtitles.appending(path: Self.subtitleFileName(index: index, codec: codec)))
             }
@@ -569,8 +602,13 @@ final class DownloadManager: NSObject, ObservableObject {
     }
 
     private static func read(_ folder: URL) -> DownloadedItem? {
-        guard let data = try? Data(contentsOf: folder.appending(path: metadataFileName)) else { return nil }
-        return try? JSONDecoder().decode(DownloadedItem.self, from: data)
+        guard let data = try? Data(contentsOf: folder.appending(path: metadataFileName)),
+              var downloaded = try? JSONDecoder().decode(DownloadedItem.self, from: data)
+        else { return nil }
+        // SweetFin : le dossier fait foi (un item hors médiathèque est rangé sous l'id de sa
+        // fiche, pas sous le jeton enregistré dans `item.json`).
+        downloaded.storageID = folder.lastPathComponent
+        return downloaded
     }
 
     private static func subfolders(of folder: URL) -> [URL] {

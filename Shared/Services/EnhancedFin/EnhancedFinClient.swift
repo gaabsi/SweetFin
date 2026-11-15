@@ -371,7 +371,33 @@ final class EnhancedFinClient {
         )
     }
 
+    /// Enregistre une position de lecture dans le plugin (`PUT /me/progress`) : un item hors
+    /// médiathèque, que Jellyfin ne connaît pas (lu hors connexion depuis un téléchargement).
+    ///
+    /// - Parameters:
+    ///   - season: numéro de saison ; `0` pour un film
+    ///   - episode: numéro d'épisode ; `0` pour un film
+    ///   - positionTicks: position
+    ///   - durationTicks: durée (le plugin en déduit « vu », avec sa propre règle)
+    func setProgress(_ mediaKey: String, season: Int, episode: Int, positionTicks: Int, durationTicks: Int) async throws {
+        try await send(
+            Request(
+                path: "me/progress/\(escaped(mediaKey))",
+                method: .put,
+                body: ProgressBody(season: season, episode: episode, positionTicks: positionTicks, durationTicks: durationTicks)
+            )
+        )
+    }
+
     // MARK: - Envoi
+
+    /// Corps de `PUT /me/progress/{mediaKey}`.
+    private struct ProgressBody: Encodable {
+        let season: Int
+        let episode: Int
+        let positionTicks: Int
+        let durationTicks: Int
+    }
 
     /// Corps de `PUT` et `DELETE /me/watched/{mediaKey}`.
     private struct WatchedBody: Encodable {

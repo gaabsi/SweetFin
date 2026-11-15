@@ -92,9 +92,7 @@ struct ItemActionButtons: View {
             EnhancedFinClient.isAvailable && provider.item.enhancedFinMediaKey != nil
         #if os(iOS)
         case .download:
-            // V1 : un fichier = un film ou un épisode. Un item synthétique n'a pas de
-            // `canDownload`, donc pas de bouton.
-            provider.item.canBeDownloaded && [.movie, .episode].contains(provider.item.type)
+            provider.downloadTarget != nil
         #endif
         }
     }
