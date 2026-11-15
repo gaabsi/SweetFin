@@ -365,9 +365,28 @@ private struct SettingsMenu: View {
     @ObservedObject
     var playbackItem: MediaPlayerItem
 
-    /// La définition de la vidéo telle que Jellyfin la décrit (« 1080p H264 SDR »).
+    /// La définition de la vidéo : résolution · codec · plage (« 1080p · H264 · SDR »), tirées
+    /// des propriétés de la piste. ❌ `displayTitle` de Jellyfin : il y ajoute le titre de
+    /// piste écrit dans le fichier, parfois long et sans intérêt. Résolution lue sur la
+    /// largeur : un 1080p recadré fait 1920 × 960.
     private var quality: String {
-        playbackItem.videoStreams.first?.displayTitle ?? L10n.unknown
+        guard let video = playbackItem.videoStreams.first else { return L10n.unknown }
+
+        let width = video.width ?? 0
+        let resolution: String? = switch width {
+        case 3200...: "4K"
+        case 1800...: "1080p"
+        case 1200...: "720p"
+        default: video.height.map { "\($0)p" }
+        }
+        let range: String? = switch video.videoRangeType?.rawValue ?? video.videoRange?.rawValue {
+        case let raw? where raw.hasPrefix("DOVI"): "Dolby Vision"
+        case "HDR10Plus": "HDR10+"
+        case let raw: raw
+        }
+
+        let parts = [resolution, video.codec?.uppercased(), range].compactMap(\.self)
+        return parts.isEmpty ? L10n.unknown : parts.joined(separator: " · ")
     }
 
     private var audioTitle: String {
@@ -418,8 +437,29 @@ private struct SettingsMenu: View {
 
     var body: some View {
         Menu {
-            Section(L10n.playbackQuality) {
-                Text(quality)
+            // Plusieurs versions (un film en plusieurs fichiers, plusieurs qualités) : on
+            // choisit, la lecture reprend au même endroit.
+            if let versions = playbackItem.baseItem.mediaSources, versions.count > 1 {
+                Picker(selection: Binding(
+                    get: { playbackItem.mediaSource.id },
+                    set: { id in
+                        guard let version = versions.first(where: { $0.id == id }) else { return }
+                        manager.switchVersion(to: version)
+                    }
+                )) {
+                    ForEach(versions, id: \.id) { version in
+                        Text(version.displayTitle)
+                            .tag(version.id)
+                    }
+                } label: {
+                    Text(L10n.playbackQuality)
+                    Text(playbackItem.mediaSource.displayTitle)
+                }
+                .pickerStyle(.menu)
+            } else {
+                Section(L10n.playbackQuality) {
+                    Text(quality)
+                }
             }
 
             Picker(selection: $manager.rate) {

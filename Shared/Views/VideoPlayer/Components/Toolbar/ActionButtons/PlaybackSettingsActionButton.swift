@@ -20,19 +20,6 @@ extension VideoPlayer.PlaybackControls.Toolbar.ActionButtons {
         @EnvironmentObject
         private var manager: MediaPlayerManager
 
-        private func makeProvider(for mediaSource: MediaSourceInfo, playbackItem: MediaPlayerItem) -> MediaPlayerItemProvider {
-            var adjustedBaseItem = playbackItem.baseItem
-            adjustedBaseItem.userData?.playbackPositionTicks = manager.seconds.ticks
-
-            return MediaPlayerItemProvider(item: adjustedBaseItem, mediaSource: mediaSource) { baseItem, modifyItem in
-                try await MediaPlayerItem.build(
-                    for: baseItem,
-                    mediaSource: mediaSource,
-                    modifyItem: modifyItem
-                )
-            }
-        }
-
         // SweetFin : plus de choix de qualité (lecture directe), seulement la version.
         var body: some View {
             if let playbackItem = manager.playbackItem,
@@ -44,12 +31,8 @@ extension VideoPlayer.PlaybackControls.Toolbar.ActionButtons {
                         selection: Binding(
                             get: { playbackItem.mediaSource.id },
                             set: { newID in
-                                guard let newID,
-                                      newID != playbackItem.mediaSource.id,
-                                      let newSource = versions.first(where: { $0.id == newID })
-                                else { return }
-
-                                manager.playNewItem(provider: makeProvider(for: newSource, playbackItem: playbackItem))
+                                guard let newSource = versions.first(where: { $0.id == newID }) else { return }
+                                manager.switchVersion(to: newSource)
                             }
                         )
                     ) {
@@ -69,5 +52,30 @@ extension VideoPlayer.PlaybackControls.Toolbar.ActionButtons {
                 }
             }
         }
+    }
+}
+
+// SweetFin : changer de version en reprenant à la position courante, partagé par ce menu
+// (tvOS) et l'engrenage du lecteur iOS (`SettingsMenu`).
+extension MediaPlayerManager {
+
+    /// Passe sur une autre version de l'item en lecture, reprise à la position courante.
+    /// Sans effet si c'est déjà elle.
+    ///
+    /// Parametres :
+    /// - mediaSource (MediaSourceInfo) : la version voulue
+    func switchVersion(to mediaSource: MediaSourceInfo) {
+        guard let playbackItem, mediaSource.id != playbackItem.mediaSource.id else { return }
+
+        var adjustedBaseItem = playbackItem.baseItem
+        adjustedBaseItem.userData?.playbackPositionTicks = seconds.ticks
+        let provider = MediaPlayerItemProvider(item: adjustedBaseItem, mediaSource: mediaSource) { baseItem, modifyItem in
+            try await MediaPlayerItem.build(
+                for: baseItem,
+                mediaSource: mediaSource,
+                modifyItem: modifyItem
+            )
+        }
+        playNewItem(provider: provider)
     }
 }

@@ -38,11 +38,6 @@ struct PlayButton: View {
         return provider.mediaPlayerItemProvider?.item.playButtonLabel ?? L10n.play
     }
 
-    private var mediaSource: String? {
-        guard provider.mediaPlayerItemProvider?.item.mediaSources?.count ?? 0 > 1 else { return nil }
-        return provider.mediaPlayerItemProvider?.mediaSource?.displayTitle
-    }
-
     private func play(fromBeginning: Bool = false) {
         let mediaPlayerItemProvider = if fromBeginning {
             provider.mediaPlayerItemProvider?.modifyingItem {
@@ -76,16 +71,10 @@ struct PlayButton: View {
                     Image(systemName: isUnavailable ? "nosign" : "play.fill")
                 }
 
-                VStack(spacing: 2) {
-                    if !isResolving {
-                        Text(label)
-                    }
-
-                    if let mediaSource {
-                        Marquee(mediaSource, speed: 40, delay: 3, fade: 5)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                    }
+                // SweetFin : pas de nom de version sous le libellé ; la version se
+                // choisit dans le lecteur (engrenage).
+                if !isResolving {
+                    Text(label)
                 }
             }
             .font(.callout)
