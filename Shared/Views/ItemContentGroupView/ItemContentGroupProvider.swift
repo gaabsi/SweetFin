@@ -320,16 +320,10 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
 
         Self.personContentGroups(for: item)
 
-        // SweetFin : sur iOS, une série n'a plus le rail horizontal de sa saison
-        // courante — ses épisodes s'ouvrent depuis `SeasonsContentGroup`, plus bas.
-        // Une page de saison garde le sien : elle n'a pas de rail de saisons.
-        #if os(tvOS)
-        let showsEpisodeRail = item.type == .season || item.type == .series
-        #else
-        let showsEpisodeRail = item.type == .season
-        #endif
-
-        if isOnServer, showsEpisodeRail {
+        // SweetFin : une série n'a plus le rail horizontal de sa saison courante —
+        // ses épisodes passent par `SeasonsContentGroup`, plus bas. Une page de
+        // saison garde le sien : elle n'a pas de rail de saisons.
+        if isOnServer, item.type == .season {
             SeriesEpisodeContentGroup(
                 parent: item,
                 playButtonItem: mediaPlayerItemProvider?.item
@@ -344,11 +338,9 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
 
         // SweetFin : saisons, et leurs épisodes à marquer vus — série du serveur
         // comme de découverte. Voir `SeasonsContentGroup`.
-        #if os(iOS)
         if item.type == .series, let backend = seasonsBackend(for: item) {
             SeasonsContentGroup(id: itemID, backend: backend)
         }
-        #endif
 
         // SweetFin : pastilles Genres et Studios retirées (iOS et tvOS) : les genres
         // vivent dans le bloc « infos » ci-dessus (`ItemFactsContentGroup`).
@@ -372,16 +364,8 @@ class ItemContentGroupProvider: ViewModel, ContentGroupProvider {
             )
             .makeGroups(environment: .default)
         case .series:
-            // SweetFin : remplacé sur iOS par `SeasonsContentGroup`, plus haut.
-            #if os(tvOS)
-            try await ItemTypeContentGroupProvider(
-                itemTypes: [.season],
-                parent: item
-            )
-            .makeGroups(environment: .default)
-            #else
+            // SweetFin : remplacé par `SeasonsContentGroup`, plus haut.
             []
-            #endif
         case .channel, .liveTvChannel, .tvChannel:
             PosterGroup(
                 id: "channel-programs",

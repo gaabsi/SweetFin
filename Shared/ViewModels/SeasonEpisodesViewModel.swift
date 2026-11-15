@@ -335,7 +335,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
                 name: season.displayTitle,
                 // En points : `imageURL` multiplie par la densité d'écran. Jellyfin
                 // redimensionne sur le serveur, chaque pixel demandé en trop se paie.
-                poster: season.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 120)),
+                poster: season.imageSource(.primary, environment: ImageSourceOptions(maxWidth: SeasonsLayout.poster.width)),
                 episodeCount: count,
                 watchedCount: max(0, (count ?? 0) - unplayed),
                 jellyfinID: season.id
@@ -365,7 +365,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
                 number: episode.indexNumber,
                 name: episode.name,
                 overview: episode.overview,
-                thumbnail: episode.imageSource(.primary, environment: ImageSourceOptions(maxWidth: 128)),
+                thumbnail: episode.imageSource(.primary, environment: ImageSourceOptions(maxWidth: SeasonsLayout.thumbnail.width)),
                 airDate: episode.premiereDate,
                 // 1 tick = 100 ns.
                 runtime: episode.runTimeTicks.map { .ticks($0) },

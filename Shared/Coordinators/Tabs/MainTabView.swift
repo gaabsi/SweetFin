@@ -64,11 +64,11 @@ struct MainTabView: View {
         // SweetFin : les onglets d'iOS, plus Réglages — tvOS n'a pas le bouton de
         // profil en haut à droite qui les ouvre sur iOS. Séries et Films d'upstream
         // retirés pour les mêmes raisons que sur iOS (« Mes médias » sur l'Accueil).
+        // Calendrier retiré : grille peu lisible à la télécommande (à refaire pour la TV).
         TabCoordinator {
             TabItem.contentGroup(provider: HomeContentGroupProvider())
             TabItem.media
             TabItem.search
-            TabItem.calendar
             TabItem.settings
         }
         #endif

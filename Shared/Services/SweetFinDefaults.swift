@@ -105,7 +105,9 @@ extension Defaults.Keys {
     enum Customization {
 
         static var tabBarPlacement: Key<TabBarPlacement> {
-            UserKey("tabBarPlacement", default: .sidebar)
+            // SweetFin : barre d'onglets en haut. ❌ Barre latérale : ouverte au
+            // lancement (le focus y tombe pendant le chargement de l'Accueil).
+            UserKey("tabBarPlacement", default: .tabBar)
         }
 
         enum Library {

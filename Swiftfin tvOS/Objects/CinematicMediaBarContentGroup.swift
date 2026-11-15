@@ -121,7 +121,7 @@ private struct MediaBarShowcase: View {
                     .strokeBorder(.white.opacity(0.2), lineWidth: 2)
             }
             // Sous la pastille d'onglet (en haut à gauche), et aux marges des rails.
-            .padding(.top, 120)
+            .padding(.top, 150)
             .edgePadding(.horizontal)
         }
         .focusSection()

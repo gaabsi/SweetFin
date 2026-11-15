@@ -134,7 +134,7 @@ enum EnhancedFinSyntheticItem {
 
         var images: [ImageType: URL] = [:]
         if let url = URL.enhancedFinImage(posterURL) { images[.primary] = url }
-        if let url = URL.enhancedFinImage(backdropURL) { images[.backdrop] = url }
+        if let url = URL.enhancedFinBackdrop(backdropURL) { images[.backdrop] = url }
         if let url = URL.enhancedFinImage(logoURL) { images[.logo] = url }
 
         EnhancedFinImageRegistry.shared.register(itemID: itemID, images: images)
@@ -240,9 +240,10 @@ enum EnhancedFinSyntheticItem {
         let seriesID = id(for: mediaKey)
 
         // Validée une fois : l'étiquette d'image ci-dessous ne vaut que pour une URL acceptée.
-        let backdrop = URL.enhancedFinImage(backdropURL)
-        if let backdrop {
-            EnhancedFinImageRegistry.shared.register(itemID: seriesID, images: [.thumb: backdrop, .backdrop: backdrop])
+        // Tuile (`.thumb`) en taille normale, fond de fiche (`.backdrop`) agrandi.
+        let thumb = URL.enhancedFinImage(backdropURL)
+        if let thumb, let backdrop = URL.enhancedFinBackdrop(backdropURL) {
+            EnhancedFinImageRegistry.shared.register(itemID: seriesID, images: [.thumb: thumb, .backdrop: backdrop])
         }
         let still = URL.enhancedFinImage(stillURL)
         if let still {
@@ -253,7 +254,7 @@ enum EnhancedFinSyntheticItem {
         item.type = .episode
         item.seriesID = seriesID
         item.seriesName = seriesTitle
-        item.seriesThumbImageTag = backdrop == nil ? nil : seriesID
+        item.seriesThumbImageTag = thumb == nil ? nil : seriesID
         item.name = name ?? seriesTitle
         item.overview = overview
         item.parentIndexNumber = season

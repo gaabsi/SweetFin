@@ -102,7 +102,7 @@ struct SeerrRequestView: View {
 
     /// Le fond du média, assombri sous son titre — comme l'en-tête de la modale web.
     private var header: some View {
-        ImageView(URL.enhancedFinImage(media.backdropUrl))
+        ImageView(URL.enhancedFinBackdrop(media.backdropUrl))
             .image { image in
                 Image(uiImage: image)
                     .resizable()

@@ -35,4 +35,31 @@ extension URL {
 
         return url
     }
+
+    /// Même contrôle, pour un **fond plein écran** (fiche, en-tête Seerr) : en plus
+    /// grand que la taille rendue par le plugin.
+    ///
+    /// Le plugin écrit toutes ses URL en `w500` (`TmdbClient.ImageBase`), pensé pour
+    /// les tuiles, et elles sont stockées telles quelles en base. Étiré sur une TV 4K,
+    /// un fond de 500 px est flou : on change la taille ici, là où l'écran est connu.
+    /// Les tuiles gardent `w500` — en `original`, chacune pèserait plusieurs Mo.
+    ///
+    /// Parametres :
+    /// - string (String?) : l'URL telle que rendue par le plugin
+    ///
+    /// Output :
+    /// - url (URL?) : l'URL agrandie si elle est exploitable, nil sinon
+    static func enhancedFinBackdrop(_ string: String?) -> URL? {
+        guard let url = enhancedFinImage(string) else { return nil }
+
+        #if os(tvOS)
+        let size = "original"
+        #else
+        let size = "w1280"
+        #endif
+
+        // Seul le chemin change : l'hôte, déjà vérifié, reste le même.
+        let resized = url.absoluteString.replacingOccurrences(of: "/t/p/w500/", with: "/t/p/\(size)/")
+        return URL(string: resized) ?? url
+    }
 }

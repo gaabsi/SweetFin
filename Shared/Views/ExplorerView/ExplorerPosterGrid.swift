@@ -42,12 +42,19 @@ struct ExplorerPosterGrid<Item: EnhancedFinPosterItem>: View {
         }
     }
 
+    /// iPhone et iPad : autant de colonnes de 110 pt que la largeur en permet. tvOS :
+    /// 6 colonnes, comme les rails d'affiches de l'Accueil.
+    #if os(tvOS)
+    private static var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 40), count: 6) }
+    private static var spacing: CGFloat { 60 }
+    #else
+    private static var columns: [GridItem] { [GridItem(.adaptive(minimum: 110), spacing: 12)] }
+    private static var spacing: CGFloat { 16 }
+    #endif
+
     @ViewBuilder
     private var grid: some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 110), spacing: 12)],
-            spacing: 16
-        ) {
+        LazyVGrid(columns: Self.columns, spacing: Self.spacing) {
             ForEach(items, id: \.mediaKey) { item in
                 PosterButton(
                     item: item,
@@ -56,6 +63,11 @@ struct ExplorerPosterGrid<Item: EnhancedFinPosterItem>: View {
                 ) { namespace in
                     router.openEnhancedFin(item, in: namespace)
                 }
+                #if os(tvOS)
+                // Sur tvOS, l'affiche n'a pas de taille propre (le libellé est à côté
+                // d'elle dans le bouton, pas dessous) : format imposé.
+                .aspectRatio(2 / 3, contentMode: .fit)
+                #endif
             }
         }
         .edgePadding(.horizontal)

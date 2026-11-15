@@ -57,7 +57,15 @@ extension ItemView {
                     }
                 }
             }
+            // SweetFin : sur tvOS aussi un bouton. ❌ Simple texte : la page d'un
+            // acteur n'avait rien de focalisable, la télécommande ne descendait pas
+            // jusqu'à sa filmographie (vécu le 2026-11-15). `.borderless` : `.plain`
+            // n'a aucun effet de focus sur tvOS.
+            #if os(tvOS)
+            .buttonStyle(.borderless)
+            #else
             .buttonStyle(.plain)
+            #endif
         }
 
         var body: some View {
@@ -71,13 +79,7 @@ extension ItemView {
                     }
 
                     if let itemOverview = item.overview, itemOverview.isNotEmpty {
-                        InlinePlatformView {
-                            overview(itemOverview)
-                        } tvOSView: {
-                            Text(itemOverview)
-                                .font(.footnote)
-                                .lineLimit(3)
-                        }
+                        overview(itemOverview)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

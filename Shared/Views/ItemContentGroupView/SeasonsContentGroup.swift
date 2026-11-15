@@ -16,7 +16,7 @@ import SwiftUI
 /// Même rendu pour une série du serveur et une série de découverte : la source est
 /// cachée derrière ``SeasonEpisodesViewModel``. Un tap sur une saison ouvre la liste
 /// verticale de ses épisodes, où l'on marque ce qu'on a vu — repris de la modale
-/// `episode_modal_core.js` du front web.
+/// `episode_modal_core.js` du front web. Même vue sur tvOS, en plein écran.
 struct SeasonsContentGroup: ContentGroup {
 
     let id: String
@@ -39,6 +39,22 @@ struct SeasonsContentGroup: ContentGroup {
     }
 }
 
+/// SweetFin : tailles des images des saisons et des épisodes, selon l'écran.
+/// ``SeasonEpisodesViewModel`` les demande au serveur à cette taille : plus petites,
+/// elles seraient floues ; plus grandes, redimensionnées pour rien.
+enum SeasonsLayout {
+
+    #if os(tvOS)
+    static let poster = CGSize(width: 200, height: 300)
+    static let thumbnail = CGSize(width: 320, height: 180)
+    static let railSpacing: CGFloat = 40
+    #else
+    static let poster = CGSize(width: 120, height: 180)
+    static let thumbnail = CGSize(width: 128, height: 72)
+    static let railSpacing: CGFloat = 12
+    #endif
+}
+
 // MARK: - Rail
 
 private struct SeasonsRail: View {
@@ -52,7 +68,7 @@ private struct SeasonsRail: View {
     var body: some View {
         ContentGroupSection {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top, spacing: SeasonsLayout.railSpacing) {
                     ForEach(viewModel.seasons) { season in
                         Button {
                             isPresentingEpisodes = true
@@ -60,11 +76,24 @@ private struct SeasonsRail: View {
                         } label: {
                             SeasonCard(season: season)
                         }
+                        #if os(tvOS)
+                        // `.plain` n'a aucun effet de focus sur tvOS : on ne verrait
+                        // pas quelle saison est visée.
+                        .buttonStyle(.borderless)
+                        #else
                         .buttonStyle(.plain)
+                        #endif
                     }
                 }
                 .edgePadding(.horizontal)
+                #if os(tvOS)
+                .padding(.vertical, 20)
+                #endif
             }
+            #if os(tvOS)
+            // Le focus agrandit l'affiche : le rail ne doit pas la rogner.
+            .scrollClipDisabled()
+            #endif
         } header: {
             Text(L10n.seasons)
                 .font(.title3)
@@ -86,7 +115,7 @@ private struct SeasonCard: View {
 
     var body: some View {
         VStack(alignment: appearance.tokens.posterLabelAlignment, spacing: 6) {
-            FixedImage(source: season.poster, width: 120, height: 180)
+            FixedImage(source: season.poster, size: SeasonsLayout.poster)
 
             Text(season.name)
                 .font(.subheadline)
@@ -99,7 +128,7 @@ private struct SeasonCard: View {
                     .foregroundStyle(season.watchedCount >= count && count > 0 ? .green : .secondary)
             }
         }
-        .frame(width: 120)
+        .frame(width: SeasonsLayout.poster.width)
     }
 }
 
@@ -124,13 +153,19 @@ private struct SeasonEpisodesSheetModifier: ViewModifier {
     private var pendingPlayback: MediaPlayerItemProvider?
 
     func body(content: Content) -> some View {
-        content
-            .sheet(isPresented: $isPresented, onDismiss: playPending) {
-                SeasonEpisodesSheet(viewModel: viewModel) { provider in
-                    pendingPlayback = provider
-                    isPresented = false
-                }
-            }
+        #if os(tvOS)
+        // Une `sheet` tvOS est une petite carte flottante : trop étroite pour la liste.
+        content.fullScreenCover(isPresented: $isPresented, onDismiss: playPending, content: episodes)
+        #else
+        content.sheet(isPresented: $isPresented, onDismiss: playPending, content: episodes)
+        #endif
+    }
+
+    private func episodes() -> some View {
+        SeasonEpisodesSheet(viewModel: viewModel) { provider in
+            pendingPlayback = provider
+            isPresented = false
+        }
     }
 
     private func playPending() {
@@ -207,7 +242,7 @@ private struct SeasonEpisodesSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     controls
-                        .padding(.bottom, 12)
+                        .padding(.bottom, UIDevice.isTV ? 30 : 12)
 
                     if viewModel.isLoadingEpisodes {
                         ProgressView()
@@ -225,12 +260,21 @@ private struct SeasonEpisodesSheet: View {
                                 download: download(episode)
                             )
 
+                            #if os(iOS)
+                            // tvOS : chaque ligne est une carte, le focus la détache déjà.
                             Divider()
+                            #endif
                         }
                     }
                 }
                 .edgePadding(.horizontal)
+                #if os(tvOS)
+                // Colonne centrée : en pleine largeur, le synopsis se lirait mal de loin.
+                .frame(maxWidth: 1400)
+                .frame(maxWidth: .infinity)
+                #endif
             }
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -240,7 +284,18 @@ private struct SeasonEpisodesSheet: View {
                     Button(L10n.close, systemImage: "xmark") { dismiss() }
                 }
             }
+            #endif
             .themeContainerBackground(appearance.tokens.background)
+            #if os(tvOS)
+            // Le plein écran tvOS est transparent : la fiche se lisait à travers la
+            // liste. Flou épais et assombri — on la devine, elle ne gêne plus.
+            .background {
+                Rectangle()
+                    .fill(.thickMaterial)
+                    .overlay(Color.black.opacity(0.5))
+                    .ignoresSafeArea()
+            }
+            #endif
         }
         // Changer de saison sort du mode sélection : la sélection ne vaut que pour
         // les épisodes affichés.
@@ -266,6 +321,12 @@ private struct SeasonEpisodesSheet: View {
     @ViewBuilder
     private var controls: some View {
         HStack {
+            #if os(tvOS)
+            // Pas de barre du haut atteignable à la télécommande : le sélecteur passe
+            // sur la ligne des actions (le bouton retour ferme la vue).
+            seasonSwitcher
+            #endif
+
             if isSelecting {
                 Button(L10n.selectAll) {
                     // Les épisodes à venir ne se marquent pas : ils gardent leur coche actuelle.
@@ -364,6 +425,28 @@ private struct EpisodeRowView: View {
     }
 
     var body: some View {
+        #if os(tvOS)
+        // Seul un bouton reçoit le focus : un geste de tap serait hors d'atteinte.
+        Button(action: handleTap) {
+            content
+                .padding(.horizontal, 20)
+        }
+        .buttonStyle(.card)
+        .padding(.vertical, 10)
+        #else
+        content
+            .contentShape(Rectangle())
+            .onTapGesture(perform: handleTap)
+            // SweetFin : appui long → télécharger, comme sur les affiches.
+            .contextMenu {
+                if let download, !isSelecting, !episode.isUpcoming {
+                    DownloadButton(item: download.item, storageID: download.storageID, resolve: download.resolve)
+                }
+            }
+        #endif
+    }
+
+    private var content: some View {
         HStack(alignment: .center, spacing: 12) {
             if isSelecting {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
@@ -409,34 +492,25 @@ private struct EpisodeRowView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 12)
-        .contentShape(Rectangle())
-        // Hors mode sélection, un tap ouvre le lecteur, seulement pour un épisode
-        // lisible (`availability`) : jamais de lecteur ouvert
-        // pour rien. Un épisode à venir ne se lit ni ne se marque, mais marqué vu par
-        // erreur il doit pouvoir se décocher.
-        .onTapGesture {
-            if isSelecting {
-                guard !episode.isUpcoming || episode.isWatched else { return }
-                toggleSelection()
-            } else {
-                guard !episode.isUpcoming, availability == .playable else { return }
-                play()
-            }
+    }
+
+    /// Hors mode sélection, un tap ouvre le lecteur, seulement pour un épisode lisible
+    /// (`availability`) : jamais de lecteur ouvert pour rien. Un épisode à venir ne se
+    /// lit ni ne se marque, mais marqué vu par erreur il doit pouvoir se décocher.
+    private func handleTap() {
+        if isSelecting {
+            guard !episode.isUpcoming || episode.isWatched else { return }
+            toggleSelection()
+        } else {
+            guard !episode.isUpcoming, availability == .playable else { return }
+            play()
         }
-        #if os(iOS)
-        // SweetFin : appui long → télécharger, comme sur les affiches.
-        .contextMenu {
-            if let download, !isSelecting, !episode.isUpcoming {
-                DownloadButton(item: download.item, storageID: download.storageID, resolve: download.resolve)
-            }
-        }
-        #endif
     }
 
     /// Vu : vignette atténuée et coche dans son coin. Sur la vignette et non en bout
     /// de ligne, pour ne rien prendre à la largeur du synopsis.
     private var thumbnail: some View {
-        FixedImage(source: episode.thumbnail, width: 128, height: 72)
+        FixedImage(source: episode.thumbnail, size: SeasonsLayout.thumbnail)
             .grayscale(isGreyed ? 1 : 0)
             .opacity(episode.isWatched && !isSelecting ? 0.6 : 1)
             .overlay(alignment: .topTrailing) {
@@ -510,23 +584,32 @@ private struct DownloadedBadge: View {
 /// ⚠️ Le cadre d'abord, l'image ensuite : avec `posterStyle` puis `.frame(width:)`,
 /// une vignette au format inattendu (4:3 au lieu de 16:9) imposait sa propre taille
 /// et débordait sous le texte voisin.
+///
+/// ⚠️ Le fond gris n'est dessiné que **sans image** (absente, en chargement, en
+/// échec) : posé dessous, il dépassait d'un pixel sur les coins arrondis — un liseré
+/// clair bien visible sur tvOS, où ce fond est un matériau translucide.
 private struct FixedImage: View {
 
     let source: ImageSource?
-    let width: CGFloat
-    let height: CGFloat
+    let size: CGSize
+
+    private var placeholder: some View {
+        Rectangle().fill(.complexSecondary)
+    }
 
     var body: some View {
-        Rectangle()
-            .fill(.complexSecondary)
-            .frame(width: width, height: height)
-            .overlay {
-                if let source {
-                    ImageView(source)
-                        .image { $0.aspectRatio(contentMode: .fill) }
-                }
+        Group {
+            if let source {
+                ImageView(source)
+                    .image { $0.aspectRatio(contentMode: .fill) }
+                    .placeholder { _ in placeholder }
+                    .failure { placeholder }
+            } else {
+                placeholder
             }
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .frame(width: size.width, height: size.height)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
