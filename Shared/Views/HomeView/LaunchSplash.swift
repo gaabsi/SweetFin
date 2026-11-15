@@ -7,7 +7,6 @@
 //
 
 import Defaults
-import Logging
 import SwiftUI
 
 /// SweetFin : l'Accueil prévient qu'il a fini son premier chargement.
@@ -22,13 +21,9 @@ final class LaunchSplash: ObservableObject {
     @Published
     private(set) var isHomeReady = false
 
-    /// Moment du premier chargement terminé, pour le journal.
-    private(set) var readyAt: ContinuousClock.Instant?
-
     /// L'Accueil est chargé (ou en erreur : le logo laisse alors place au message).
     func homeReady() {
         guard !isHomeReady else { return }
-        readyAt = .now
         isHomeReady = true
     }
 
@@ -46,9 +41,10 @@ final class LaunchSplash: ObservableObject {
 /// est toujours la même, et rien ne donne l'impression d'une connexion absente.
 struct LaunchSplashOverlay: View {
 
-    /// Durée minimale du logo fixe : à caler sur les temps de chargement réels
-    /// (journal « Lancement : Accueil prêt en … »).
-    private static let minimumDuration: Duration = .milliseconds(800)
+    /// Durée minimale du logo fixe. Mesurée sur 61 lancements (2-14 nov. 2026, iPhone) :
+    /// Accueil prêt en 0,51 s (médiane), 75 % avant 0,8 s, 87 % avant 2 s. 0,6 s : un
+    /// peu au-dessus de la médiane, le logo ne fait pas « flash » (avant : 0,8 s).
+    private static let minimumDuration: Duration = .milliseconds(600)
     private static let zoomDuration = 0.45
     /// Grossissement final. Le logo démarre à la taille de l'écran de lancement (image de
     /// 250 pt) : 1,92 le mène à 480 pt, la taille choisie sur les prototypes (×4 d'un logo de 120 pt).
@@ -70,8 +66,6 @@ struct LaunchSplashOverlay: View {
     private var isGone = false
     @State
     private var isSlow = false
-
-    private let logger = Logger.swiftfin()
 
     var body: some View {
         if !isGone {
@@ -116,10 +110,6 @@ struct LaunchSplashOverlay: View {
         } catch {
             return
         }
-
-        // Journal persistant (Réglages → Journaux) : sert à caler `minimumDuration`.
-        let ready = splash.readyAt.map { "\($0 - start)" } ?? "jamais (délai dépassé)"
-        logger.info("Lancement : Accueil prêt en \(ready), logo retiré à \(clock.now - start)")
 
         withAnimation(.easeOut(duration: Self.zoomDuration)) {
             isZooming = true
