@@ -82,7 +82,7 @@ extension VideoPlayer {
 
                         toaster.present(
                             Text(newRate, format: .playbackRate),
-                            systemName: VideoPlayerActionButton.playbackSpeed.systemImage
+                            systemName: "speedometer"
                         )
                     }
 
@@ -103,7 +103,7 @@ extension VideoPlayer {
 
                         toaster.present(
                             Text(newRate, format: .playbackRate),
-                            systemName: VideoPlayerActionButton.playbackSpeed.systemImage
+                            systemName: "speedometer"
                         )
                     }
 
@@ -117,7 +117,7 @@ extension VideoPlayer {
                         manager.setRate(rate: 1)
                         toaster.present(
                             Text(1, format: .playbackRate),
-                            systemName: VideoPlayerActionButton.playbackSpeed.systemImage
+                            systemName: "speedometer"
                         )
                     }
 

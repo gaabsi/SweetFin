@@ -303,10 +303,9 @@ extension VideoPlayer {
         }
 
         private var dismissedSupplementContainerOffset: CGFloat {
-            // SweetFin : sur iOS, plus d'onglets « Info / Épisodes » sous la barre
-            // (l'icône pile de `SweetFinPlaybackControls` les ouvre) ; on ne garde
-            // que la marge du bas.
-            UIDevice.isTV ? 120 : EdgeInsets.edgePadding * 2
+            // SweetFin : plus d'onglets « Info / Épisodes » sous la barre (l'icône pile de
+            // la rangée ouvre le panneau, iPhone et tvOS) ; on ne garde que la marge du bas.
+            UIDevice.isTV ? EdgeInsets.edgePadding : EdgeInsets.edgePadding * 2
         }
 
         private let compactMinimumTranslation: CGFloat = 100.0
@@ -601,13 +600,35 @@ extension VideoPlayer {
             view.addGestureRecognizer(gesture)
 
             containerState.$isPresentingOverlay
+                // SweetFin : seulement aux vrais changements. ❌ Le panneau remet `true` quand
+                // son onglet prend le focus : le recalcul ci-dessous renvoyait le focus sur
+                // sa limite invisible, qui le refermait aussitôt.
+                .removeDuplicates()
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] isPresenting in
-                    self?.supplementContainerView.isUserInteractionEnabled = isPresenting
+                    guard let self else { return }
+                    supplementContainerView.isUserInteractionEnabled = isPresenting
+
+                    // SweetFin : barre affichée, le focus va à la couche des commandes
+                    // (`preferredFocusEnvironments`), où SwiftUI le pose sur Lecture/Pause.
+                    if isPresenting, !containerState.isPresentingSupplement {
+                        setNeedsFocusUpdate()
+                        updateFocusIfNeeded()
+                    }
                 }
                 .store(in: &cancellables)
             #endif
         }
+
+        #if os(tvOS)
+        /// SweetFin : la couche qui reçoit le focus — le panneau s'il est ouvert, sinon les
+        /// commandes. ❌ Sans ça, UIKit le laissait aux onglets du panneau (leur propre
+        /// `defaultFocus`), et le focus demandé sur Lecture/Pause depuis SwiftUI était ignoré :
+        /// SwiftUI ne déplace le focus qu'à l'intérieur de sa propre couche.
+        override var preferredFocusEnvironments: [UIFocusEnvironment] {
+            containerState.isPresentingSupplement ? [supplementContainerView] : [playbackControlsView]
+        }
+        #endif
 
         // Setup player view separately after view appears to hopefully
         // prevent player playing before the view is done presenting
@@ -777,6 +798,10 @@ extension VideoPlayer {
         override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
             super.touchesBegan(touches, with: event)
 
+            // SweetFin : pendant un générique, le doigt posé pour cliquer n'affiche pas la
+            // barre : le clic qui suit doit passer le segment, pas mettre en pause.
+            if !containerState.isPresentingOverlay, containerState.skipSegment != nil { return }
+
             let now = CACurrentMediaTime()
             guard now - lastTouchPokeTime > 1.0 else { return }
             lastTouchPokeTime = now
@@ -857,24 +882,30 @@ extension VideoPlayer {
                 return
             }
 
-            if !containerState.isPresentingOverlay {
-                if manager.playbackRequestStatus == .paused {
-                    manager.setPlaybackRequestStatus(status: .playing)
-                }
-                containerState.isPresentingOverlay = true
-            } else {
-                switch manager.playbackRequestStatus {
-                case .playing:
-                    manager.setPlaybackRequestStatus(status: .paused)
-                case .paused:
-                    manager.setPlaybackRequestStatus(status: .playing)
-                }
+            // SweetFin : le bouton Lecture/Pause bascule toujours, comme l'app TV d'Apple
+            // (❌ upstream : barre masquée, le 1ᵉʳ appui ne faisait que l'afficher). La pause
+            // affiche la barre (`PlaybackControls`).
+            switch manager.playbackRequestStatus {
+            case .playing:
+                manager.setPlaybackRequestStatus(status: .paused)
+            case .paused:
+                manager.setPlaybackRequestStatus(status: .playing)
             }
 
             containerState.timer.poke()
         }
 
         private func handleSelectEnded(_ press: UIPress, event: UIPressesEvent?) {
+            // SweetFin : barre masquée pendant un générique, le clic le passe.
+            if !containerState.isPresentingOverlay,
+               !containerState.isPresentingPauseScreen,
+               !containerState.isPresentingSupplement,
+               let skipSegment = containerState.skipSegment
+            {
+                skipSegment()
+                return
+            }
+
             if !containerState.isPresentingOverlay {
                 containerState.isPresentingOverlay = true
                 containerState.timer.poke()
@@ -909,6 +940,9 @@ extension VideoPlayer {
                 containerState.timer.poke()
             } else if containerState.isPresentingOverlay {
                 containerState.isPresentingOverlay = false
+            } else if containerState.isPresentingPauseScreen {
+                // SweetFin : Menu ferme l'écran de pause au lieu de quitter le lecteur.
+                containerState.isPresentingOverlay = true
             } else {
                 manager.stop()
             }

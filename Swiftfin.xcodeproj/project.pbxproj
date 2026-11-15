@@ -175,14 +175,14 @@
 			membershipExceptions = (
 				Resources/Info.plist,
 			);
-			target = 5377CBF0263B596A003A4E83 /* Swiftfin iOS */;
+			target = 5377CBF0263B596A003A4E83 /* SweetFin */;
 		};
 		E14561A32DFCAE51008FF700 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Assets.xcassets,
 			);
-			target = 5358705F2669D21600D05A09 /* Swiftfin tvOS */;
+			target = 5358705F2669D21600D05A09 /* SweetFin tvOS */;
 		};
 		E14565D92DFCAE6E008FF700 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -200,16 +200,15 @@
 				ViewModels/ItemAdministration/RemoteImageInfoViewModel.swift,
 				ViewModels/QuickConnectAuthorizeViewModel.swift,
 				Views/ItemView/Components/ActionButtons/EditActionButton.swift,
-				Views/VideoPlayer/Components/Toolbar/ActionButtons/GestureLockActionButton.swift,
 			);
-			target = 5358705F2669D21600D05A09 /* Swiftfin tvOS */;
+			target = 5358705F2669D21600D05A09 /* SweetFin tvOS */;
 		};
 		E14567272DFCAEFD008FF700 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
 			);
-			target = 5358705F2669D21600D05A09 /* Swiftfin tvOS */;
+			target = 5358705F2669D21600D05A09 /* SweetFin tvOS */;
 		};
 		E1BE3EDA2FE9DAE800327990 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -217,7 +216,7 @@
 				DevelopmentTeam.xcconfig,
 				Shared.xcconfig,
 			);
-			target = 5377CBF0263B596A003A4E83 /* Swiftfin iOS */;
+			target = 5377CBF0263B596A003A4E83 /* SweetFin */;
 		};
 		E1BE3EDB2FE9DAE800327990 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -225,7 +224,7 @@
 				DevelopmentTeam.xcconfig,
 				Shared.xcconfig,
 			);
-			target = 5358705F2669D21600D05A09 /* Swiftfin tvOS */;
+			target = 5358705F2669D21600D05A09 /* SweetFin tvOS */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -444,9 +443,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5358705F2669D21600D05A09 /* Swiftfin tvOS */ = {
+		5358705F2669D21600D05A09 /* SweetFin tvOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 535870712669D21700D05A09 /* Build configuration list for PBXNativeTarget "Swiftfin tvOS" */;
+			buildConfigurationList = 535870712669D21700D05A09 /* Build configuration list for PBXNativeTarget "SweetFin tvOS" */;
 			buildPhases = (
 				6286F0A3271C0ABA00C40ED5 /* Generate Strings */,
 				BD83D7852B55EEB600652C24 /* Run SwiftFormat */,
@@ -497,9 +496,9 @@
 			productReference = 535870602669D21600D05A09 /* SweetFin tvOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		5377CBF0263B596A003A4E83 /* Swiftfin iOS */ = {
+		5377CBF0263B596A003A4E83 /* SweetFin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5377CC1B263B596B003A4E83 /* Build configuration list for PBXNativeTarget "Swiftfin iOS" */;
+			buildConfigurationList = 5377CC1B263B596B003A4E83 /* Build configuration list for PBXNativeTarget "SweetFin" */;
 			buildPhases = (
 				6286F09E271C093000C40ED5 /* Generate Strings */,
 				BD0BA2282AD64BB200306A8D /* Run SwiftFormat */,
@@ -688,8 +687,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5377CBF0263B596A003A4E83 /* Swiftfin iOS */,
-				5358705F2669D21600D05A09 /* Swiftfin tvOS */,
+				5377CBF0263B596A003A4E83 /* SweetFin */,
+				5358705F2669D21600D05A09 /* SweetFin tvOS */,
 			);
 		};
 /* End PBXProject section */
@@ -1123,7 +1122,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		535870712669D21700D05A09 /* Build configuration list for PBXNativeTarget "Swiftfin tvOS" */ = {
+		535870712669D21700D05A09 /* Build configuration list for PBXNativeTarget "SweetFin tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				535870722669D21700D05A09 /* Debug */,
@@ -1141,7 +1140,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5377CC1B263B596B003A4E83 /* Build configuration list for PBXNativeTarget "Swiftfin iOS" */ = {
+		5377CC1B263B596B003A4E83 /* Build configuration list for PBXNativeTarget "SweetFin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5377CC1C263B596B003A4E83 /* Debug */,

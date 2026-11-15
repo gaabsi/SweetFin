@@ -75,6 +75,10 @@ class VideoPlayerContainerState: ObservableObject {
     @Published
     var isPresentingOverlay: Bool = false {
         didSet {
+            // SweetFin : rappeler l'overlay (tap, touche de la télécommande) ferme l'écran de pause.
+            if isPresentingOverlay {
+                isPresentingPauseScreen = false
+            }
             setPlaybackControlsVisibility()
             presentationControllerShouldDismiss = isPresentingOverlay && !isPresentingSupplement
 
@@ -123,6 +127,10 @@ class VideoPlayerContainerState: ObservableObject {
     @Published
     var isProgressBarFocused: Bool = false
 
+    /// SweetFin : l'écran de pause (`SweetFinPauseScreen`), présenté après un temps de pause.
+    @Published
+    var isPresentingPauseScreen: Bool = false
+
     var isPresentingMenu: Bool = false {
         didSet {
             if isPresentingMenu {
@@ -138,7 +146,8 @@ class VideoPlayerContainerState: ObservableObject {
     let centerOffsetBox: PublishedBox<CGFloat> = .init(initialValue: 0)
     let jumpProgressObserver: JumpProgressObserver = .init()
     let scrubbedSeconds: PublishedBox<Duration> = .init(initialValue: .zero)
-    let timer: PokeIntervalTimer = .init(defaultInterval: UIDevice.isTV ? 10 : 5)
+    // SweetFin : 3 s partout (upstream : 10 s TV, 5 s iPhone ; 5 s jugé lent).
+    let timer: PokeIntervalTimer = .init(defaultInterval: 3)
     let toastProxy: ToastProxy = .init()
 
     weak var containerView: VideoPlayer.UIVideoPlayerContainerViewController?
@@ -149,6 +158,10 @@ class VideoPlayerContainerState: ObservableObject {
     #endif
 
     #if os(tvOS)
+    /// SweetFin : passe le segment en cours (générique, résumé), nil hors segment. Posé
+    /// par `SkipSegmentButton`, déclenché par le clic quand la barre est masquée.
+    var skipSegment: (() -> Void)?
+
     @Published
     private(set) var presentedSupplementStyle: MediaPlayerSupplementPresentationStyle?
 

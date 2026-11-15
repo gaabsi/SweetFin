@@ -13,8 +13,10 @@ import SwiftUI
 /// SweetFin : « Passer l'intro », « Épisode suivant »… pendant les segments de média
 /// (écrits par Intro Skipper dans les segments natifs de Jellyfin 10.10+).
 ///
-/// Visible pendant **tout** le segment, commandes affichées ou non, comme Netflix.
-/// Jamais de saut automatique.
+/// Visible pendant **tout** le segment, comme Netflix. Jamais de saut automatique.
+/// iPhone : un bouton, commandes affichées ou non. tvOS : une étiquette ; barre masquée,
+/// elle est blanche et le clic passe le segment (`VideoPlayerContainerState.skipSegment`) ;
+/// barre affichée, discrète (le clic va au bouton qui a le focus).
 ///
 /// - intro, résumé, aperçu, pub : saut à la fin du segment **moins 2 s**, pour voir la fin
 ///   du générique ;
@@ -24,6 +26,8 @@ struct SkipSegmentButton: View {
     /// Marge avant la fin du segment : on voit la fin du générique.
     private static let endMargin: Duration = .seconds(2)
 
+    @EnvironmentObject
+    private var containerState: VideoPlayerContainerState
     @EnvironmentObject
     private var manager: MediaPlayerManager
 
@@ -39,11 +43,30 @@ struct SkipSegmentButton: View {
 
     var body: some View {
         ZStack {
-            if let currentSegment, currentSegment.id != skippedSegmentID {
+            if let visibleSegment {
+                #if os(tvOS)
+                // Pas un `Button` : il prendrait le focus aux commandes. Blanc, comme un
+                // bouton sélectionné, quand le clic le déclenche (barre masquée).
+                let isClickable = !containerState.isPresentingOverlay
+
+                Text(title(of: visibleSegment))
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(isClickable ? .black : .white)
+                    .padding(.horizontal, 36)
+                    .frame(minHeight: 66)
+                    .background {
+                        if isClickable {
+                            Capsule().fill(.white)
+                        } else {
+                            Capsule().fill(.regularMaterial)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                #else
                 Button {
-                    skip(currentSegment)
+                    skip(visibleSegment)
                 } label: {
-                    Text(title(of: currentSegment))
+                    Text(title(of: visibleSegment))
                         .font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 20)
                         .frame(minHeight: 44)
@@ -52,9 +75,18 @@ struct SkipSegmentButton: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.white)
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                #endif
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: currentSegment?.id)
+        .animation(.easeInOut(duration: 0.25), value: visibleSegment?.id)
+        #if os(tvOS)
+        .onChange(of: visibleSegment?.id, initial: true) {
+            containerState.skipSegment = visibleSegment.map { segment in { skip(segment) } }
+        }
+        .onDisappear {
+            containerState.skipSegment = nil
+        }
+        #endif
         .task(id: manager.item.id) {
             await loadSegments()
         }
@@ -64,6 +96,11 @@ struct SkipSegmentButton: View {
                 currentSegment = segment
             }
         }
+    }
+
+    /// Le segment à proposer : celui en cours, sauf s'il vient d'être passé.
+    private var visibleSegment: MediaSegmentDto? {
+        currentSegment?.id == skippedSegmentID ? nil : currentSegment
     }
 
     /// Les segments de l'item en cours. Sans réseau (lecture hors ligne) ou sans segment :

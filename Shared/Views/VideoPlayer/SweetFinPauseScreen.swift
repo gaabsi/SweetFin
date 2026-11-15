@@ -11,10 +11,10 @@ import SwiftUI
 
 /// SweetFin : l'écran de pause, sur le modèle du web Jellyfin (ElegantFin).
 ///
-/// Présenté par `SweetFinPlaybackControls` après quelques secondes de pause. Fond
-/// assombri, logo, année et durée, synopsis, puis la progression :
-/// « 0:26 / 22:31 • 2 % regardé • Se termine à 22:00 ». Un tap n'importe où, ou `×`,
-/// le ferme.
+/// Présenté par `PauseScreenModifier` après un temps de pause. Fond assombri, logo,
+/// année et durée, synopsis, puis la progression :
+/// « 0:26 / 22:31 • 2 % regardé • Se termine à 22:00 ». iPhone : un tap n'importe où,
+/// ou `×`, le ferme. tvOS : n'importe quelle touche (elle rappelle l'overlay).
 ///
 /// Pour un épisode, fond et logo sont ceux de la **série** : un épisode n'a
 /// généralement ni l'un ni l'autre.
@@ -32,6 +32,9 @@ struct SweetFinPauseScreen: View {
         manager.item
     }
 
+    /// Largeur du logo : plus grand sur la TV, vue de loin.
+    private static let logoWidth: CGFloat = UIDevice.isTV ? 640 : 320
+
     private var runtime: Duration {
         item.runtime ?? .zero
     }
@@ -48,6 +51,7 @@ struct SweetFinPauseScreen: View {
             details
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
+            #if os(iOS)
             Button(L10n.close, systemImage: "xmark", action: onClose)
                 .labelStyle(.iconOnly)
                 .font(.title3)
@@ -58,13 +62,16 @@ struct SweetFinPauseScreen: View {
                 }
                 .padding(.top, safeAreaInsets.top + EdgeInsets.edgePadding)
                 .padding(.trailing, safeAreaInsets.trailing + EdgeInsets.edgePadding)
+            #endif
         }
         .foregroundStyle(.white)
         .background {
             backdrop
         }
+        #if os(iOS)
         .contentShape(.rect)
         .onTapGesture(perform: onClose)
+        #endif
         .colorScheme(.dark)
     }
 
@@ -97,7 +104,7 @@ struct SweetFinPauseScreen: View {
             progressDetails
         }
         // Une colonne, comme sur le web : le synopsis ne court pas sur toute la largeur.
-        .frame(maxWidth: 480, alignment: .leading)
+        .frame(maxWidth: UIDevice.isTV ? 960 : 480, alignment: .leading)
         .padding(.leading, safeAreaInsets.leading + EdgeInsets.edgePadding * 2)
         .padding(.trailing, EdgeInsets.edgePadding)
     }
@@ -142,7 +149,7 @@ struct SweetFinPauseScreen: View {
                     .font(.largeTitle.weight(.bold))
                     .lineLimit(2)
             }
-            .frame(maxWidth: 320, maxHeight: 90, alignment: .leading)
+            .frame(maxWidth: Self.logoWidth, maxHeight: Self.logoWidth * 0.28, alignment: .leading)
             .accessibilityLabel(item.seriesName ?? item.displayTitle)
     }
 
@@ -192,14 +199,64 @@ struct SweetFinPauseScreen: View {
         parentID: String?,
         parentTag: String?
     ) -> [ImageSource] {
-        // En points (×3 à l'écran) : le logo à sa largeur affichée, le fond comme la
-        // media bar, pour profiter de la même image en cache.
-        let options = ImageSourceOptions(maxWidth: type == .logo ? 320 : 1320)
+        // En points : le logo à sa largeur affichée, le fond comme la media bar, pour
+        // profiter de la même image en cache.
+        let options = ImageSourceOptions(maxWidth: type == .logo ? logoWidth : UIDevice.isTV ? 1920 : 1320)
 
         return [
             item.imageSource(itemID: parentID, type, tag: parentTag, environment: options),
             item.imageSource(type, environment: options),
         ]
         .compacted(using: \.url)
+    }
+}
+
+/// SweetFin : présente l'écran de pause après `delay` de pause, sur iPhone comme sur tvOS,
+/// et le retire dès que la lecture reprend.
+struct PauseScreenModifier: ViewModifier {
+
+    @EnvironmentObject
+    private var containerState: VideoPlayerContainerState
+    @EnvironmentObject
+    private var manager: MediaPlayerManager
+
+    /// Une pause courte ne le déclenche pas : 15 s partout (choix du fork ; le web
+    /// est à 5 s).
+    private static let delay: Duration = .seconds(15)
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if containerState.isPresentingPauseScreen {
+                    // Le fermer rappelle l'overlay, toujours en pause (`isPresentingOverlay`
+                    // retire l'écran de pause).
+                    SweetFinPauseScreen { containerState.isPresentingOverlay = true }
+                        .transition(.opacity)
+                }
+            }
+            .task(id: manager.playbackRequestStatus) {
+                await presentAfterDelay()
+            }
+            .animation(.easeInOut(duration: 0.4), value: containerState.isPresentingPauseScreen)
+    }
+
+    /// Relancé à chaque changement d'état (`task(id:)`) : reprendre avant la fin du délai
+    /// annule la tâche, donc rien ne s'affiche.
+    private func presentAfterDelay() async {
+        guard manager.playbackRequestStatus == .paused else {
+            containerState.isPresentingPauseScreen = false
+            return
+        }
+
+        try? await Task.sleep(for: Self.delay)
+
+        guard !Task.isCancelled,
+              manager.playbackRequestStatus == .paused,
+              !containerState.isPresentingSupplement,
+              !containerState.isScrubbing
+        else { return }
+
+        containerState.isPresentingOverlay = false
+        containerState.isPresentingPauseScreen = true
     }
 }

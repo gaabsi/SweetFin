@@ -43,12 +43,25 @@ struct VideoPlayer: View {
             containerState: containerState,
             manager: manager
         ) {
+            // SweetFin : sur tvOS, l'écran de pause se pose sur la vidéo, plein écran : la
+            // couche des commandes s'arrête 120 pt avant le bas (place du panneau Infos).
+            #if os(tvOS)
             proxy.videoPlayerBody
                 .eraseToAnyView()
+                .overlay(alignment: .bottomTrailing) {
+                    TVSkipSegmentButton()
+                }
+                .modifier(PauseScreenModifier())
+                .eraseToAnyView()
+            #else
+            proxy.videoPlayerBody
+                .eraseToAnyView()
+            #endif
         } playbackControls: {
             // SweetFin : l'overlay du fork sur iOS ; tvOS garde celui d'upstream.
             #if os(iOS)
             SweetFinPlaybackControls()
+                .modifier(PauseScreenModifier())
             #else
             PlaybackControls()
             #endif
@@ -115,3 +128,31 @@ struct VideoPlayer: View {
         }
     }
 }
+
+#if os(tvOS)
+/// SweetFin : « Passer l'intro » sur la vidéo, à droite, comme sur iPhone : à hauteur de la
+/// barre de progression quand les commandes sont masquées, au-dessus de la rangée sinon.
+private struct TVSkipSegmentButton: View {
+
+    private static let trailingPadding: CGFloat = 90
+    private static let bottomPadding: CGFloat = 170
+    /// Au-dessus de la rangée (marge 60 + barre ~65 + espace 30 + ⏯ 100).
+    private static let overlayBottomPadding: CGFloat = 290
+
+    @EnvironmentObject
+    private var containerState: VideoPlayerContainerState
+
+    var body: some View {
+        SkipSegmentButton()
+            // À droite, à hauteur de la barre de progression (pas dans le coin de l'écran).
+            .padding(.trailing, Self.trailingPadding)
+            .padding(.bottom, containerState.isPresentingOverlay ? Self.overlayBottomPadding : Self.bottomPadding)
+            .isVisible(
+                !containerState.isScrubbing &&
+                    !containerState.isPresentingPauseScreen &&
+                    !containerState.isPresentingSupplement
+            )
+            .animation(.easeInOut(duration: 0.25), value: containerState.isPresentingOverlay)
+    }
+}
+#endif

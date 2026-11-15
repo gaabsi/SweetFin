@@ -26,11 +26,20 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         @EnvironmentObject
         private var manager: MediaPlayerManager
 
+        // Repris de la barre d'outils d'upstream, supprimée (2026-11-15).
+        private static let closeButtonSize: CGFloat = UIDevice.isTV ? 56 : 44
+        private static let tabSpacing: CGFloat = UIDevice.isTV ? 20 : 10
+
         @FocusState
         private var focusedElement: SupplementElement?
 
         @State
         private var currentSupplements: IdentifiedArrayOf<AnyMediaPlayerSupplement> = []
+        /// SweetFin : le focus est entré dans le panneau depuis son ouverture. Avant, la
+        /// limite (qui le ferme) n'est pas focalisable : ❌ ouvert par le bouton pile, le
+        /// focus tombait d'abord sur elle et le panneau se refermait aussitôt.
+        @State
+        private var hasFocusEnteredPanel = false
 
         private var isPresentingOverlay: Bool {
             containerState.isPresentingOverlay
@@ -54,8 +63,8 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
                     .contentShape(Rectangle())
             }
             .frame(
-                width: VideoPlayer.PlaybackControls.Toolbar.buttonSize,
-                height: VideoPlayer.PlaybackControls.Toolbar.buttonSize
+                width: Self.closeButtonSize,
+                height: Self.closeButtonSize
             )
             .modifier(
                 VideoPlayer.PlaybackControls.OverlayBarButtonStyleModifier()
@@ -101,7 +110,7 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
                     .frame(maxWidth: .infinity)
                     .disabled(true)
             } content: {
-                HStack(spacing: VideoPlayer.PlaybackControls.Toolbar.supplementButtonSpacing) {
+                HStack(spacing: Self.tabSpacing) {
                     #if os(iOS)
                     if isPresentingFullScreenSupplement {
                         closeButton
@@ -199,13 +208,15 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
                     // - Focus is only needed from Supplement -> ProgressBar.
                     Color.clear
                         .frame(height: 1)
-                        .focusable(containerState.isPresentingSupplement)
+                        .focusable(containerState.isPresentingSupplement && hasFocusEnteredPanel)
                         .focused($focusedElement, equals: .focusBoundary)
 
                     tabButtons
-                        // SweetFin : sur iOS, les onglets n'apparaissent qu'avec un
-                        // panneau ouvert, pour passer de l'un à l'autre.
-                        .isVisible(UIDevice.isTV || containerState.isPresentingSupplement)
+                        // SweetFin : les onglets n'apparaissent qu'avec un panneau ouvert
+                        // (le bouton pile de la rangée l'ouvre), iPhone comme tvOS ; fermés,
+                        // ils ne prennent pas le focus sous la barre de progression.
+                        .isVisible(containerState.isPresentingSupplement)
+                        .disabled(!containerState.isPresentingSupplement)
 
                     supplementContent
                         .isVisible(containerState.isPresentingSupplement)
@@ -228,6 +239,7 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
             .onChange(of: focusedElement) {
                 switch focusedElement {
                 case let .supplementTab(id):
+                    hasFocusEnteredPanel = true
                     if containerState.selectedSupplement?.id != id,
                        let supplement = currentSupplements[id: id]
                     {
@@ -246,6 +258,19 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
                     containerState.select(supplement: nil)
                 }
             }
+            #if os(tvOS)
+            // SweetFin : ouvert par le bouton pile, le focus va sur l'onglet du panneau, un tour
+            // plus tard (les onglets viennent d'être réactivés).
+            .onChange(of: containerState.selectedSupplement?.id) { _, id in
+                guard id != nil else {
+                    hasFocusEnteredPanel = false
+                    return
+                }
+                DispatchQueue.main.async {
+                    focusedElement = defaultTabFocus
+                }
+            }
+            #endif
             #if os(iOS)
             .onChange(of: containerState.selectedSupplement?.id) { _, id in
                 containerState.containerView?.presentSupplementContainer(id != nil)

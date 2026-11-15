@@ -19,7 +19,7 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         if containerState.isGestureLocked {
             containerState.toastProxy.present(
                 L10n.pressAndHoldToUnlock,
-                systemName: VideoPlayerActionButton.gestureLock.systemImage
+                systemName: "lock.fill"
             )
             return false
         }
@@ -167,7 +167,7 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
 
         containerState.toastProxy.present(
             L10n.gesturesUnlocked,
-            systemName: VideoPlayerActionButton.gestureLock.secondarySystemImage
+            systemName: "lock.open.fill"
         )
     }
 }
