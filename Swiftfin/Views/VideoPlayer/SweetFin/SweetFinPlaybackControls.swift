@@ -73,15 +73,12 @@ struct SweetFinPlaybackControls: View {
                     .transition(.opacity)
             }
 
-            // Le lecteur s'ouvre parfois avant que l'item soit résolu (lecture depuis une
-            // tuile) : on montre qu'il charge.
-            if manager.state == .loadingItem {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .controlSize(.large)
-                    .tint(.white)
-                    .allowsHitTesting(false)
-            }
+            // Item pas encore résolu (lecture depuis une tuile), ou VLC qui charge (après un
+            // saut, ou coupure réseau en attendant la reprise) : on montre qu'il charge.
+            LoadingIndicator(
+                isBuffering: manager.proxy?.isBuffering ?? Self.notBuffering,
+                isLoadingItem: manager.state == .loadingItem
+            )
         }
         .modifier(VideoPlayer.KeyCommandsModifier())
         .task(id: manager.playbackRequestStatus) {
@@ -127,6 +124,8 @@ struct SweetFinPlaybackControls: View {
     /// Hauteur de la rangée de boutons et de la barre de progression : le bouton « Passer »
     /// se pose au-dessus quand les commandes sont affichées.
     private static let skipButtonOverlayOffset: CGFloat = 90
+    /// Rien en chargement, tant que le proxy n'existe pas encore.
+    private static let notBuffering = PublishedBox(initialValue: false)
 
     // MARK: - Écran de pause
 
@@ -467,6 +466,27 @@ private struct SettingsMenu: View {
             Label(PlayerStrings.settings, systemImage: "gearshape")
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(.rect)
+        }
+    }
+}
+
+/// Roue de chargement au centre du lecteur. Observe le chargement de VLC (`isBuffering`
+/// du proxy) : ❌ avant, seule la résolution de l'item l'affichait, une coupure réseau
+/// laissait l'image figée sans rien (vécu le 2026-11-15).
+private struct LoadingIndicator: View {
+
+    @ObservedObject
+    var isBuffering: PublishedBox<Bool>
+
+    let isLoadingItem: Bool
+
+    var body: some View {
+        if isLoadingItem || isBuffering.value {
+            ProgressView()
+                .progressViewStyle(.circular)
+                .controlSize(.large)
+                .tint(.white)
+                .allowsHitTesting(false)
         }
     }
 }
