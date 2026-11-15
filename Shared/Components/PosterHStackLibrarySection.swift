@@ -17,18 +17,6 @@ struct PosterHStackLibrarySection<Library: PagingLibrary>: View
         case content
     }
 
-    #if os(tvOS)
-    private struct HeaderButtonStyle: ButtonStyle {
-
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .scaleEffect(configuration.isPressed ? 0.97 : 1)
-                .opacity(configuration.isPressed ? 0.8 : 1)
-                .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
-        }
-    }
-    #endif
-
     @FocusState
     private var focusedSection: FocusSection?
 
@@ -44,10 +32,6 @@ struct PosterHStackLibrarySection<Library: PagingLibrary>: View
         router.route(to: .library(library: viewModel.library))
     }
 
-    private var isHeaderFocused: Bool {
-        focusedSection == .header
-    }
-
     private var headerTitle: some View {
         Text(viewModel.library.parent.displayTitle)
             .font(.title3)
@@ -58,42 +42,10 @@ struct PosterHStackLibrarySection<Library: PagingLibrary>: View
     @ViewBuilder
     private var header: some View {
         if group.environment.isHeaderButtonEnabled {
-            Button(action: routeToLibrary) {
-                #if os(tvOS)
-                HStack(spacing: 3) {
-                    headerTitle
-
-                    if isHeaderFocused {
-                        Image(systemName: "chevron.forward")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .transition(.opacity)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .backport
-                .glassEffect(
-                    isHeaderFocused ? .regular : .identity,
-                    in: .capsule
-                )
-                .animation(.easeInOut(duration: 0.15), value: isHeaderFocused)
-                .offset(x: -16)
-                #else
-                HStack(spacing: 3) {
-                    headerTitle
-
-                    Image(systemName: "chevron.forward")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                #endif
+            SectionHeaderButton(action: routeToLibrary) {
+                headerTitle
             }
-            .foregroundStyle(.primary, .secondary)
             .accessibilityAction(named: Text(L10n.openLibrary), routeToLibrary)
-            #if os(tvOS)
-            .buttonStyle(HeaderButtonStyle())
-            #endif
         } else {
             headerTitle
                 .foregroundStyle(.primary)

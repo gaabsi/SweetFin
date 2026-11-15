@@ -9,15 +9,17 @@
 import Defaults
 import SwiftUI
 
-// iOS uniquement : tvOS garde `CustomizeSettingsView`.
-#if os(iOS)
-
-/// SweetFin : l'écran « Avancé » du fork, à la place de `CustomizeSettingsView`.
+/// SweetFin : l'écran « Avancé » du fork, iPhone et tvOS (❌ `CustomizeSettingsView`
+/// d'upstream, supprimé le 2026-11-15 : tvOS n'y avait pas les réglages de l'Accueil).
 ///
-/// Remplace l'écran upstream plutôt que de le modifier : `CustomizeSettingsView` reste
-/// intact et sert tvOS. Ce qui n'y figure plus (media bar, style de fiche, « Manquant »…)
-/// est décidé par le fork, pas par l'utilisateur.
+/// Ce qui n'y figure pas (media bar, style de fiche, « Manquant »…) est décidé par le
+/// fork, pas par l'utilisateur. tvOS ajoute la disposition de la barre d'onglets.
 struct AdvancedSettingsView: View {
+
+    #if os(tvOS)
+    @Default(.Customization.tabBarPlacement)
+    private var tabBarPlacement
+    #endif
 
     @Default(.Customization.Home.showLibraries)
     private var showLibraries
@@ -31,6 +33,12 @@ struct AdvancedSettingsView: View {
 
     var body: some View {
         Form(systemImage: "gear") {
+            #if os(tvOS)
+            Section(L10n.tabBar) {
+                ListRowMenu(L10n.layout, selection: $tabBarPlacement)
+            }
+            #endif
+
             ChevronButton(L10n.videoPlayer) {
                 router.route(to: .playerSettings)
             }
@@ -59,5 +67,3 @@ struct AdvancedSettingsView: View {
         }
     }
 }
-
-#endif

@@ -76,8 +76,8 @@ struct ExplorerFilterPicker<Filter: ExplorerFilter>: View {
 
 /// Titre de section, cliquable quand il y a une suite à montrer.
 ///
-/// Reprend l'en-tête de `PosterHStackLibrarySection`, celui de l'écran d'Accueil :
-/// **titre et chevron accolés**, chevron en `.secondary`. L'Explorer avait un
+/// Même bouton que l'en-tête de l'Accueil (`SectionHeaderButton`) : **titre et chevron
+/// accolés** sur iPhone, pastille au focus sur tvOS. L'Explorer avait un
 /// « Voir plus › » aligné à droite de l'écran — une forme qu'on ne trouve nulle part
 /// ailleurs dans l'app, et qui donnait deux silhouettes d'en-tête différentes selon
 /// que la section avait une suite ou non.
@@ -97,15 +97,9 @@ struct ExplorerSectionHeader: View {
 
     var body: some View {
         if let seeAll {
-            Button(action: seeAll) {
-                HStack(spacing: 3) {
-                    label
-
-                    Image(systemName: "chevron.forward")
-                        .font(.title3)
-                }
+            SectionHeaderButton(action: seeAll) {
+                label
             }
-            .foregroundStyle(.primary, .secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .edgePadding(.horizontal)
         } else {

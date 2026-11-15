@@ -144,14 +144,12 @@ extension NavigationRoute {
         }
     }
 
-    #if os(iOS)
-    /// L'écran « Avancé » du fork, voir `AdvancedSettingsView`. iOS uniquement.
+    /// L'écran « Avancé » du fork, voir `AdvancedSettingsView`.
     static var advancedSettings: NavigationRoute {
         NavigationRoute(id: "advancedSettings") {
             AdvancedSettingsView()
         }
     }
-    #endif
 
     #if os(iOS)
     /// La suite de la saison en cours à télécharger, voir `SeasonDownloadView`.

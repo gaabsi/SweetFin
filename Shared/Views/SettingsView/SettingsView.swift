@@ -126,13 +126,7 @@ struct SettingsView: View {
             #endif
 
             ChevronButton(L10n.advanced) {
-                // SweetFin : l'écran Avancé du fork sur iOS ; tvOS garde celui
-                // d'upstream tant qu'il n'est pas porté.
-                #if os(iOS)
                 router.route(to: .advancedSettings)
-                #else
-                router.route(to: .customizeSettingsView)
-                #endif
             }
         } header: {
             Text(L10n.customize)

@@ -20,16 +20,6 @@ import SwiftUI
 /// Remplace entièrement l'ancien onglet « Médias ».
 struct ExplorerView: View {
 
-    /// Barre de recherche toujours visible sur iOS ; tvOS n'a pas de tiroir de barre
-    /// de navigation, il garde le placement du système.
-    private static var searchPlacement: SearchFieldPlacement {
-        #if os(iOS)
-        .navigationBarDrawer(displayMode: .always)
-        #else
-        .automatic
-        #endif
-    }
-
     @Router
     private var router
 
@@ -38,10 +28,13 @@ struct ExplorerView: View {
 
     @State
     private var searchText = ""
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                #if os(tvOS)
+                searchField
+                #endif
+
                 if searchText.isNotEmpty {
                     searchResults
                 } else {
@@ -52,11 +45,19 @@ struct ExplorerView: View {
         }
         .navigationTitle(ExplorerStrings.explore)
         .hidesNavigationTitle()
+        #if os(iOS)
+        // Barre de recherche toujours visible.
         .searchable(
             text: $searchText,
-            placement: Self.searchPlacement,
+            placement: .navigationBarDrawer(displayMode: .always),
             prompt: L10n.search
         )
+        #endif
+        #if os(tvOS)
+        // Retour : vide la recherche. Champ vide, rien n'est capté (`nil`) : le bouton
+        // garde son rôle habituel.
+        .onExitCommand(perform: searchText.isEmpty ? nil : { searchText = "" })
+        #endif
         .onChange(of: searchText) { _, newValue in
             viewModel.search(newValue)
         }
@@ -73,6 +74,18 @@ struct ExplorerView: View {
     }
 
     // MARK: - Recherche
+
+    #if os(tvOS)
+    /// Un champ, et non `.searchable` : sur tvOS celui-ci affiche la grille du clavier en
+    /// permanence en haut de l'écran (❌ jugé envahissant). Ici le clavier plein
+    /// écran du système ne s'ouvre qu'au clic.
+    private var searchField: some View {
+        TextField(L10n.search, text: $searchText)
+            .autocorrectionDisabled()
+            .edgePadding(.horizontal)
+            .padding(.bottom, 32)
+    }
+    #endif
 
     /// Pas de sélecteur films / séries : le serveur cherche les deux quand le type
     /// est omis, comme le fait la recherche du front web.

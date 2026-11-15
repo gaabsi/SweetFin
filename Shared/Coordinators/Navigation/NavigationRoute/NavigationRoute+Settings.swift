@@ -22,14 +22,6 @@ extension NavigationRoute {
     }
     #endif
 
-    static var customizeSettingsView: NavigationRoute {
-        NavigationRoute(
-            id: "customizeSettingsView"
-        ) {
-            CustomizeSettingsView()
-        }
-    }
-
     #if DEBUG
     static var debugSettings: NavigationRoute {
         NavigationRoute(
