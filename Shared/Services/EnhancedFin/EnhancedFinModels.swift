@@ -20,6 +20,34 @@ struct EnhancedFinList<Item: Decodable>: Decodable {
     let total: Int
 }
 
+// MARK: - Progression
+
+/// La position d'un épisode (ou d'un film : `0`/`0`) — `GET /me/progress/{mediaKey}`.
+struct EnhancedFinProgress: Decodable {
+
+    let season: Int
+    let episode: Int
+    let positionTicks: Int
+    let durationTicks: Int
+
+    /// Même règle que le plugin (`SqlIsWatched`) : durée inconnue, ou 90 % atteints.
+    var isWatched: Bool {
+        durationTicks <= 0 || Self.isFinished(positionTicks: positionTicks, durationTicks: durationTicks)
+    }
+
+    /// Vu à partir de 90 %, comme le plugin (`FinishedRatio`) et Jellyfin.
+    ///
+    /// Parametres :
+    /// - positionTicks (Int) : position atteinte
+    /// - durationTicks (Int) : durée ; inconnue (0) = pas vu
+    ///
+    /// Output :
+    /// - isFinished (Bool) : vrai si 90 % sont atteints
+    static func isFinished(positionTicks: Int, durationTicks: Int) -> Bool {
+        durationTicks > 0 && Double(positionTicks) >= Double(durationTicks) * 0.9
+    }
+}
+
 // MARK: - Notes
 
 /// Une note, telle que renvoyée par `GET /me/ratings`.

@@ -371,6 +371,19 @@ final class EnhancedFinClient {
         )
     }
 
+    /// La progression d'une œuvre, épisode par épisode (`GET /me/progress/{mediaKey}`) : ceux
+    /// qui ont été commencés. Limitée aux 200 premiers (saison puis épisode) : au-delà, un
+    /// épisode téléchargé ne voit pas sa position rafraîchie (série très longue seulement).
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé de l'œuvre
+    ///
+    /// Output :
+    /// - progress ([EnhancedFinProgress]) : les épisodes commencés ou vus
+    func progress(_ mediaKey: String) async throws -> [EnhancedFinProgress] {
+        try await send(Request<EnhancedFinList<EnhancedFinProgress>>(path: "me/progress/\(escaped(mediaKey))", query: [("limit", "200")])).items
+    }
+
     /// Enregistre une position de lecture dans le plugin (`PUT /me/progress`) : un item hors
     /// médiathèque, que Jellyfin ne connaît pas (lu hors connexion depuis un téléchargement).
     ///

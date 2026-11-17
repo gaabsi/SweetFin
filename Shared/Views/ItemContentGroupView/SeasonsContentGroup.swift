@@ -210,10 +210,10 @@ private struct SeasonEpisodesSheet: View {
         #if os(iOS)
         guard Container.shared.currentUserSession()?.user.data.policy?.enableContentDownloading == true else { return nil }
         if let jellyfinID = episode.jellyfinID {
-            return EpisodeDownload(item: BaseItemDto(id: jellyfinID, type: .episode), storageID: nil, resolve: nil)
+            return EpisodeDownload(item: viewModel.provisionalItem(for: episode, id: jellyfinID), storageID: nil, resolve: nil)
         }
         guard let resolve = viewModel.downloadResolver(for: episode) else { return nil }
-        return EpisodeDownload(item: BaseItemDto(id: episode.id, type: .episode), storageID: episode.id, resolve: resolve)
+        return EpisodeDownload(item: viewModel.provisionalItem(for: episode, id: episode.id), storageID: episode.id, resolve: resolve)
         #else
         return nil
         #endif

@@ -239,6 +239,27 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
         }
     }
 
+    /// SweetFin : l'épisode tel que la ligne le connaît, pour la fiche provisoire d'un
+    /// téléchargement : rangé dans sa série et titré dès le tap, avant la fiche complète.
+    ///
+    /// Parametres :
+    /// - episode (EpisodeRow) : épisode de la saison ouverte
+    /// - id (String) : id de l'item à télécharger
+    ///
+    /// Output :
+    /// - item (BaseItemDto) : épisode avec série, saison, numéro et titre
+    func provisionalItem(for episode: EpisodeRow, id: String) -> BaseItemDto {
+        let seriesID: String? = if case let .jellyfin(seriesID, _) = backend { seriesID } else { nil }
+        return BaseItemDto(
+            id: id,
+            indexNumber: episode.number,
+            name: episode.name,
+            parentIndexNumber: selectedSeason,
+            seriesID: seriesID,
+            type: .episode
+        )
+    }
+
     /// Lecture d'un épisode, rendue **tout de suite** : le lecteur s'ouvre sur son titre
     /// et résout dedans, par le même chemin qu'une fiche (fiche complète de l'item, puis
     /// son lecteur). Appelé seulement pour un épisode lisible (`availability(of:)`).

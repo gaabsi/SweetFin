@@ -18,6 +18,7 @@ enum DownloadStrings {
     static let retryDownload = String(localized: "Retry Download", table: "SweetFin")
     static let missingSource = String(localized: "No file to download for this item.", table: "SweetFin")
     static let failed = String(localized: "Download Failed", table: "SweetFin")
+    static let preparing = String(localized: "Preparing Download…", table: "SweetFin")
 
     static let offlineBanner = String(localized: "Offline — only your downloads are available.", table: "SweetFin")
 
@@ -27,7 +28,7 @@ enum DownloadStrings {
     static let downloadSeason = String(localized: "Download Rest of Season", table: "SweetFin")
     static let nothingToDownload = String(localized: "Nothing to download: you've watched everything, or the rest of the season is already downloaded.", table: "SweetFin")
 
-    static func seasonSummary(count: Int, bytes: Int64) -> String {
+    static func episodeSummary(count: Int, bytes: Int64) -> String {
         String(localized: "\(count) episodes · \(size(bytes))", table: "SweetFin")
     }
 

@@ -158,6 +158,13 @@ extension NavigationRoute {
             SeasonDownloadView(series: series)
         }
     }
+
+    /// La page d'une série téléchargée, voir `DownloadedSeriesView`.
+    static func downloadedSeries(seriesKey: String) -> NavigationRoute {
+        NavigationRoute(id: "downloadedSeries-\(seriesKey)") {
+            DownloadedSeriesView(seriesKey: seriesKey)
+        }
+    }
     #endif
 
     /// La fenêtre « Demander sur Seerr », voir `SeerrRequestView`.

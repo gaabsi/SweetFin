@@ -66,7 +66,7 @@ struct SeasonDownloadView: View {
                 } header: {
                     Text([series.name, pending.first?.seasonName].compactMap(\.self).joined(separator: " · "))
                 } footer: {
-                    Text(DownloadStrings.seasonSummary(count: pending.count, bytes: totalSize))
+                    Text(DownloadStrings.episodeSummary(count: pending.count, bytes: totalSize))
                 }
             }
         }

@@ -46,8 +46,8 @@ extension ItemContentGroupProvider {
 /// SweetFin : télécharger un item pour le lire hors connexion, depuis n'importe quel
 /// menu (« ⋯ » de la fiche, appui long sur un épisode ou une affiche).
 ///
-/// Un seul emplacement, quatre états — absent (télécharger), en cours (pourcentage,
-/// sous-menu pour annuler), terminé (sous-menu pour supprimer), échec (sous-menu pour
+/// Un seul emplacement, cinq états — absent (télécharger), en préparation et en cours
+/// (sous-menu pour annuler), terminé (sous-menu pour supprimer), échec (sous-menu pour
 /// réessayer ou supprimer). Un menu n'affiche que du texte et des symboles système :
 /// pas d'anneau de progression ici. L'item peut n'avoir que son identifiant :
 /// `DownloadManager.start` recharge la fiche complète.
@@ -76,6 +76,12 @@ struct DownloadButton: View {
                 Button(DownloadStrings.download, systemImage: ItemActionButton.download.secondarySystemImage) {
                     start(userSession: userSession)
                 }
+            case .preparing:
+                Menu {
+                    removeButton(DownloadStrings.cancelDownload, itemID: itemID, userID: userSession.user.id)
+                } label: {
+                    Label(DownloadStrings.preparing, systemImage: "arrow.down.app.dashed")
+                }
             case let .downloading(progress):
                 Menu {
                     removeButton(DownloadStrings.cancelDownload, itemID: itemID, userID: userSession.user.id)
@@ -102,16 +108,16 @@ struct DownloadButton: View {
         }
     }
 
-    /// Lance le téléchargement ; une erreur (espace insuffisant, source absente)
-    /// s'affiche en toast, rien n'est lancé.
+    /// Lance le téléchargement ; une erreur s'affiche en toast. Espace insuffisant ou
+    /// source absente : rien n'est gardé. Serveur trop lent : il reste en échec, à
+    /// réessayer.
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
     private func start(userSession: UserSession) {
         Task {
             do {
-                let target = try await resolve?() ?? item
-                try await manager.start(target, userSession: userSession, storageID: storageID)
+                try await manager.start(item, userSession: userSession, storageID: storageID, resolve: resolve)
             } catch {
                 toastProxy.present(error.localizedDescription, systemName: "exclamationmark.triangle")
             }

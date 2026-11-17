@@ -26,7 +26,7 @@ struct DownloadedItem: Codable, Identifiable {
     let mediaKey: String?
     /// SweetFin : nom du dossier du téléchargement, posé à la relecture du disque (pas
     /// enregistré : le dossier fait foi). Id stable, même hors médiathèque, où l'id de
-    /// l'item est un jeton éphémère du serveur (le dossier porte alors l'id de la fiche).
+    /// l'item est un identifiant temporaire du serveur (le dossier porte alors l'id de la fiche).
     var storageID: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -43,12 +43,41 @@ struct DownloadedItem: Codable, Identifiable {
     var isOutsideLibrary: Bool {
         mediaKey != nil
     }
+
+    /// SweetFin : la série d'un épisode (clé TMDB hors médiathèque, id Jellyfin sinon),
+    /// pour regrouper ses épisodes ; `nil` pour un film.
+    var seriesKey: String? {
+        guard item.type == .episode else { return nil }
+        return mediaKey ?? item.seriesID ?? item.seriesName
+    }
+
+    /// SweetFin : rang d'un épisode dans sa série (saison, épisode).
+    var episodeOrder: (Int, Int) {
+        (item.parentIndexNumber ?? 0, item.indexNumber ?? 0)
+    }
+
+    /// SweetFin : durée du fichier téléchargé, à défaut celle de la fiche.
+    var runtimeTicks: Int? {
+        [mediaSource.runTimeTicks, item.runTimeTicks].compactMap(\.self).first { $0 > 0 }
+    }
+
+    /// SweetFin : part regardée, entre 0 et 1 ; `nil` si rien d'entamé ou déjà vu.
+    var progress: Double? {
+        guard item.userData?.isPlayed != true,
+              let position = item.userData?.playbackPositionTicks, position > 0,
+              let runtime = runtimeTicks
+        else { return nil }
+
+        return min(Double(position) / Double(runtime), 1)
+    }
 }
 
 /// SweetFin : où en est le téléchargement d'un item.
 enum DownloadState: Equatable {
 
     case none
+    /// Fiche complète demandée au serveur, fichier pas encore lancé.
+    case preparing
     case downloading(progress: Double)
     case done
     case failed
@@ -70,7 +99,7 @@ enum DownloadError: LocalizedError {
     }
 }
 
-/// SweetFin : position atteinte **sans réseau**, en attente d'envoi à Jellyfin
+/// SweetFin : position atteinte en lisant un téléchargement, en attente d'envoi au serveur
 /// (`progress.json`). Supprimée dès qu'elle est envoyée.
 struct DownloadProgress: Codable {
 

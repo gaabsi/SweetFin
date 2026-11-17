@@ -981,6 +981,16 @@
         }
       }
     },
+    "Preparing Download…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation du téléchargement…"
+          }
+        }
+      }
+    },
     "Previous Period": {
       "localizations": {
         "fr": {

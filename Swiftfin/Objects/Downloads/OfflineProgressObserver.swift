@@ -7,14 +7,15 @@
 //
 
 import Combine
-import FactoryKit
 import Foundation
 
-/// SweetFin : note la position d'une lecture de téléchargement **quand il n'y a aucun
-/// réseau**, là où les rapports de `MediaProgressObserver` échouent.
+/// SweetFin : note la position d'une lecture de téléchargement, **réseau ou pas**, puis
+/// demande son envoi à l'arrêt (`onStop`).
 ///
-/// En ligne, il ne fait rien : upstream rapporte déjà la position à Jellyfin, et une copie
-/// locale écraserait plus tard ce qui aurait été regardé ailleurs entre-temps.
+/// ❌ Noter seulement « hors connexion » (`OfflineMonitor`) : une 4G sans signal compte
+/// comme connectée, rien n'était noté et les rapports d'upstream échouaient — position
+/// perdue (vécu le 2026-11-16). L'envoi dès l'arrêt limite le risque inverse : écraser plus
+/// tard ce qui aurait été regardé ailleurs entre-temps.
 ///
 /// Même cadence qu'upstream, en plus lent : toutes les 10 s, à chaque pause ou reprise,
 /// et à l'arrêt.
@@ -29,32 +30,36 @@ final class OfflineProgressObserver: MediaPlayerObserver {
     }
 
     private let save: (Duration) -> Void
+    private let onStop: () -> Void
     private let timer = PokeIntervalTimer(defaultInterval: 10)
     private var cancellables = Set<AnyCancellable>()
 
     /// Parametres :
     /// - save ((Duration) -> Void) : écrit la position dans le dossier du téléchargement
-    init(save: @escaping (Duration) -> Void) {
+    /// - onStop (() -> Void) : appelé à l'arrêt, après la dernière position notée
+    init(save: @escaping (Duration) -> Void, onStop: @escaping () -> Void) {
         self.save = save
+        self.onStop = onStop
     }
 
     private func setup(with manager: MediaPlayerManager) {
         cancellables = []
 
         timer.sink { [weak self] in
-            self?.saveIfOffline()
+            self?.saveProgress()
             self?.timer.poke()
         }
         .store(in: &cancellables)
 
         manager.$playbackRequestStatus
-            .sink { [weak self] _ in self?.saveIfOffline() }
+            .sink { [weak self] _ in self?.saveProgress() }
             .store(in: &cancellables)
 
         manager.actions
             .sink { [weak self] action in
                 guard case .stop = action else { return }
-                self?.saveIfOffline()
+                self?.saveProgress()
+                self?.onStop()
                 self?.timer.stop()
                 self?.cancellables = []
             }
@@ -62,14 +67,14 @@ final class OfflineProgressObserver: MediaPlayerObserver {
 
         Notifications[.applicationWillTerminate]
             .publisher
-            .sink { [weak self] _ in self?.saveIfOffline() }
+            .sink { [weak self] _ in self?.saveProgress() }
             .store(in: &cancellables)
 
         timer.poke()
     }
 
-    private func saveIfOffline() {
-        guard let manager, Container.shared.offlineMonitor().isOffline else { return }
+    private func saveProgress() {
+        guard let manager else { return }
         save(manager.seconds)
     }
 }
