@@ -22,15 +22,6 @@ class VideoPlayerContainerState: ObservableObject {
     @Published
     var isAspectFilled: Bool = false
 
-    @Published
-    var isGestureLocked: Bool = false {
-        didSet {
-            if isGestureLocked {
-                isPresentingOverlay = false
-            }
-        }
-    }
-
     // TODO: rename isPresentingPlaybackButtons
     @Published
     var isPresentingPlaybackControls: Bool = false
@@ -131,14 +122,10 @@ class VideoPlayerContainerState: ObservableObject {
     @Published
     var isPresentingPauseScreen: Bool = false
 
-    var isPresentingMenu: Bool = false {
-        didSet {
-            if isPresentingMenu {
-                timer.stop()
-            } else {
-                timer.poke()
-            }
-        }
+    /// SweetFin : « Passer l'intro » se cache pendant un scrub, sous l'écran de pause et
+    /// sous un panneau (iPhone et tvOS).
+    var isSkipSegmentShown: Bool {
+        !isScrubbing && !isPresentingPauseScreen && !isPresentingSupplement
     }
 
     var originalPlaybackRate: Float?
@@ -158,9 +145,19 @@ class VideoPlayerContainerState: ObservableObject {
     #endif
 
     #if os(tvOS)
-    /// SweetFin : passe le segment en cours (générique, résumé), nil hors segment. Posé
-    /// par `SkipSegmentButton`, déclenché par le clic quand la barre est masquée.
-    var skipSegment: (() -> Void)?
+    /// SweetFin : vrai pendant un segment passable (générique, résumé). Posé par
+    /// `SkipSegmentButton`.
+    @Published
+    var hasSkippableSegment: Bool = false
+    /// SweetFin : le clic de la télécommande demande à `SkipSegmentButton` de passer le
+    /// segment. ❌ Une closure gardée ici retenait le bouton, et donc cet état (cycle).
+    let skipSegmentRequest = PassthroughSubject<Void, Never>()
+
+    /// SweetFin : étiquette affichée et barre masquée pendant un segment : le clic le
+    /// passe. Sinon il rappelle la barre ou va au bouton qui a le focus.
+    var isSkipSegmentClickable: Bool {
+        hasSkippableSegment && isSkipSegmentShown && !isPresentingOverlay
+    }
 
     @Published
     private(set) var presentedSupplementStyle: MediaPlayerSupplementPresentationStyle?
@@ -209,7 +206,6 @@ class VideoPlayerContainerState: ObservableObject {
 
             guard !isScrubbing,
                   !isPresentingSupplement,
-                  !isPresentingMenu,
                   manager?.playbackRequestStatus != .paused else { return }
 
             withAnimation(.linear(duration: 0.25)) {

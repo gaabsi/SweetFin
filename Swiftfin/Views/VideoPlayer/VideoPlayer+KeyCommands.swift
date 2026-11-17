@@ -37,7 +37,7 @@ extension VideoPlayer {
                     // MARK: Aspect Fill
 
                     KeyCommandAction(
-                        title: "Aspect Fill",
+                        title: L10n.aspectFill,
                         input: "f",
                         modifierFlags: .command
                     ) { @MainActor in

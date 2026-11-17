@@ -26,8 +26,11 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         @EnvironmentObject
         private var manager: MediaPlayerManager
 
-        // Repris de la barre d'outils d'upstream, supprimée (2026-11-15).
-        private static let closeButtonSize: CGFloat = UIDevice.isTV ? 56 : 44
+        // SweetFin : repris de la barre d'outils d'upstream, supprimée (2026-11-15).
+        #if os(iOS)
+        /// Le bouton fermer n'existe que sur iPhone (tvOS : Menu).
+        private static let closeButtonSize: CGFloat = 44
+        #endif
         private static let tabSpacing: CGFloat = UIDevice.isTV ? 20 : 10
 
         @FocusState

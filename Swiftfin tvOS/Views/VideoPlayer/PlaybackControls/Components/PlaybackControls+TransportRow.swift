@@ -27,21 +27,16 @@ extension VideoPlayer.PlaybackControls {
                     .frame(width: Self.rowButtonSize, height: Self.rowButtonSize)
             }
 
-            if !manager.item.isLiveStream {
-                Button(PlayerStrings.jumpBackward, systemImage: "backward.fill") {
-                    manager.proxy?.jumpBackward(jumpBackwardInterval.rawValue)
-                }
+            JumpButton(direction: .backward)
                 .frame(width: Self.rowButtonSize, height: Self.rowButtonSize)
-            }
 
-            playButton
+            PlayPauseButton()
+                .font(.system(size: 44, weight: .semibold))
+                .frame(width: Self.playButtonSize, height: Self.playButtonSize)
+                .focused($isPlayButtonFocused)
 
-            if !manager.item.isLiveStream {
-                Button(PlayerStrings.jumpForward, systemImage: "forward.fill") {
-                    manager.proxy?.jumpForward(jumpForwardInterval.rawValue)
-                }
+            JumpButton(direction: .forward)
                 .frame(width: Self.rowButtonSize, height: Self.rowButtonSize)
-            }
 
             if let queue = manager.queue {
                 QueueButton(queue: queue, direction: .next)
@@ -50,13 +45,8 @@ extension VideoPlayer.PlaybackControls {
 
             Spacer()
 
-            // La pile : ouvre le panneau des épisodes, comme sur iPhone. Absente pour un film.
-            if let queue = manager.queue {
-                Button(PlayerStrings.episodes, systemImage: "rectangle.stack") {
-                    containerState.select(supplement: queue)
-                }
+            EpisodesButton()
                 .frame(width: Self.rowButtonSize, height: Self.rowButtonSize)
-            }
 
             if let playbackItem = manager.playbackItem {
                 SettingsMenu(playbackItem: playbackItem)
@@ -68,27 +58,6 @@ extension VideoPlayer.PlaybackControls {
         .modifier(OverlayButtonStyleModifier())
         .menuStyle(OverlayMenuStyle())
         .focusSection()
-    }
-
-    private var playButton: some View {
-        Button {
-            switch manager.playbackRequestStatus {
-            case .playing:
-                manager.setPlaybackRequestStatus(status: .paused)
-            case .paused:
-                manager.setPlaybackRequestStatus(status: .playing)
-            }
-        } label: {
-            switch manager.playbackRequestStatus {
-            case .playing:
-                Label(L10n.pause, systemImage: "pause.fill")
-            case .paused:
-                Label(L10n.play, systemImage: "play.fill")
-            }
-        }
-        .font(.system(size: 44, weight: .semibold))
-        .frame(width: Self.playButtonSize, height: Self.playButtonSize)
-        .focused($isPlayButtonFocused)
     }
 
     /// « Série - S1:E1 - Titre (année) », en haut à gauche, comme sur iPhone.

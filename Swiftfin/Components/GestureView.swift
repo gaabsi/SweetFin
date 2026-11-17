@@ -16,7 +16,6 @@ struct GestureView: PlatformViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let view = UIView(frame: .zero)
 
-        view.addGestureRecognizer(context.coordinator.longPressGesture)
         view.addGestureRecognizer(context.coordinator.panGesture)
         view.addGestureRecognizer(context.coordinator.pinchGesture)
         view.addGestureRecognizer(context.coordinator.tapGesture)
@@ -28,7 +27,6 @@ struct GestureView: PlatformViewRepresentable {
 
     func updateUIView(_ uiView: UIView, context: Context) {
 
-        context.coordinator.longPressAction = context.environment.longPressAction
         context.coordinator.panAction = context.environment.panAction
         context.coordinator.pinchAction = context.environment.pinchAction
         context.coordinator.tapAction = context.environment.tapGestureAction
@@ -51,14 +49,6 @@ struct GestureView: PlatformViewRepresentable {
             return recognizer
         }()
 
-        lazy var longPressGesture: UILongPressGestureRecognizer! = {
-            let recognizer = UILongPressGestureRecognizer(
-                target: self,
-                action: #selector(handleLongPress)
-            )
-            recognizer.minimumPressDuration = 0.5
-            return recognizer
-        }()
 
         lazy var panGesture: DirectionalPanGestureRecognizer! = {
             .init(
@@ -82,10 +72,6 @@ struct GestureView: PlatformViewRepresentable {
             )
         }()
 
-        var longPressAction: LongPressAction? {
-            didSet { longPressGesture.isEnabled = longPressAction != nil }
-        }
-
         var panAction: PanAction? {
             didSet { panGesture.isEnabled = panAction != nil }
         }
@@ -102,23 +88,6 @@ struct GestureView: PlatformViewRepresentable {
         }
 
         private var didSwipe = false
-
-        @objc
-        func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-            guard let view = gesture.view else { return }
-
-            let location = gesture.location(in: view)
-            let unitPoint = UnitPoint(
-                x: location.x / view.bounds.width,
-                y: location.y / view.bounds.height
-            )
-
-            longPressAction?(
-                location: location,
-                unitPoint: unitPoint,
-                state: gesture.state
-            )
-        }
 
         @objc
         func handlePan(_ gesture: UIPanGestureRecognizer) {

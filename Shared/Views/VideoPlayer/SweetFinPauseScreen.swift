@@ -98,10 +98,13 @@ struct SweetFinPauseScreen: View {
                     .lineLimit(6)
             }
 
-            ProgressView(value: progress)
-                .tint(.white)
+            // Direct, ou média sans durée : pas de progression (« 0:00 · 0 % regardé »).
+            if runtime > .zero {
+                ProgressView(value: progress)
+                    .tint(.white)
 
-            progressDetails
+                progressDetails
+            }
         }
         // Une colonne, comme sur le web : le synopsis ne court pas sur toute la largeur.
         .frame(maxWidth: UIDevice.isTV ? 960 : 480, alignment: .leading)
@@ -253,7 +256,9 @@ struct PauseScreenModifier: ViewModifier {
         guard !Task.isCancelled,
               manager.playbackRequestStatus == .paused,
               !containerState.isPresentingSupplement,
-              !containerState.isScrubbing
+              !containerState.isScrubbing,
+              // Un menu ouvert (engrenage) : on ne passe pas par-dessus.
+              containerState.containerView?.presentedViewController == nil
         else { return }
 
         containerState.isPresentingOverlay = false

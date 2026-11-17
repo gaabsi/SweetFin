@@ -24,30 +24,25 @@ extension VideoPlayer.PlaybackControls {
         }
     }
 
+    #if os(tvOS)
+    /// Le menu de la rangée tvOS (engrenage), seul utilisateur.
     struct OverlayMenuStyle: MenuStyle {
 
         func makeBody(configuration: Configuration) -> some View {
             Menu(configuration)
                 .menuStyle(.button)
-                #if os(tvOS)
                 .modifier(OverlayButtonStyleModifier())
-                #else
-                .buttonStyle(OverlayButtonStyle(isMenu: true))
-                #endif
                 .symbolRenderingMode(.monochrome)
                 .foregroundStyle(.primary, .secondary)
         }
     }
+    #endif
 
+    #if os(iOS)
+    /// Le bouton fermer du panneau iPhone (`SupplementContainerView`), seul utilisateur.
     struct OverlayBarButtonStyleModifier: ViewModifier {
 
         func body(content: Content) -> some View {
-            #if os(tvOS)
-            content
-                .font(.system(size: 30, weight: .semibold))
-                .labelStyle(.iconOnly)
-                .modifier(OverlayButtonStyleModifier())
-            #else
             content
                 .font(.system(size: 20, weight: .semibold))
                 .buttonStyle(OverlayButtonStyle())
@@ -56,9 +51,9 @@ extension VideoPlayer.PlaybackControls {
                         .backport
                         .glassEffect(.regular.interactive(false), in: .capsule)
                 }
-            #endif
         }
     }
+    #endif
 
     @available(iOS 26.0, tvOS 26.0, *)
     struct OverlayGlassButtonStyle: PrimitiveButtonStyle {
@@ -102,8 +97,6 @@ extension VideoPlayer.PlaybackControls {
         @EnvironmentObject
         private var containerState: VideoPlayerContainerState
 
-        var isMenu: Bool = false
-
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
                 .foregroundStyle(isEnabled ? isFocused ? AnyShapeStyle(Color.black) : AnyShapeStyle(HierarchicalShapeStyle.primary) :
@@ -127,18 +120,10 @@ extension VideoPlayer.PlaybackControls {
                 .glassEffect(.regular.tint(isFocused ? .white : nil), in: .circle)
                 #endif
                 .onChange(of: configuration.isPressed) {
-                    // Button menus remain pressed until the entire menu hierarchy dismisses.
-                    if isMenu {
-                        containerState.isPresentingMenu = configuration.isPressed
-                    } else if configuration.isPressed {
+                    if configuration.isPressed {
                         containerState.timer.stop()
                     } else {
                         containerState.timer.poke()
-                    }
-                }
-                .onDisappear {
-                    if isMenu, configuration.isPressed {
-                        containerState.isPresentingMenu = false
                     }
                 }
         }

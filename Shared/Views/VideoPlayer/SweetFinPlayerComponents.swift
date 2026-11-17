@@ -70,6 +70,77 @@ struct QueueButton: View {
     }
 }
 
+/// Recul / avance de l'intervalle choisi dans les réglages. Absent pour un direct.
+struct JumpButton: View {
+
+    enum Direction {
+        case backward
+        case forward
+    }
+
+    @Default(.VideoPlayer.jumpBackwardInterval)
+    private var jumpBackwardInterval
+    @Default(.VideoPlayer.jumpForwardInterval)
+    private var jumpForwardInterval
+
+    @EnvironmentObject
+    private var manager: MediaPlayerManager
+
+    let direction: Direction
+
+    var body: some View {
+        if !manager.item.isLiveStream {
+            switch direction {
+            case .backward:
+                Button(PlayerStrings.jumpBackward, systemImage: "backward.fill") {
+                    manager.proxy?.jumpBackward(jumpBackwardInterval.rawValue)
+                }
+            case .forward:
+                Button(PlayerStrings.jumpForward, systemImage: "forward.fill") {
+                    manager.proxy?.jumpForward(jumpForwardInterval.rawValue)
+                }
+            }
+        }
+    }
+}
+
+/// Lecture / Pause, l'icône suit l'état demandé.
+struct PlayPauseButton: View {
+
+    @EnvironmentObject
+    private var manager: MediaPlayerManager
+
+    var body: some View {
+        Button {
+            manager.togglePlayPause()
+        } label: {
+            switch manager.playbackRequestStatus {
+            case .playing:
+                Label(L10n.pause, systemImage: "pause.fill")
+            case .paused:
+                Label(L10n.play, systemImage: "play.fill")
+            }
+        }
+    }
+}
+
+/// La pile : ouvre le panneau des épisodes. Absente sans file d'attente (un film).
+struct EpisodesButton: View {
+
+    @EnvironmentObject
+    private var containerState: VideoPlayerContainerState
+    @EnvironmentObject
+    private var manager: MediaPlayerManager
+
+    var body: some View {
+        if let queue = manager.queue {
+            Button(PlayerStrings.episodes, systemImage: "rectangle.stack") {
+                containerState.select(supplement: queue)
+            }
+        }
+    }
+}
+
 /// L'engrenage : un seul menu pour tous les réglages de lecture (iPhone et tvOS).
 ///
 /// - qualité : **affichée, pas modifiable**, c'est l'admin qui décide ;

@@ -15,7 +15,7 @@ import SwiftUI
 ///
 /// Visible pendant **tout** le segment, comme Netflix. Jamais de saut automatique.
 /// iPhone : un bouton, commandes affichées ou non. tvOS : une étiquette ; barre masquée,
-/// elle est blanche et le clic passe le segment (`VideoPlayerContainerState.skipSegment`) ;
+/// elle est blanche et le clic passe le segment (`VideoPlayerContainerState.isSkipSegmentClickable`) ;
 /// barre affichée, discrète (le clic va au bouton qui a le focus).
 ///
 /// - intro, résumé, aperçu, pub : saut à la fin du segment **moins 2 s**, pour voir la fin
@@ -47,7 +47,7 @@ struct SkipSegmentButton: View {
                 #if os(tvOS)
                 // Pas un `Button` : il prendrait le focus aux commandes. Blanc, comme un
                 // bouton sélectionné, quand le clic le déclenche (barre masquée).
-                let isClickable = !containerState.isPresentingOverlay
+                let isClickable = containerState.isSkipSegmentClickable
 
                 Text(title(of: visibleSegment))
                     .font(.callout.weight(.semibold))
@@ -81,10 +81,15 @@ struct SkipSegmentButton: View {
         .animation(.easeInOut(duration: 0.25), value: visibleSegment?.id)
         #if os(tvOS)
         .onChange(of: visibleSegment?.id, initial: true) {
-            containerState.skipSegment = visibleSegment.map { segment in { skip(segment) } }
+            containerState.hasSkippableSegment = visibleSegment != nil
+        }
+        .onReceive(containerState.skipSegmentRequest) {
+            if let visibleSegment {
+                skip(visibleSegment)
+            }
         }
         .onDisappear {
-            containerState.skipSegment = nil
+            containerState.hasSkippableSegment = false
         }
         #endif
         .task(id: manager.item.id) {
@@ -170,3 +175,29 @@ private extension MediaSegmentDto {
         return ticks >= startTicks && ticks < endTicks
     }
 }
+
+#if os(tvOS)
+/// SweetFin : « Passer l'intro » sur la vidéo tvOS, à droite, comme sur iPhone : à hauteur
+/// de la barre de progression quand les commandes sont masquées, au-dessus de la rangée
+/// sinon. Posé par `VideoPlayer`.
+struct TVSkipSegmentButton: View {
+
+    /// Aligné sur la marge des commandes.
+    private static let trailingPadding: CGFloat = 90
+    /// À hauteur de la barre de progression.
+    private static let bottomPadding: CGFloat = 170
+    /// Au-dessus de la rangée (⏯ fait 100 pt) : réglé à l'œil sur la TV.
+    private static let overlayBottomPadding: CGFloat = 290
+
+    @EnvironmentObject
+    private var containerState: VideoPlayerContainerState
+
+    var body: some View {
+        SkipSegmentButton()
+            .padding(.trailing, Self.trailingPadding)
+            .padding(.bottom, containerState.isPresentingOverlay ? Self.overlayBottomPadding : Self.bottomPadding)
+            .isVisible(containerState.isSkipSegmentShown)
+            .animation(.easeInOut(duration: 0.25), value: containerState.isPresentingOverlay)
+    }
+}
+#endif

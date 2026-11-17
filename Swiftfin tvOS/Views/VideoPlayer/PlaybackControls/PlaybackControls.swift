@@ -26,8 +26,6 @@ extension VideoPlayer {
         @Toaster
         var toaster: ToastProxy
 
-        @FocusState
-        private var isPlaybackProgressFocused: Bool
         /// SweetFin : le focus arrive sur Lecture/Pause quand la barre s'affiche.
         @FocusState
         var isPlayButtonFocused: Bool
@@ -67,7 +65,6 @@ extension VideoPlayer {
                     .disabled(containerState.isPresentingSupplement || !containerState.isPresentingOverlay)
 
                 PlaybackProgress()
-                    .focused($isPlaybackProgressFocused)
                     .fixedSize(horizontal: false, vertical: true)
                     .isVisible(
                         (containerState.isPresentingOverlay || containerState.isScrubbing) &&
@@ -109,10 +106,6 @@ extension VideoPlayer {
             .onChange(of: manager.playbackRequestStatus) {
                 if manager.playbackRequestStatus == .paused, !containerState.isPresentingOverlay {
                     containerState.isPresentingOverlay = true
-                } else if manager.playbackRequestStatus == .playing {
-                    // SweetFin : en pause, le minuteur renonce à masquer sans se relancer ;
-                    // on le relance quand la lecture repart, sinon la barre reste affichée.
-                    containerState.timer.poke()
                 }
             }
             .onReceive(containerState.containerView?.onPressEvent ?? .init()) { press in

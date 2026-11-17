@@ -8,8 +8,8 @@
 
 extension VideoPlayer {
 
-    /// SweetFin : espace de noms des briques du lecteur iOS (`PlaybackProgress`,
-    /// `SplitTimeStamp`…). L'overlay affiché est `SweetFinPlaybackControls` ; celui
+    /// SweetFin : espace de noms des briques du lecteur iOS (`PlaybackProgress`, styles
+    /// de boutons…). L'overlay affiché est `SweetFinPlaybackControls` ; celui
     /// d'upstream (barre d'outils, boutons centraux) a été supprimé le 2026-11-15.
     enum PlaybackControls {}
 }

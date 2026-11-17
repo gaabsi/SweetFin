@@ -20,8 +20,6 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         unitPoint: UnitPoint,
         state: UIGestureRecognizer.State
     ) {
-        guard checkGestureLock() else { return }
-
         if state == .began {
             containerState.timer.stop()
         }

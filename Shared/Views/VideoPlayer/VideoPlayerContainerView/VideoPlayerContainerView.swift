@@ -165,18 +165,6 @@ extension VideoPlayer {
                 }
                 #if os(iOS)
                 .environment(
-                        \.longPressAction,
-                        .init(
-                            action: {
-                                containerState.containerView?.handleLongPressGesture(
-                                    location: $0,
-                                    unitPoint: $1,
-                                    state: $2
-                                )
-                            }
-                        )
-                    )
-                    .environment(
                         \.panAction,
                         .init(
                             action: {
@@ -667,7 +655,7 @@ extension VideoPlayer {
 
             // SweetFin : donner sa taille à la vue du lecteur tout de suite. Ajoutée en (0, 0),
             // son contenu SwiftUI (`VideoView`, qui lance VLC) n'apparaissait qu'au prochain
-            // changement d'état — le masquage de l'interface, 5 s plus tard, ou jamais si on
+            // changement d'état — le masquage de l'interface, 3 s plus tard, ou jamais si on
             // touchait l'écran.
             view.layoutIfNeeded()
         }
@@ -800,7 +788,7 @@ extension VideoPlayer {
 
             // SweetFin : pendant un générique, le doigt posé pour cliquer n'affiche pas la
             // barre : le clic qui suit doit passer le segment, pas mettre en pause.
-            if !containerState.isPresentingOverlay, containerState.skipSegment != nil { return }
+            if containerState.isSkipSegmentClickable { return }
 
             let now = CACurrentMediaTime()
             guard now - lastTouchPokeTime > 1.0 else { return }
@@ -885,24 +873,14 @@ extension VideoPlayer {
             // SweetFin : le bouton Lecture/Pause bascule toujours, comme l'app TV d'Apple
             // (❌ upstream : barre masquée, le 1ᵉʳ appui ne faisait que l'afficher). La pause
             // affiche la barre (`PlaybackControls`).
-            switch manager.playbackRequestStatus {
-            case .playing:
-                manager.setPlaybackRequestStatus(status: .paused)
-            case .paused:
-                manager.setPlaybackRequestStatus(status: .playing)
-            }
-
+            manager.togglePlayPause()
             containerState.timer.poke()
         }
 
         private func handleSelectEnded(_ press: UIPress, event: UIPressesEvent?) {
             // SweetFin : barre masquée pendant un générique, le clic le passe.
-            if !containerState.isPresentingOverlay,
-               !containerState.isPresentingPauseScreen,
-               !containerState.isPresentingSupplement,
-               let skipSegment = containerState.skipSegment
-            {
-                skipSegment()
+            if containerState.isSkipSegmentClickable {
+                containerState.skipSegmentRequest.send()
                 return
             }
 
@@ -916,12 +894,7 @@ extension VideoPlayer {
                 containerState.commitScrub()
                 containerState.timer.poke()
             } else if containerState.isProgressBarFocused {
-                switch manager.playbackRequestStatus {
-                case .playing:
-                    manager.setPlaybackRequestStatus(status: .paused)
-                case .paused:
-                    manager.setPlaybackRequestStatus(status: .playing)
-                }
+                manager.togglePlayPause()
                 containerState.timer.poke()
             } else {
                 forwardPressesEnded([press], event: event)

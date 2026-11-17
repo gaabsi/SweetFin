@@ -6,7 +6,6 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Defaults
 import FactoryKit
 import JellyfinAPI
 import SwiftUI
@@ -22,11 +21,6 @@ import SwiftUI
 ///   (`PlaybackProgress`, réutilisée telle quelle) ;
 /// - rien au centre de l'image.
 struct SweetFinPlaybackControls: View {
-
-    @Default(.VideoPlayer.jumpBackwardInterval)
-    private var jumpBackwardInterval
-    @Default(.VideoPlayer.jumpForwardInterval)
-    private var jumpForwardInterval
 
     // Cette vue ignore la zone de sécurité : elle la lit depuis ses parents.
     @Environment(\.safeAreaInsets)
@@ -63,7 +57,7 @@ struct SweetFinPlaybackControls: View {
                 .padding(.trailing, safeAreaInsets.trailing)
                 .padding(.bottom, isPresentingOverlay ? Self.skipButtonOverlayOffset : safeAreaInsets.bottom)
                 .edgePadding()
-                .isVisible(!isScrubbing && !containerState.isPresentingSupplement && !containerState.isPresentingPauseScreen)
+                .isVisible(containerState.isSkipSegmentShown)
 
             // Item pas encore résolu (lecture depuis une tuile), ou VLC qui charge (après un
             // saut, ou coupure réseau en attendant la reprise) : on montre qu'il charge.
@@ -147,7 +141,7 @@ struct SweetFinPlaybackControls: View {
 
             Spacer()
 
-            episodesButton
+            EpisodesButton()
 
             if let playbackItem = manager.playbackItem {
                 SettingsMenu(playbackItem: playbackItem)
@@ -173,57 +167,20 @@ struct SweetFinPlaybackControls: View {
                 QueueButton(queue: queue, direction: .previous)
             }
 
-            if !manager.item.isLiveStream {
-                Button(PlayerStrings.jumpBackward, systemImage: "backward.fill") {
-                    manager.proxy?.jumpBackward(jumpBackwardInterval.rawValue)
-                }
-            }
+            JumpButton(direction: .backward)
 
-            playButton
+            // Le repère de la rangée, et un carré plus large : plus d'air autour, comme le web.
+            PlayPauseButton()
+                .font(.system(size: 24))
+                .frame(width: 60)
 
-            if !manager.item.isLiveStream {
-                Button(PlayerStrings.jumpForward, systemImage: "forward.fill") {
-                    manager.proxy?.jumpForward(jumpForwardInterval.rawValue)
-                }
-            }
+            JumpButton(direction: .forward)
 
             if let queue = manager.queue {
                 QueueButton(queue: queue, direction: .next)
             }
         }
         .font(.system(size: 14))
-    }
-
-    private var playButton: some View {
-        Button {
-            switch manager.playbackRequestStatus {
-            case .playing:
-                manager.setPlaybackRequestStatus(status: .paused)
-            case .paused:
-                manager.setPlaybackRequestStatus(status: .playing)
-            }
-        } label: {
-            switch manager.playbackRequestStatus {
-            case .playing:
-                Label(L10n.pause, systemImage: "pause.fill")
-            case .paused:
-                Label(L10n.play, systemImage: "play.fill")
-            }
-        }
-        // Le repère de la rangée, et un carré plus large : plus d'air autour, comme le web.
-        .font(.system(size: 24))
-        .frame(width: 60)
-    }
-
-    /// La pile : ouvre les épisodes, seul panneau du lecteur iOS (voir
-    /// `MediaPlayerManager.setSupplements`). Absente sans file d'attente (un film).
-    @ViewBuilder
-    private var episodesButton: some View {
-        if let queue = manager.queue {
-            Button(PlayerStrings.episodes, systemImage: "rectangle.stack") {
-                containerState.select(supplement: queue)
-            }
-        }
     }
 
     /// Replie le panneau ouvert s'il y en a un, sinon ferme le lecteur — même règle que

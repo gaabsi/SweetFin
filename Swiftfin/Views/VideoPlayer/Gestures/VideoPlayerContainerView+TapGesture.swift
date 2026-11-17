@@ -15,17 +15,6 @@ import SwiftUI
 
 extension VideoPlayer.UIVideoPlayerContainerViewController {
 
-    func checkGestureLock() -> Bool {
-        if containerState.isGestureLocked {
-            containerState.toastProxy.present(
-                L10n.pressAndHoldToUnlock,
-                systemName: "lock.fill"
-            )
-            return false
-        }
-        return true
-    }
-
     func handleTapGestureInSupplement(
         location: CGPoint,
         unitPoint: UnitPoint,
@@ -46,8 +35,6 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         count: Int
     ) {
         if count == 1 {
-            guard checkGestureLock() else { return }
-
             handleSingleTapGesture(
                 location: location,
                 unitPoint: unitPoint
@@ -152,22 +139,5 @@ extension VideoPlayer.UIVideoPlayerContainerViewController {
         let p2Side = side(of: p2, width: width, midPadding: midPadding)
 
         return (p1Side == p2Side, p1Side)
-    }
-
-    /// SweetFin : l'appui long ne sert plus qu'à déverrouiller les gestes (verrou posé
-    /// par le bouton de la barre).
-    func handleLongPressGesture(
-        location: CGPoint,
-        unitPoint: UnitPoint,
-        state: UILongPressGestureRecognizer.State
-    ) {
-        guard containerState.isGestureLocked, state == .began else { return }
-
-        containerState.isGestureLocked = false
-
-        containerState.toastProxy.present(
-            L10n.gesturesUnlocked,
-            systemName: "lock.open.fill"
-        )
     }
 }
