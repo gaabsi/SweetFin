@@ -72,6 +72,15 @@ struct DownloadedItem: Codable, Identifiable {
     }
 }
 
+extension BaseItemDto {
+
+    /// SweetFin : « E5 · Titre », pour un épisode listé sous sa saison (téléchargements,
+    /// panneau ▤ hors ligne, « Télécharger la suite »).
+    var episodeShortTitle: String {
+        [indexNumber.map { "E\($0)" }, name].compactMap(\.self).joined(separator: " · ")
+    }
+}
+
 /// SweetFin : où en est le téléchargement d'un item.
 enum DownloadState: Equatable {
 

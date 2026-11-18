@@ -228,17 +228,33 @@ private enum DownloadGroup: Identifiable {
     }
 }
 
-/// La bannière d'un téléchargement, film ou série : son fond, son logo (son nom à défaut),
-/// et en bas le contenu de l'appelant (état, résumé, menu). Dans la liste et en en-tête de
-/// la page d'une série.
-struct DownloadBanner<Content: View>: View {
+/// La bannière d'un film ou d'une série : son fond, son logo, et en bas le contenu de
+/// l'appelant (état, résumé, menu). Onglet Téléchargements, page d'une série et feuille
+/// « Télécharger la suite » : fond et logo fournis par l'appelant (images enregistrées ou
+/// du serveur).
+struct DownloadBanner<Backdrop: View, Logo: View, Content: View>: View {
 
-    let title: String
-    let backdrop: UIImage?
-    let logo: UIImage?
     let height: CGFloat
-    @ViewBuilder
-    let content: () -> Content
+    private let backdrop: () -> Backdrop
+    private let logo: () -> Logo
+    private let content: () -> Content
+
+    /// Parametres :
+    /// - height (CGFloat) : hauteur de la bannière
+    /// - backdrop (() -> Backdrop) : le fond, qui remplit la bannière
+    /// - logo (() -> Logo) : le logo, ou le nom à défaut
+    /// - content (() -> Content) : sous le logo
+    init(
+        height: CGFloat,
+        @ViewBuilder backdrop: @escaping () -> Backdrop,
+        @ViewBuilder logo: @escaping () -> Logo,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.height = height
+        self.backdrop = backdrop
+        self.logo = logo
+        self.content = content
+    }
 
     var body: some View {
         // `Color.clear` donne la taille, l'image la remplit sans pousser la mise en page.
@@ -246,13 +262,7 @@ struct DownloadBanner<Content: View>: View {
             .frame(height: height)
             .frame(maxWidth: .infinity)
             .background {
-                if let backdrop {
-                    Image(uiImage: backdrop)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Color.white.opacity(0.06)
-                }
+                backdrop()
             }
             .overlay {
                 // Plus sombre en bas, sous le logo et le texte.
@@ -260,7 +270,8 @@ struct DownloadBanner<Content: View>: View {
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: 8) {
-                    titleView
+                    logo()
+                        .environment(\.bannerLogoMaxHeight, height * 0.35)
                     content()
                 }
                 .foregroundStyle(.white.opacity(0.85))
@@ -268,20 +279,80 @@ struct DownloadBanner<Content: View>: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
     }
+}
 
-    @ViewBuilder
-    private var titleView: some View {
-        if let logo {
-            Image(uiImage: logo)
+extension DownloadBanner where Backdrop == BannerBackdrop, Logo == BannerLogo {
+
+    /// Bannière à partir des images enregistrées avec un téléchargement (sans réseau).
+    ///
+    /// Parametres :
+    /// - title (String) : nom affiché sans logo
+    /// - backdrop (UIImage?) : fond enregistré
+    /// - logo (UIImage?) : logo enregistré
+    /// - height (CGFloat) : hauteur de la bannière
+    /// - content (() -> Content) : sous le logo
+    init(
+        title: String,
+        backdrop: UIImage?,
+        logo: UIImage?,
+        height: CGFloat,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.init(
+            height: height,
+            backdrop: { BannerBackdrop(image: backdrop) },
+            logo: { BannerLogo(image: logo, title: title) },
+            content: content
+        )
+    }
+}
+
+/// Le fond d'une bannière : l'image qui la remplit, un fond neutre à défaut.
+struct BannerBackdrop: View {
+
+    let image: UIImage?
+
+    var body: some View {
+        if let image {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Color.white.opacity(0.06)
+        }
+    }
+}
+
+extension EnvironmentValues {
+
+    /// SweetFin : hauteur maximale du logo d'une bannière (une part de sa hauteur).
+    @Entry
+    var bannerLogoMaxHeight: CGFloat = 52
+}
+
+/// Le logo d'une bannière, son nom à défaut. Seul le logo image est borné (180 pt, part de
+/// la hauteur) : ❌ borné aussi, un nom long passait sur deux lignes réduites.
+struct BannerLogo: View {
+
+    @Environment(\.bannerLogoMaxHeight)
+    private var maxHeight
+
+    let image: UIImage?
+    let title: String
+
+    var body: some View {
+        if let image {
+            Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
-                .frame(maxWidth: 180, maxHeight: height * 0.35, alignment: .leading)
+                .frame(maxWidth: 180, maxHeight: maxHeight, alignment: .leading)
                 .accessibilityLabel(title)
         } else {
             Text(title)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
                 .lineLimit(2)
+                .minimumScaleFactor(0.7)
         }
     }
 }
@@ -371,15 +442,19 @@ struct DownloadMenu: View {
 }
 
 /// Miniature d'un épisode (16:9) lue sur le disque, sans réseau, coche « vu » en bas à
-/// droite ; icône de repli si elle manque.
+/// droite, barre de visionnage en bas si demandée ; icône de repli si elle manque. Page
+/// d'une série et panneau ▤ hors ligne.
 struct EpisodeThumbnail: View {
 
     let image: UIImage?
     let isPlayed: Bool
+    var width: CGFloat = 128
+    /// Part regardée (0-1), dessinée sur la miniature ; `nil` = pas de barre.
+    var progress: Double? = nil
 
     var body: some View {
         Color.clear
-            .frame(width: 128, height: 72)
+            .frame(width: width, height: width * 9 / 16)
             .background {
                 if let image {
                     Image(uiImage: image)
@@ -391,6 +466,13 @@ struct EpisodeThumbnail: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(.white.opacity(0.06))
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if let progress {
+                    ProgressView(value: progress)
+                        .tint(.white)
+                        .padding(6)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))

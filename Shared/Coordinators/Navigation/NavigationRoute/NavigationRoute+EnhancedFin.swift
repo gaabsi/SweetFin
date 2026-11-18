@@ -152,7 +152,7 @@ extension NavigationRoute {
     }
 
     #if os(iOS)
-    /// La suite de la saison en cours à télécharger, voir `SeasonDownloadView`.
+    /// La suite d'une série à télécharger, voir `SeasonDownloadView`.
     static func seasonDownload(series: BaseItemDto) -> NavigationRoute {
         NavigationRoute(id: "seasonDownload-\(series.id ?? "")", style: .sheet) {
             SeasonDownloadView(series: series)

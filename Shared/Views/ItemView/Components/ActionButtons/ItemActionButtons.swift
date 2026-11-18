@@ -235,10 +235,10 @@ extension ItemActionButtons {
                 )
 
                 #if os(iOS)
-                // SweetFin : la suite de la saison en cours d'une série du serveur,
-                // téléchargée d'un coup. La feuille dit ce qui sera lancé.
-                if provider.item.type == .series, !EnhancedFinSyntheticItem.isSynthetic(provider.item.id) {
-                    Button(DownloadStrings.downloadSeason, systemImage: "square.and.arrow.down.on.square") {
+                // SweetFin : la suite de la série (fin de saison, saisons suivantes),
+                // téléchargée d'un coup. La feuille fait choisir les épisodes.
+                if provider.canDownloadSeason {
+                    Button(DownloadStrings.downloadNext, systemImage: "square.and.arrow.down.on.square") {
                         router.route(to: .seasonDownload(series: provider.item))
                     }
                 }

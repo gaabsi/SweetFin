@@ -87,7 +87,6 @@ struct DownloadedSeriesView: View {
     /// - episode (DownloadedItem) : l'épisode téléchargé
     private func episodeRow(_ episode: DownloadedItem) -> some View {
         let state = manager.state(of: episode.id, userID: userID)
-        let title = [episode.item.indexNumber.map { "E\($0)" }, episode.item.name].compactMap(\.self).joined(separator: " · ")
 
         return HStack(alignment: .top, spacing: 12) {
             EpisodeThumbnail(
@@ -96,7 +95,7 @@ struct DownloadedSeriesView: View {
             )
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(title)
+                Text(episode.item.episodeShortTitle)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
 

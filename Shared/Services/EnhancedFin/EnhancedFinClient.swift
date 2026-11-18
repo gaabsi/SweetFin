@@ -136,6 +136,26 @@ final class EnhancedFinClient {
         try await send(Request(path: "media/\(escaped(mediaKey))/seasons/\(season)/playable"))
     }
 
+    /// L'id de l'item d'un épisode lisible : celui que la liste de la saison donnait déjà,
+    /// sinon celui que le serveur rend pour lui (`playable`). Renvoie un id et non un item :
+    /// ce client ne dépend pas de JellyfinAPI.
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé de la série
+    /// - season (Int) : saison
+    /// - episode (Int) : numéro de l'épisode
+    /// - knownID (String?) : item donné par `playableEpisodes`, s'il y en avait un
+    ///
+    /// Output :
+    /// - itemID (String) : l'item à lancer ; erreur s'il n'est plus lisible
+    func playableEpisodeItemID(_ mediaKey: String, season: Int, episode: Int, knownID: String?) async throws -> String {
+        let itemID: String? = if let knownID { knownID } else {
+            try await playable(mediaKey, season: season, episode: episode).itemId
+        }
+        guard let itemID else { throw ErrorMessage(ItemStrings.unavailable) }
+        return itemID
+    }
+
     // MARK: - Personne
 
     /// Filmographie complète d'une personne, sur le serveur ou non.
@@ -174,6 +194,22 @@ final class EnhancedFinClient {
 
     func removeFromWatchlist(_ mediaKey: String) async throws {
         try await send(Request(path: "me/watchlist/\(escaped(mediaKey))", method: .delete))
+    }
+
+    /// Le prochain épisode à voir d'une série (`GET me/next-up/{mediaKey}`), même règle que
+    /// « Continuer de regarder ».
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé de la série
+    ///
+    /// Output :
+    /// - next (EnhancedFinNextUp?) : `nil` si la série est à jour (`404`)
+    func nextUp(_ mediaKey: String) async throws -> EnhancedFinNextUp? {
+        do {
+            return try await send(Request(path: "me/next-up/\(escaped(mediaKey))"))
+        } catch let problem as EnhancedFinProblem where problem.status == 404 {
+            return nil
+        }
     }
 
     // MARK: - Présence

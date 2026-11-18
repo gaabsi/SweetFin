@@ -43,22 +43,22 @@ struct VideoPlayer: View {
             containerState: containerState,
             manager: manager
         ) {
-            // SweetFin : sur tvOS, « Passer » et l'écran de pause se posent sur la vidéo,
-            // plein écran : la couche des commandes s'arrête avant le bas de l'écran.
+            // SweetFin : l'écran de pause (et « Passer » sur tvOS) se pose sur la vidéo, plein
+            // écran : la couche des commandes s'arrête avant le bas de l'écran (place des
+            // onglets du panneau). ❌ Posé sur les commandes, on voyait la vidéo dessous.
             proxy.videoPlayerBody
                 .eraseToAnyView()
             #if os(tvOS)
                 .overlay(alignment: .bottomTrailing) {
                     TVSkipSegmentButton()
                 }
-                .modifier(PauseScreenModifier())
             #endif
+                .modifier(PauseScreenModifier())
         } playbackControls: {
             // SweetFin : l'overlay du fork sur iPhone ; sur tvOS, celui d'upstream, refait
             // sur le modèle de l'iPhone (`PlaybackControls+TransportRow`).
             #if os(iOS)
             SweetFinPlaybackControls()
-                .modifier(PauseScreenModifier())
             #else
             PlaybackControls()
             #endif

@@ -47,8 +47,10 @@ final class DownloadedEpisodeQueue: MediaPlayerQueue {
     lazy var nextItemPublisher: Published<MediaPlayerItemProvider?>.Publisher = $nextItem
     lazy var previousItemPublisher: Published<MediaPlayerItemProvider?>.Publisher = $previousItem
 
-    /// Les épisodes téléchargés de la série, dans l'ordre.
-    let episodes: [DownloadedItem]
+    /// Les épisodes téléchargés de la série, dans l'ordre ; relus à chaque épisode lancé
+    /// (coche « vu » et barre à jour dans le panneau).
+    @Published
+    private(set) var episodes: [DownloadedItem]
     private let userID: String
     private var cancellable: AnyCancellable?
 
@@ -75,6 +77,17 @@ final class DownloadedEpisodeQueue: MediaPlayerQueue {
         Container.shared.downloadManager().playbackProvider(for: episode, userID: userID)
     }
 
+    /// La miniature enregistrée d'un épisode.
+    ///
+    /// Parametres :
+    /// - episode (DownloadedItem) : épisode téléchargé
+    ///
+    /// Output :
+    /// - image (UIImage?) : la miniature, `nil` si elle manque
+    func thumbnail(of episode: DownloadedItem) -> UIImage? {
+        Container.shared.downloadManager().thumbnail(of: episode.id, userID: userID)
+    }
+
     /// Vrai si l'item lu est cet épisode : même id, la lecture locale et la file lisant le
     /// même `item.json`. ❌ Par saison et numéro : deux épisodes spéciaux sans numéro
     /// étaient confondus.
@@ -89,11 +102,23 @@ final class DownloadedEpisodeQueue: MediaPlayerQueue {
         episode.item.id != nil && episode.item.id == item?.id
     }
 
+    /// Relit les fiches : la position notée pendant l'épisode qui vient de finir y est
+    /// recopiée d'abord (pas d'arrêt du lecteur entre deux épisodes enchaînés). ❌ Sans :
+    /// coches et barres du panneau figées à l'ouverture du lecteur.
+    private func refreshEpisodes() {
+        let manager = Container.shared.downloadManager()
+        episodes.forEach { manager.applyLocalProgress(of: $0, userID: userID) }
+
+        let fresh = Dictionary(manager.downloads(of: userID).map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        episodes = episodes.compactMap { fresh[$0.id] }
+    }
+
     /// Recalcule précédent et suivant autour de l'épisode qui démarre.
     ///
     /// Parametres :
     /// - newItem (MediaPlayerItem?) : l'item lancé
     private func didReceive(newItem: MediaPlayerItem?) {
+        refreshEpisodes()
         let index = episodes.firstIndex { Self.isCurrent($0, playing: newItem?.baseItem) }
 
         nextItem = index.flatMap { episodes[safe: $0 + 1] }.map(provider)
@@ -103,44 +128,80 @@ final class DownloadedEpisodeQueue: MediaPlayerQueue {
     }
 }
 
-/// Le panneau ▤ hors ligne : les épisodes téléchargés de la série, l'épisode en cours
-/// coché ; un tap lance l'épisode.
+/// Le panneau ▤ hors ligne, au rendu du panneau en ligne (`EpisodeMediaPlayerQueue`) :
+/// une rangée de cartes 16:9 — miniature enregistrée, coche « vu », barre de visionnage,
+/// « E8 · Titre » dessous —, l'épisode en cours encadré. Un tap lance l'épisode.
+/// ❌ 1ʳᵉ version : une liste de textes collée au bord de l'écran, sans fond ni marges.
 private struct DownloadedEpisodeList: PlatformView {
+
+    private static let cardWidth: CGFloat = 170
+
+    @Environment(\.safeAreaInsets)
+    private var safeAreaInsets
 
     @EnvironmentObject
     private var manager: MediaPlayerManager
 
-    let queue: DownloadedEpisodeQueue
+    @ObservedObject
+    var queue: DownloadedEpisodeQueue
 
     var iOSView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(queue.episodes) { episode in
-                    row(episode)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: EdgeInsets.edgePadding / 2) {
+                    ForEach(queue.episodes) { episode in
+                        card(episode)
+                            .id(episode.id)
+                    }
+                }
+                .padding(.horizontal, max(safeAreaInsets.leading, safeAreaInsets.trailing) + EdgeInsets.edgePadding)
+            }
+            .onAppear {
+                // L'épisode en cours à l'écran, comme en ligne ; un tour plus tard, une fois
+                // la rangée mise en page.
+                guard let id = queue.episodes.first(where: { DownloadedEpisodeQueue.isCurrent($0, playing: manager.item) })?.id else { return }
+                DispatchQueue.main.async {
+                    proxy.scrollTo(id, anchor: .leading)
                 }
             }
         }
-        .foregroundStyle(.white)
     }
 
     var tvOSView: some View {
         EmptyView()
     }
 
-    private func row(_ episode: DownloadedItem) -> some View {
-        Button {
+    /// Une carte : miniature, puis « E8 · Titre ».
+    ///
+    /// Parametres :
+    /// - episode (DownloadedItem) : épisode téléchargé
+    private func card(_ episode: DownloadedItem) -> some View {
+        let isCurrent = DownloadedEpisodeQueue.isCurrent(episode, playing: manager.item)
+
+        return Button {
             manager.playNewItem(provider: queue.provider(for: episode))
         } label: {
-            HStack(spacing: 12) {
-                Text([episode.item.seasonEpisodeLabel, episode.item.displayTitle].compactMap(\.self).joined(separator: " · "))
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                if DownloadedEpisodeQueue.isCurrent(episode, playing: manager.item) {
-                    Image(systemName: "checkmark")
+            VStack(alignment: .leading, spacing: 6) {
+                EpisodeThumbnail(
+                    image: queue.thumbnail(of: episode),
+                    isPlayed: episode.item.userData?.isPlayed == true,
+                    width: Self.cardWidth,
+                    progress: episode.progress
+                )
+                .overlay {
+                    if isCurrent {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(.white, lineWidth: 3)
+                    }
                 }
+
+                Text(episode.item.episodeShortTitle)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
             }
-            .padding(.vertical, 12)
+            .frame(width: Self.cardWidth, alignment: .leading)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)

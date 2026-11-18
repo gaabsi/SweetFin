@@ -25,8 +25,14 @@ enum DownloadStrings {
     static let emptyTitle = String(localized: "No Downloads", table: "SweetFin")
     static let emptyMessage = String(localized: "Open a movie or an episode, then ⋯ → Download. It will stay playable offline.", table: "SweetFin")
 
-    static let downloadSeason = String(localized: "Download Rest of Season", table: "SweetFin")
-    static let nothingToDownload = String(localized: "Nothing to download: you've watched everything, or the rest of the season is already downloaded.", table: "SweetFin")
+    static let downloadNext = String(localized: "Download Next Episodes", table: "SweetFin")
+    static let nothingToDownload = String(localized: "Nothing to download: you've watched everything, or what's next is already downloaded.", table: "SweetFin")
+    static let endOfSeason = String(localized: "End of Season", table: "SweetFin")
+    static let allRemaining = String(localized: "All Remaining", table: "SweetFin")
+
+    static func downloadCount(_ count: Int) -> String {
+        String(localized: "Download (\(count))", table: "SweetFin")
+    }
 
     static func episodeSummary(count: Int, bytes: Int64) -> String {
         String(localized: "\(count) episodes · \(size(bytes))", table: "SweetFin")

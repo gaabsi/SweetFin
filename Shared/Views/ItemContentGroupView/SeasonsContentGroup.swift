@@ -613,10 +613,27 @@ private struct FixedImage: View {
     }
 }
 
-/// SweetFin : un épisode à proposer au téléchargement. Hors médiathèque, `item` ne porte
-/// que l'id de la ligne (rangement) et `resolve` demande au serveur l'item à télécharger.
-struct EpisodeDownload {
+/// SweetFin : un épisode à proposer au téléchargement (feuille des épisodes, « Télécharger
+/// la suite »). Série connue par sa clé : `item` est l'épisode tel que la liste le connaît,
+/// rangé sous `storageID`, et `resolve` demande au serveur l'item à télécharger.
+struct EpisodeDownload: Identifiable {
     let item: BaseItemDto
     let storageID: String?
     let resolve: (() async throws -> BaseItemDto)?
+
+    /// L'identifiant du téléchargement (état, dossier).
+    var id: String {
+        storageID ?? item.id ?? ""
+    }
+
+    /// Taille du fichier, connue seulement pour un épisode de la médiathèque.
+    var size: Int? {
+        item.mediaSources?.first?.size
+    }
+}
+
+/// SweetFin : une saison de « Télécharger la suite » et ses épisodes proposés.
+struct RemainingSeason {
+    let number: Int
+    var episodes: [EpisodeDownload]
 }

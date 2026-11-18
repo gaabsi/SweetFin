@@ -241,6 +241,16 @@
         }
       }
     },
+    "All Remaining": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toute la suite"
+          }
+        }
+      }
+    },
     "Anime": {
       "localizations": {
         "fr": {
@@ -431,6 +441,16 @@
         }
       }
     },
+    "Download (%lld)": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger (%lld)"
+          }
+        }
+      }
+    },
     "Download Failed": {
       "localizations": {
         "fr": {
@@ -441,12 +461,12 @@
         }
       }
     },
-    "Download Rest of Season": {
+    "Download Next Episodes": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Télécharger la suite de la saison"
+            "value": "Télécharger la suite"
           }
         }
       }
@@ -477,6 +497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Téléchargements"
+          }
+        }
+      }
+    },
+    "End of Season": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fin de saison"
           }
         }
       }
@@ -861,22 +891,22 @@
         }
       }
     },
-    "Nothing to download: you've watched everything, or the rest of the season is already downloaded.": {
-      "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rien à télécharger : tu as tout vu, ou la suite de la saison est déjà téléchargée."
-          }
-        }
-      }
-    },
     "Nothing to Explore": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Rien à explorer"
+          }
+        }
+      }
+    },
+    "Nothing to download: you've watched everything, or what's next is already downloaded.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien à télécharger : tu as tout vu, ou la suite est déjà téléchargée."
           }
         }
       }

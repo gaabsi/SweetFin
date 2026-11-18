@@ -231,10 +231,7 @@ final class SeasonEpisodesViewModel: ViewModel, WithRefresh {
 
         let known = playableItemID(for: episode)
         return {
-            let itemID: String? = if let known { known } else {
-                try await client.playable(mediaKey, season: season, episode: number).itemId
-            }
-            guard let itemID else { throw ErrorMessage(ItemStrings.unavailable) }
+            let itemID = try await client.playableEpisodeItemID(mediaKey, season: season, episode: number, knownID: known)
             return BaseItemDto(id: itemID, type: .episode)
         }
     }

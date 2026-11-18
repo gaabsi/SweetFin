@@ -160,6 +160,23 @@ final class DownloadManager: NSObject, ObservableObject {
         image(Self.logoFileName, of: itemID, userID: userID)
     }
 
+    /// Fond et logo enregistrés avec un téléchargement, d'après son fichier média (l'écran
+    /// de pause d'une lecture locale ne connaît que lui). Seulement sous le dossier des
+    /// téléchargements.
+    ///
+    /// Parametres :
+    /// - url (URL) : fichier média en lecture
+    ///
+    /// Output :
+    /// - images ((backdrop: UIImage?, logo: UIImage?)) : `nil` pour ce qui manque
+    func bannerImages(forMediaAt url: URL) -> (backdrop: UIImage?, logo: UIImage?) {
+        let folder = url.deletingLastPathComponent().standardizedFileURL
+        guard folder.path(percentEncoded: false).hasPrefix(root.standardizedFileURL.path(percentEncoded: false)) else { return (nil, nil) }
+
+        let load = { (name: String) in UIImage(contentsOfFile: folder.appending(path: name).path(percentEncoded: false)) }
+        return (load(Self.backdropFileName), load(Self.logoFileName))
+    }
+
     /// Fond d'une série : celui du premier de ses épisodes qui en a un (le premier peut
     /// être encore en préparation).
     ///
@@ -224,10 +241,11 @@ final class DownloadManager: NSObject, ObservableObject {
         let save: (Duration) -> Void = { [weak self] seconds in
             self?.saveOfflineProgress(seconds, itemID: download.id, userID: userID)
         }
-        // Envoi dès l'arrêt ; sans réseau, la position attend le prochain (lancement, retour
-        // du réseau, onglet).
+        // À l'arrêt : la fiche locale d'abord (coche « vu » tout de suite), puis l'envoi ;
+        // sans réseau, la position attend le prochain (lancement, retour du réseau, onglet).
         let sync: () -> Void = { [weak self] in
             Task { @MainActor in
+                self?.applyLocalProgress(of: download, userID: userID)
                 guard !Container.shared.offlineMonitor().isOffline,
                       let session = Container.shared.currentUserSession()
                 else { return }
@@ -368,14 +386,39 @@ final class DownloadManager: NSObject, ObservableObject {
 
         let task = Task {
             let didSync = await syncOfflineProgress(userSession: userSession)
-            await refreshStoredProgress(userSession: userSession)
-            await downloadMissingImages(userSession: userSession)
+            let didRefresh = await refreshStoredProgress(userSession: userSession)
+            let didFetchImages = await downloadMissingImages(userSession: userSession)
+
+            // Le cache n'est pas publié : l'onglet relit les fiches dès qu'une a changé (coche
+            // « vu », position, images). ❌ Seul le rafraîchissement le signalait : un épisode
+            // fini restait sans coche jusqu'à la relance de l'app (vécu le 2026-11-17).
+            if didSync || didRefresh || didFetchImages {
+                objectWillChange.send()
+            }
             return didSync
         }
         syncTask = task
         defer { syncTask = nil }
 
         return await task.value
+    }
+
+    /// Recopie aussitôt dans la fiche la position qui vient d'être notée (et « vu » à 90 %),
+    /// sans attendre le serveur. ❌ Recopiée seulement après l'envoi : la coche « vu »
+    /// apparaissait avec un temps de retard en quittant le lecteur (vécu le 2026-11-18).
+    /// Aussi à chaque épisode enchaîné (`DownloadedEpisodeQueue`), sans arrêt du lecteur.
+    ///
+    /// Parametres :
+    /// - download (DownloadedItem) : le téléchargement lu
+    /// - userID (String) : compte propriétaire du téléchargement
+    @MainActor
+    func applyLocalProgress(of download: DownloadedItem, userID: String) {
+        guard let progress = Self.readProgress(progressFile(of: download.id, userID: userID)) else { return }
+
+        let isPlayed = EnhancedFinProgress.isFinished(positionTicks: progress.positionTicks, durationTicks: download.runtimeTicks ?? 0)
+        if storeProgress(progress.positionTicks, isPlayed: isPlayed, of: download, userID: userID) {
+            objectWillChange.send()
+        }
     }
 
     /// Note la position atteinte en lisant un téléchargement ; écrase la précédente.
@@ -496,8 +539,11 @@ final class DownloadManager: NSObject, ObservableObject {
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
+    ///
+    /// Output :
+    /// - didChange (Bool) : vrai si une fiche a été réécrite
     @MainActor
-    private func refreshStoredProgress(userSession: UserSession) async {
+    private func refreshStoredProgress(userSession: UserSession) async -> Bool {
         let userID = userSession.user.id
         let waiting = downloads(of: userID).filter {
             state(of: $0.id, userID: userID) == .done && Self.readProgress(progressFile(of: $0.id, userID: userID)) == nil
@@ -505,11 +551,7 @@ final class DownloadManager: NSObject, ObservableObject {
 
         let pluginChanged = await refreshPluginProgress(waiting.filter(\.isOutsideLibrary), userSession: userSession)
         let libraryChanged = await refreshLibraryProgress(waiting.filter { !$0.isOutsideLibrary }, userSession: userSession)
-
-        // Le cache n'est pas publié : l'onglet relit les fiches (coche « vu »).
-        if pluginChanged || libraryChanged {
-            objectWillChange.send()
-        }
+        return pluginChanged || libraryChanged
     }
 
     /// Recopie la position que le plugin connaît pour les téléchargements hors médiathèque :
@@ -601,9 +643,9 @@ final class DownloadManager: NSObject, ObservableObject {
         let key = Self.key(userID, itemID)
         let folder = folder(key)
 
-        // Visible tout de suite (onglet, menu) : le serveur peut mettre plus que le délai
-        // d'une requête à rendre la fiche complète. ❌ Avant : rien d'affiché tant qu'elle
-        // n'était pas là, et rien du tout si elle expirait (vécu le 2026-11-16).
+        // Visible tout de suite (onglet, menu), avant la fiche complète. ❌ Avant : rien
+        // d'affiché tant qu'elle n'était pas là, et rien du tout si sa requête échouait
+        // (vécu le 2026-11-16).
         let attempt = UUID()
         preparations[key] = attempt
         states[key] = .preparing
@@ -635,14 +677,16 @@ final class DownloadManager: NSObject, ObservableObject {
               let source = fullItem.mediaSources?.first(where: { $0.id == fileID }) ?? fullItem.mediaSources?.first,
               let url = userSession.client.url(path: "/Items/\(fileID)/Download")
         else {
-            remove(itemID: itemID, userID: userID)
+            states[key] = .failed
             throw DownloadError.missingSource
         }
 
+        // Pas de place : en échec, à supprimer ou réessayer. ❌ Retiré : dans une file
+        // (« Télécharger la suite »), l'épisode disparaissait sans un mot.
         do {
             try checkSpace(needed: source.size.map(Int64.init))
         } catch {
-            remove(itemID: itemID, userID: userID)
+            states[key] = .failed
             throw error
         }
 
@@ -669,34 +713,145 @@ final class DownloadManager: NSObject, ObservableObject {
         }
     }
 
-    /// Les épisodes qu'il reste à voir dans la saison en cours : de l'épisode « à
-    /// suivre » (Next Up, S1E1 si rien n'est commencé) jusqu'à la fin de sa saison.
-    /// Vide si la série est finie.
+    /// Les épisodes qu'il reste à voir, à télécharger, **saison par saison** : de l'épisode
+    /// « à suivre » (S1E1 si rien n'est commencé) jusqu'à la fin de la série. Chaque saison
+    /// arrive dès qu'elle est prête : la feuille se remplit au fur et à mesure.
+    ///
+    /// Série de la médiathèque : Jellyfin (Next Up, puis tous les épisodes téléchargeables).
+    /// Série connue par sa clé : le plugin (`me/next-up`, puis épisodes diffusés et
+    /// lisibles), une requête par saison. Les épisodes spéciaux (saison 0) ne sont pas
+    /// proposés, sauf l'épisode à suivre lui-même.
+    ///
+    /// Parametres :
+    /// - series (BaseItemDto) : la série
+    /// - userSession (UserSession) : compte connecté
+    ///
+    /// Output :
+    /// - seasons (AsyncThrowingStream<RemainingSeason, Error>) : une saison par élément,
+    ///   dans l'ordre, la 1ʳᵉ étant celle de l'épisode à suivre ; rien si la série est finie
+    func remainingEpisodes(of series: BaseItemDto, userSession: UserSession) -> AsyncThrowingStream<RemainingSeason, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    if let mediaKey = EnhancedFinSyntheticItem.mediaKey(from: series.id) {
+                        try await yieldRemainingEpisodes(ofSeriesKey: mediaKey, title: series.name, userSession: userSession, to: continuation)
+                    } else {
+                        try await yieldRemainingLibraryEpisodes(of: series, userSession: userSession, to: continuation)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// La suite d'une série de la médiathèque (Next Up, puis tous ses épisodes), rendue
+    /// saison par saison.
     ///
     /// Parametres :
     /// - series (BaseItemDto) : série du serveur
     /// - userSession (UserSession) : compte connecté
-    ///
-    /// Output :
-    /// - episodes ([BaseItemDto]) : épisodes dans l'ordre, avec leurs sources (tailles)
-    func remainingEpisodes(of series: BaseItemDto, userSession: UserSession) async throws -> [BaseItemDto] {
-        guard let seriesID = series.id else { return [] }
+    /// - continuation (AsyncThrowingStream<RemainingSeason, Error>.Continuation) : où
+    ///   rendre chaque saison
+    private func yieldRemainingLibraryEpisodes(
+        of series: BaseItemDto,
+        userSession: UserSession,
+        to continuation: AsyncThrowingStream<RemainingSeason, Error>.Continuation
+    ) async throws {
+        guard let seriesID = series.id else { return }
 
         var nextUpParameters = Paths.GetNextUpParameters()
         nextUpParameters.userID = userSession.user.id
         nextUpParameters.seriesID = seriesID
         let nextUp = try await userSession.client.send(Paths.getNextUp(parameters: nextUpParameters)).value.items?.first
-
-        guard let nextUpID = nextUp?.id, let seasonID = nextUp?.seasonID else { return [] }
+        guard let nextUpID = nextUp?.id else { return }
 
         var parameters = Paths.GetEpisodesParameters()
         parameters.userID = userSession.user.id
-        parameters.seasonID = seasonID
         parameters.isMissing = false
         parameters.fields = [.mediaSources, .canDownload]
         let episodes = try await userSession.client.send(Paths.getEpisodes(seriesID: seriesID, parameters: parameters)).value.items ?? []
 
-        return Array(episodes.drop { $0.id != nextUpID })
+        let remaining = episodes
+            .drop { $0.id != nextUpID }
+            .filter { $0.canBeDownloaded && ($0.parentIndexNumber != 0 || $0.id == nextUpID) }
+
+        // La liste suit l'ordre de la série : une saison = une suite d'épisodes consécutifs.
+        var seasons: [RemainingSeason] = []
+        for episode in remaining {
+            let number = episode.parentIndexNumber ?? 0
+            let download = EpisodeDownload(item: episode, storageID: nil, resolve: nil)
+            if seasons.last?.number == number {
+                seasons[seasons.count - 1].episodes.append(download)
+            } else {
+                seasons.append(RemainingSeason(number: number, episodes: [download]))
+            }
+        }
+        seasons.forEach { continuation.yield($0) }
+    }
+
+    /// La suite d'une série connue par sa clé, une saison à la fois : épisodes diffusés,
+    /// que le serveur sait lire, rangés sous l'id de leur ligne (comme la feuille des
+    /// épisodes : mêmes téléchargements, sans doublon). Le plugin ne désigne jamais un
+    /// épisode spécial comme « à suivre » : la saison 0 n'est jamais proposée.
+    ///
+    /// Parametres :
+    /// - mediaKey (String) : clé de la série
+    /// - title (String?) : nom de la série
+    /// - userSession (UserSession) : compte connecté
+    /// - continuation (AsyncThrowingStream<RemainingSeason, Error>.Continuation) : où
+    ///   rendre chaque saison
+    private func yieldRemainingEpisodes(
+        ofSeriesKey mediaKey: String,
+        title: String?,
+        userSession: UserSession,
+        to continuation: AsyncThrowingStream<RemainingSeason, Error>.Continuation
+    ) async throws {
+        guard let plugin = userSession.enhancedFinClient,
+              let next = try await plugin.nextUp(mediaKey)
+        else { return }
+
+        let seasons = try await plugin.seasons(mediaKey)
+            .map(\.number)
+            .filter { $0 >= next.season }
+            .sorted()
+
+        for season in seasons {
+            try Task.checkCancellation()
+            async let detail = plugin.season(mediaKey, number: season)
+            async let playable = plugin.playableEpisodes(mediaKey, season: season)
+            // Présent dans la liste = lisible ; son item est demandé au serveur (`playable`)
+            // au téléchargement s'il n'y est pas. ❌ Les épisodes sans item étaient écartés :
+            // « rien à télécharger ».
+            let playableEpisodes = try await Dictionary(
+                playable.episodes.map { ($0.episode, $0) },
+                uniquingKeysWith: { first, _ in first }
+            )
+
+            let episodes = try await detail.episodes
+                .filter { (season > next.season || $0.number >= next.episode) && $0.isAired }
+                .sorted { $0.number < $1.number }
+                .compactMap { episode -> EpisodeDownload? in
+                    guard let playable = playableEpisodes[episode.number] else { return nil }
+
+                    let item = EnhancedFinSyntheticItem.makeEpisode(
+                        mediaKey: mediaKey,
+                        seriesTitle: title,
+                        season: season,
+                        episode: episode.number,
+                        name: episode.name,
+                        stillURL: episode.stillUrl,
+                        runtimeMinutes: episode.runtime
+                    )
+                    return EpisodeDownload(item: item, storageID: item.id) {
+                        let itemID = try await plugin.playableEpisodeItemID(mediaKey, season: season, episode: episode.number, knownID: playable.itemId)
+                        return BaseItemDto(id: itemID, type: .episode)
+                    }
+                }
+            continuation.yield(RemainingSeason(number: season, episodes: episodes))
+        }
     }
 
     /// Fiche provisoire, tant que la fiche complète n'est pas arrivée : le téléchargement
@@ -724,9 +879,7 @@ final class DownloadManager: NSObject, ObservableObject {
         cachedDownloads[userID] = nil
     }
 
-    /// La fiche complète, avec 2 nouveaux essais si le serveur tarde : il peut mettre plus
-    /// que le délai d'une requête (20 s) à la rendre, et continue pendant ce temps — le
-    /// nouvel essai la trouve en général prête.
+    /// La fiche complète, avec 2 nouveaux essais si la requête dépasse son délai (20 s).
     ///
     /// Parametres :
     /// - item (BaseItemDto) : l'item à recharger
@@ -745,27 +898,33 @@ final class DownloadManager: NSObject, ObservableObject {
         }
     }
 
-    /// Lance plusieurs épisodes d'un coup, en sautant ceux déjà téléchargés ou en
-    /// cours. L'espace est vérifié pour le **total** avant de lancer quoi que ce soit.
+    /// Lance plusieurs épisodes d'un coup, en sautant ceux déjà téléchargés ou en cours :
+    /// tous affichés aussitôt (« Préparation… »), puis lancés **un par un**, en
+    /// arrière-plan. ❌ Tous ensemble, des requêtes dépassaient leur délai (vécu le
+    /// 2026-11-16). Un épisode annulé avant son tour est sauté ; un échec (réseau, place)
+    /// reste affiché dans l'onglet. L'espace est vérifié pour le total connu avant de
+    /// lancer quoi que ce soit.
     ///
     /// Parametres :
-    /// - episodes ([BaseItemDto]) : épisodes à télécharger, avec leurs sources
+    /// - episodes ([EpisodeDownload]) : épisodes à télécharger, dans l'ordre
     /// - userSession (UserSession) : compte connecté
     @MainActor
-    func start(_ episodes: [BaseItemDto], userSession: UserSession) async throws {
-        let pending = episodes.filter { state(of: $0.id ?? "", userID: userSession.user.id) == .none }
-        try checkSpace(needed: pending.compactMap { $0.mediaSources?.first?.size }.reduce(0) { $0 + Int64($1) })
+    func start(_ episodes: [EpisodeDownload], userSession: UserSession) throws {
+        let userID = userSession.user.id
+        let pending = episodes.filter { state(of: $0.id, userID: userID) == .none }
+        try checkSpace(needed: pending.compactMap(\.size).reduce(0) { $0 + Int64($1) })
 
-        // Un épisode qui échoue n'arrête pas les suivants ; la 1ʳᵉ erreur est remontée.
-        var firstError: Error?
         for episode in pending {
-            do {
-                try await start(episode, userSession: userSession)
-            } catch {
-                firstError = firstError ?? error
+            let key = Self.key(userID, episode.id)
+            states[key] = .preparing
+            writeProvisional(episode.item, storageID: episode.storageID, into: folder(key), userID: userID)
+        }
+
+        Task {
+            for episode in pending where state(of: episode.id, userID: userID) == .preparing {
+                try? await start(episode.item, userSession: userSession, storageID: episode.storageID, resolve: episode.resolve)
             }
         }
-        if let firstError { throw firstError }
     }
 
     /// Retire un téléchargement, en cours ou terminé : la tâche est annulée et le dossier
@@ -946,8 +1105,11 @@ final class DownloadManager: NSObject, ObservableObject {
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
+    ///
+    /// Output :
+    /// - didFetch (Bool) : vrai si des images ont été demandées
     @MainActor
-    private func downloadMissingImages(userSession: UserSession) async {
+    private func downloadMissingImages(userSession: UserSession) async -> Bool {
         let userID = userSession.user.id
         let missing = downloads(of: userID).filter { download in
             let folder = folder(Self.key(userID, download.id))
@@ -956,13 +1118,13 @@ final class DownloadManager: NSObject, ObservableObject {
             }
             return state(of: download.id, userID: userID) == .done && !hasImage
         }
-        guard missing.isNotEmpty else { return }
+        guard missing.isNotEmpty else { return false }
 
         for download in missing {
             await downloadImages(of: download, into: folder(Self.key(userID, download.id)), userSession: userSession)
         }
         imageCache.removeAllObjects()
-        objectWillChange.send()
+        return true
     }
 
     private func folder(_ key: String) -> URL {

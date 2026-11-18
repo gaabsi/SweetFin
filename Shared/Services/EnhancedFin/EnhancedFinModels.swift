@@ -22,6 +22,13 @@ struct EnhancedFinList<Item: Decodable>: Decodable {
 
 // MARK: - Progression
 
+/// Le prochain épisode à voir d'une série — `GET /me/next-up/{mediaKey}`.
+struct EnhancedFinNextUp: Decodable {
+
+    let season: Int
+    let episode: Int
+}
+
 /// La position d'un épisode (ou d'un film : `0`/`0`) — `GET /me/progress/{mediaKey}`.
 struct EnhancedFinProgress: Decodable {
 

@@ -6,6 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
+import FactoryKit
 import JellyfinAPI
 import SwiftUI
 
@@ -13,11 +14,13 @@ import SwiftUI
 ///
 /// Présenté par `PauseScreenModifier` après un temps de pause. Fond assombri, logo,
 /// année et durée, synopsis, puis la progression :
-/// « 0:26 / 22:31 • 2 % regardé • Se termine à 22:00 ». iPhone : un tap n'importe où,
-/// ou `×`, le ferme. tvOS : n'importe quelle touche (elle rappelle l'overlay).
+/// « 0:26 / 22:31 • 2 % regardé • Se termine à 22:00 ». Posé sous les commandes (sur la
+/// vidéo) : iPhone, un tap n'importe où le ferme (le geste du conteneur rappelle
+/// l'overlay, `×` n'est qu'un repère) ; tvOS, n'importe quelle touche.
 ///
 /// Pour un épisode, fond et logo sont ceux de la **série** : un épisode n'a
-/// généralement ni l'un ni l'autre.
+/// généralement ni l'un ni l'autre. Lecture d'un téléchargement : ceux enregistrés avec
+/// lui (`DownloadManager.bannerImages`), sans réseau.
 struct SweetFinPauseScreen: View {
 
     @Environment(\.safeAreaInsets)
@@ -26,11 +29,16 @@ struct SweetFinPauseScreen: View {
     @EnvironmentObject
     private var manager: MediaPlayerManager
 
-    let onClose: () -> Void
-
     private var item: BaseItemDto {
         manager.item
     }
+
+    /// Fond et logo d'un téléchargement en lecture (`PauseScreenModifier`), `nil` en
+    /// streaming.
+    let localImages: (backdrop: UIImage?, logo: UIImage?)?
+
+    /// Synopsis : court sur iPhone, l'écran est petit.
+    private static let overviewLineLimit = UIDevice.isTV ? 6 : 3
 
     /// Largeur du logo : plus grand sur la TV, vue de loin.
     private static let logoWidth: CGFloat = UIDevice.isTV ? 640 : 320
@@ -52,8 +60,7 @@ struct SweetFinPauseScreen: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
             #if os(iOS)
-            Button(L10n.close, systemImage: "xmark", action: onClose)
-                .labelStyle(.iconOnly)
+            Image(systemName: "xmark")
                 .font(.title3)
                 .frame(width: 44, height: 44)
                 .overlay {
@@ -62,16 +69,13 @@ struct SweetFinPauseScreen: View {
                 }
                 .padding(.top, safeAreaInsets.top + EdgeInsets.edgePadding)
                 .padding(.trailing, safeAreaInsets.trailing + EdgeInsets.edgePadding)
+                .accessibilityHidden(true)
             #endif
         }
         .foregroundStyle(.white)
         .background {
             backdrop
         }
-        #if os(iOS)
-        .contentShape(.rect)
-        .onTapGesture(perform: onClose)
-        #endif
         .colorScheme(.dark)
     }
 
@@ -95,7 +99,7 @@ struct SweetFinPauseScreen: View {
             if let overview = item.overview {
                 Text(overview)
                     .font(.body)
-                    .lineLimit(6)
+                    .lineLimit(Self.overviewLineLimit)
             }
 
             // Direct, ou média sans durée : pas de progression (« 0:00 · 0 % regardé »).
@@ -137,7 +141,20 @@ struct SweetFinPauseScreen: View {
     ///
     /// ⚠️ Redimensionné explicitement, comme dans `MediaBarView` : `ImageView` n'a pas
     /// de ratio propre, et un logo large sortirait du cadre.
+    @ViewBuilder
     private var logo: some View {
+        if let image = localImages?.logo {
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: Self.logoWidth, maxHeight: Self.logoWidth * 0.28, alignment: .leading)
+                .accessibilityLabel(item.seriesName ?? item.displayTitle)
+        } else {
+            serverLogo
+        }
+    }
+
+    private var serverLogo: some View {
         ImageView(Self.sources(of: item, .logo, parentID: item.parentLogoItemID, parentTag: item.parentLogoImageTag))
             .image { image in
                 Image(uiImage: image)
@@ -156,7 +173,32 @@ struct SweetFinPauseScreen: View {
             .accessibilityLabel(item.seriesName ?? item.displayTitle)
     }
 
+    @ViewBuilder
+    private var backdropImage: some View {
+        if let image = localImages?.backdrop {
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } else {
+            serverBackdrop
+        }
+    }
+
     private var backdrop: some View {
+        backdropImage
+            .overlay {
+                // Plus sombre à gauche, sous le texte, comme le web.
+                LinearGradient(
+                    colors: [.black.opacity(0.85), .black.opacity(0.5)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
+    }
+
+    private var serverBackdrop: some View {
         ImageView(
             Self.sources(
                 of: item,
@@ -173,16 +215,6 @@ struct SweetFinPauseScreen: View {
         .failure {
             Color.black
         }
-        .overlay {
-            // Plus sombre à gauche, sous le texte, comme le web.
-            LinearGradient(
-                colors: [.black.opacity(0.85), .black.opacity(0.5)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        }
-        .ignoresSafeArea()
-        .accessibilityHidden(true)
     }
 
     /// Les sources d'une image : celle du parent (la série d'un épisode) d'abord, puis
@@ -227,13 +259,22 @@ struct PauseScreenModifier: ViewModifier {
     /// est à 5 s).
     private static let delay: Duration = .seconds(15)
 
+    /// Fond et logo d'un téléchargement, lus juste avant de présenter l'écran. ❌ Lus à son
+    /// apparition : le 1ᵉʳ rendu demandait les images au serveur, même sans réseau.
+    @State
+    private var localImages: (backdrop: UIImage?, logo: UIImage?)?
+
     func body(content: Content) -> some View {
         content
             .overlay {
                 if containerState.isPresentingPauseScreen {
-                    // Le fermer rappelle l'overlay, toujours en pause (`isPresentingOverlay`
-                    // retire l'écran de pause).
-                    SweetFinPauseScreen { containerState.isPresentingOverlay = true }
+                    // Le fermer (un tap, via le geste du conteneur ; une touche sur tvOS ;
+                    // « échap » de VoiceOver) rappelle l'overlay, toujours en pause
+                    // (`isPresentingOverlay` retire l'écran de pause).
+                    SweetFinPauseScreen(localImages: localImages)
+                        .accessibilityAction(.escape) {
+                            containerState.isPresentingOverlay = true
+                        }
                         .transition(.opacity)
                 }
             }
@@ -261,7 +302,24 @@ struct PauseScreenModifier: ViewModifier {
               containerState.containerView?.presentedViewController == nil
         else { return }
 
+        localImages = Self.localImages(of: manager.playbackItem)
         containerState.isPresentingOverlay = false
         containerState.isPresentingPauseScreen = true
+    }
+
+    /// Fond et logo enregistrés avec un téléchargement.
+    ///
+    /// Parametres :
+    /// - playbackItem (MediaPlayerItem?) : l'item en lecture
+    ///
+    /// Output :
+    /// - images ((backdrop: UIImage?, logo: UIImage?)?) : `nil` en streaming (ou sur tvOS)
+    private static func localImages(of playbackItem: MediaPlayerItem?) -> (backdrop: UIImage?, logo: UIImage?)? {
+        #if os(iOS)
+        guard let url = playbackItem?.url, url.isFileURL else { return nil }
+        return Container.shared.downloadManager().bannerImages(forMediaAt: url)
+        #else
+        return nil
+        #endif
     }
 }

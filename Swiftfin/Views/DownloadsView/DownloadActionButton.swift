@@ -43,6 +43,21 @@ extension ItemContentGroupProvider {
     }
 }
 
+extension ItemContentGroupProvider {
+
+    /// SweetFin : « Télécharger la suite » est proposé pour une série, compte
+    /// autorisé à télécharger : de la médiathèque, ou connue par sa clé **si le serveur sait
+    /// la lire** (`mediaPlayerItemProvider`). Sinon rien à télécharger : pas de bouton, en
+    /// particulier sur un serveur qui n'a pas ce contenu.
+    var canDownloadSeason: Bool {
+        guard item.type == .series,
+              Container.shared.currentUserSession()?.user.data.policy?.enableContentDownloading == true
+        else { return false }
+
+        return !EnhancedFinSyntheticItem.isSynthetic(item.id) || mediaPlayerItemProvider != nil
+    }
+}
+
 /// SweetFin : télécharger un item pour le lire hors connexion, depuis n'importe quel
 /// menu (« ⋯ » de la fiche, appui long sur un épisode ou une affiche).
 ///
@@ -108,9 +123,8 @@ struct DownloadButton: View {
         }
     }
 
-    /// Lance le téléchargement ; une erreur s'affiche en toast. Espace insuffisant ou
-    /// source absente : rien n'est gardé. Serveur trop lent : il reste en échec, à
-    /// réessayer.
+    /// Lance le téléchargement ; une erreur s'affiche en toast, et il reste en échec dans
+    /// l'onglet, à réessayer ou supprimer.
     ///
     /// Parametres :
     /// - userSession (UserSession) : compte connecté
