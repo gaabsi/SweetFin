@@ -461,6 +461,13 @@ struct EnhancedFinMedia: Decodable, Hashable {
     /// Film ou série, seulement si Seerr a répondu.
     let seerr: EnhancedFinSeerr?
 
+    /// SweetFin : demandes Seerr **coupées** dans l'app pour la 1.1 (choix du fork,
+    /// 2026-11-19 : prudence après le refus 5.2.3 « catalogs and discovery services »).
+    /// Le seul point d'entrée, « Demander sur Seerr » (menu ⋯ d'une fiche), disparaît ; le
+    /// reste est gardé. Passer à `true` pour les réactiver (et le dire dans les notes de
+    /// review : règle 2.3.1, pas de fonction cachée).
+    static let isSeerrRequestEnabled = false
+
     /// SweetFin : « Demander sur Seerr » a un sens pour ce média.
     ///
     /// `isNative` : la fiche est un item du serveur, pas une fiche de découverte. Le
@@ -473,9 +480,10 @@ struct EnhancedFinMedia: Decodable, Hashable {
     ///   fenêtre de demande grise ensuite, saison par saison, le déjà demandé ;
     /// - film de découverte : seulement s'il n'est ni demandé, ni en cours, ni disponible.
     ///
-    /// Faux si Seerr n'a pas répondu : pas de proposition à tort.
+    /// Faux si Seerr n'a pas répondu : pas de proposition à tort, ni si les demandes sont
+    /// coupées (`isSeerrRequestEnabled`).
     func canRequestOnSeerr(isNative: Bool) -> Bool {
-        guard let seerr else { return false }
+        guard Self.isSeerrRequestEnabled, let seerr else { return false }
 
         if mediaType == EnhancedFinMediaType.tv.rawValue {
             return isNative
